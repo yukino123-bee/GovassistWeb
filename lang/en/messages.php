@@ -96,6 +96,16 @@ return [
     'voice_listen' => 'Listening...',
     'voice_error' => 'Voice recognition failed. Please try again or type your query.',
 
+    // Manual Inquiry Form
+    'contact_admin' => 'Contact Admin Directly',
+    'contact_admin_desc' => 'Use this form to send a manual inquiry directly to our administrators. We will reply via the system or email.',
+    'your_name' => 'Your Name',
+    'your_email' => 'Your Email',
+    'related_program' => 'Related Program (Optional)',
+    'general_inquiry' => 'General Inquiry',
+    'your_message' => 'Your Message',
+    'send_inquiry' => 'Send Inquiry',
+
     // Confirmations
     'confirm_title' => 'Confirm Action',
     'confirm_logout' => 'Are you sure you want to log out?',

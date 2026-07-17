@@ -12,13 +12,13 @@
         <div class="border-b border-slate-200 pb-3">
             <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                Contact Admin Directly
+                {{ __('messages.contact_admin') }}
             </h3>
         </div>
 
         <div class="bg-white border border-slate-200 p-5 shadow-sm flex-grow overflow-y-auto">
             <p class="text-[11px] text-slate-500 leading-relaxed mb-4">
-                Use this form to send a manual inquiry directly to our administrators. We will reply via the system or email.
+                {{ __('messages.contact_admin_desc') }}
             </p>
             
             <form action="{{ route('citizen.inquiry.manual') }}" method="POST" class="space-y-4">
@@ -26,32 +26,35 @@
                 
                 @guest
                     <div class="space-y-1.5">
-                        <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Name</label>
+                        <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_name') }}</label>
                         <input type="text" name="guest_name" id="guest_name" placeholder="Juan Dela Cruz" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
                     </div>
                     <div class="space-y-1.5">
-                        <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Email</label>
+                        <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_email') }}</label>
                         <input type="email" name="guest_email" id="guest_email" placeholder="juan@example.com" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
                     </div>
                 @endguest
 
                 <div class="space-y-1.5">
-                    <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Related Program (Optional)</label>
+                    <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.related_program') }}</label>
                     <select name="service_id" id="service_id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800">
-                        <option value="">General Inquiry</option>
+                        <option value="">{{ __('messages.general_inquiry') }}</option>
                         @foreach($services as $svc)
-                            <option value="{{ $svc->id }}">{{ $svc->service_name }}</option>
+                            @php
+                                $svcName = app()->getLocale() === 'ceb' ? $svc->name_ceb : (app()->getLocale() === 'fil' ? ($svc->name_fil ?? $svc->name_en) : $svc->name_en);
+                            @endphp
+                            <option value="{{ $svc->id }}">{{ $svcName ?: $svc->service_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="space-y-1.5">
-                    <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Message</label>
-                    <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="How can we help you today?" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
+                    <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_message') }}</label>
+                    <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
                 </div>
 
                 <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] shadow-sm transition-all active:scale-[0.98]">
-                    Send Inquiry
+                    {{ __('messages.send_inquiry') }}
                 </button>
             </form>
         </div>

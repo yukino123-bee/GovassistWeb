@@ -96,6 +96,16 @@ return [
     'voice_listen' => 'Naminaw...',
     'voice_error' => 'Napakyas ang pag-ila sa tingog. Palihug sulayi pag-usab o i-type ang imong pangutana.',
 
+    // Manual Inquiry Form
+    'contact_admin' => 'Direktang Kontaka ang Admin',
+    'contact_admin_desc' => 'Gamita kini nga porma aron magpadala og manual nga pangutana direkta sa among mga tagdumala. Kami motubag pinaagi sa sistema o email.',
+    'your_name' => 'Imong Pangalan',
+    'your_email' => 'Imong Email',
+    'related_program' => 'Kalabot nga Programa (Opsiyonal)',
+    'general_inquiry' => 'Kinatibuk-ang Pangutana',
+    'your_message' => 'Imong Mensahe',
+    'send_inquiry' => 'Ipadala ang Pangutana',
+
     // Confirmations
     'confirm_title' => 'Kumpirmaha ang Aksyon',
     'confirm_logout' => 'Sigurado ka ba nga gusto nimo mo-logout?',

@@ -96,6 +96,16 @@ return [
     'voice_listen' => 'Nakikinig...',
     'voice_error' => 'Nabigo ang voice recognition. Mangyaring subukan muli o i-type ang iyong tanong.',
 
+    // Manual Inquiry Form
+    'contact_admin' => 'Direktang Makipag-ugnayan sa Admin',
+    'contact_admin_desc' => 'Gamitin ang form na ito para magpadala ng direktang katanungan sa aming mga administrador. Kami ay sasagot gamit ang sistema o email.',
+    'your_name' => 'Ang Iyong Pangalan',
+    'your_email' => 'Ang Iyong Email',
+    'related_program' => 'Kaugnay na Programa (Opsyonal)',
+    'general_inquiry' => 'Pangkalahatang Katanungan',
+    'your_message' => 'Ang Iyong Mensahe',
+    'send_inquiry' => 'Ipadala ang Mensahe',
+
     // Confirmations
     'confirm_title' => 'Kumpirmahin ang Aksyon',
     'confirm_logout' => 'Sigurado ka bang gusto mong mag-logout?',
