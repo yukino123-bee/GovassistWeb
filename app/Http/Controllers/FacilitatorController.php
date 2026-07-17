@@ -574,7 +574,7 @@ class FacilitatorController extends Controller
     {
         $scriptPath = base_path('scripts/govbot_ai.py');
         // We pass the inquiry text to the script
-        $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($inquiry->subject.' '.$inquiry->message).' en';
+        $command = 'python3 '.escapeshellarg($scriptPath).' --message '.escapeshellarg($inquiry->subject.' '.$inquiry->message).' --lang en';
         $output = shell_exec($command);
 
         $response = 'I am unable to generate a draft right now.';

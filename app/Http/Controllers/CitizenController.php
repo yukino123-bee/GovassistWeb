@@ -411,8 +411,12 @@ class CitizenController extends Controller
             }
         }
 
-        return $lang === 'ceb'
-            ? 'Pasayloa, wala ko kasabot sa imong pangutana. Mahimo ka mangutana bahin sa mga programa sa: **Edukasyon, Medikal, Pagpalubong, Transportasyon, o Trabaho**, ug ang ilang mga kinahanglanon.'
-            : "I'm sorry, I didn't quite understand your query. You can ask about our programs: **Educational, Medical, Burial, Transportation, or Employment** assistance, and their required documents.";
+        if ($lang === 'ceb') {
+            return 'Pasayloa, wala ko kasabot sa imong pangutana. Mahimo ka mangutana bahin sa mga programa sa: **Edukasyon, Medikal, Pagpalubong, Transportasyon, o Trabaho**, ug ang ilang mga kinahanglanon.';
+        } elseif ($lang === 'sub') {
+            return 'Pasensya, daa nako nasabtan inyo pangutana. Pwede niyo pangutan-on ang mga programa sa: **Edukasyon, Medikal, Palubong, Pamasahe, o Trabaho**.';
+        }
+        
+        return "I'm sorry, I didn't quite understand your query. You can ask about our programs: **Educational, Medical, Burial, Transportation, or Employment** assistance, and their required documents.";
     }
 }
