@@ -61,6 +61,7 @@
                         <button type="button" onclick="confirmLanguage('en')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'en' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">EN</button>
                         <button type="button" onclick="confirmLanguage('ceb')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'ceb' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">CEB</button>
                         <button type="button" onclick="confirmLanguage('fil')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'fil' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">FIL</button>
+                        <button type="button" onclick="confirmLanguage('sub')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'sub' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">SUB</button>
                     </div>
 
                     @auth

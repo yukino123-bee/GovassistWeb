@@ -162,6 +162,7 @@
                         <button type="button" onclick="confirmLanguage('en')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'en' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">EN</button>
                         <button type="button" onclick="confirmLanguage('ceb')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'ceb' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">CEB</button>
                         <button type="button" onclick="confirmLanguage('fil')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'fil' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">FIL</button>
+                        <button type="button" onclick="confirmLanguage('sub')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'sub' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">SUB</button>
                     </div>
                 </div>
 
