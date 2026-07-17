@@ -309,6 +309,32 @@ class CitizenController extends Controller
         ]);
     }
 
+    public function submitManualInquiry(Request $request)
+    {
+        $rules = [
+            'inquiry_text' => ['required', 'string'],
+            'service_id' => ['nullable', 'exists:government_services,id'],
+        ];
+
+        if (!Auth::check()) {
+            $rules['guest_name'] = ['required', 'string', 'max:255'];
+            $rules['guest_email'] = ['required', 'email', 'max:255'];
+        }
+
+        $request->validate($rules);
+
+        UserInquiry::create([
+            'user_id' => Auth::check() ? Auth::id() : null,
+            'guest_name' => $request->input('guest_name'),
+            'guest_email' => $request->input('guest_email'),
+            'service_id' => $request->input('service_id'),
+            'inquiry_text' => $request->input('inquiry_text'),
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Your inquiry has been sent to the administrators.');
+    }
+
     public function profile()
     {
         return view('citizen.profile.show');

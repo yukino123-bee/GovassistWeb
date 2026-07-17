@@ -31,8 +31,16 @@
                     @forelse($inquiries as $inq)
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-6 py-3.5">
-                                <span class="font-bold text-slate-800 block">{{ $inq->user->name }}</span>
-                                <span class="text-[10px] text-slate-400 block mt-0.5">{{ $inq->user->email }}</span>
+                                @if($inq->user)
+                                    <span class="font-bold text-slate-800 block">{{ $inq->user->name }}</span>
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">{{ $inq->user->email }}</span>
+                                @else
+                                    <span class="font-bold text-slate-800 block flex items-center">
+                                        {{ $inq->guest_name }}
+                                        <span class="ml-2 px-1.5 py-0.5 bg-slate-200 text-slate-600 text-[8px] rounded uppercase tracking-widest">Guest</span>
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">{{ $inq->guest_email }}</span>
+                                @endif
                             </td>
                             <td class="px-6 py-3.5 font-medium text-slate-700 max-w-xs truncate">
                                 {{ $inq->inquiry_text }}
@@ -133,7 +141,9 @@
         const replyPane = document.getElementById('reply-pane');
         replyPane.classList.remove('hidden');
 
-        document.getElementById('inq-sender').innerText = inq.user.name + ' (' + inq.user.email + ')';
+        const senderName = inq.user ? inq.user.name : (inq.guest_name + ' [GUEST]');
+        const senderEmail = inq.user ? inq.user.email : inq.guest_email;
+        document.getElementById('inq-sender').innerText = senderName + ' (' + senderEmail + ')';
         document.getElementById('inq-text').innerText = inq.inquiry_text;
 
         const responsesContainer = document.getElementById('inq-responses');

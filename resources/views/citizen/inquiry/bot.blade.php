@@ -7,39 +7,53 @@
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-9rem)]">
 
-    <!-- Left: Downloadable Forms & Guide -->
+    <!-- Left: Manual Inquiry Form -->
     <div class="lg:col-span-1 flex flex-col space-y-6">
         <div class="border-b border-slate-200 pb-3">
             <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                Official Forms
+                Contact Admin Directly
             </h3>
         </div>
 
-        <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-4 overflow-y-auto max-h-[300px] lg:max-h-none flex-grow">
-            <p class="text-[11px] text-slate-500 leading-relaxed">
-                Download the official template forms below, fill them out, and upload them via your requirements checklist.
+        <div class="bg-white border border-slate-200 p-5 shadow-sm flex-grow overflow-y-auto">
+            <p class="text-[11px] text-slate-500 leading-relaxed mb-4">
+                Use this form to send a manual inquiry directly to our administrators. We will reply via the system or email.
             </p>
             
-            <div class="divide-y divide-slate-100">
-                @foreach($templates as $tpl)
-                    @php
-                        $tplName = app()->getLocale() === 'ceb' ? $tpl->name_ceb : (app()->getLocale() === 'fil' ? ($tpl->name_fil ?? $tpl->name_en) : $tpl->name_en);
-                        $tplDesc = app()->getLocale() === 'ceb' ? $tpl->description_ceb : (app()->getLocale() === 'fil' ? ($tpl->description_fil ?? $tpl->description_en) : $tpl->description_en);
-                    @endphp
-                    <div class="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
-                        <div>
-                            <span class="text-xs font-bold text-slate-800 block">{{ $tplName }}</span>
-                            <span class="text-[10px] text-slate-400 block mt-0.5">{{ $tplDesc }}</span>
-                        </div>
-                        <a href="{{ asset('storage/' . $tpl->file_path) }}" download class="p-2 border border-red-200 hover:border-red-700 text-red-700 hover:bg-red-50 flex-shrink-0 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                        </a>
+            <form action="{{ route('citizen.inquiry.manual') }}" method="POST" class="space-y-4">
+                @csrf
+                
+                @guest
+                    <div class="space-y-1.5">
+                        <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Name</label>
+                        <input type="text" name="guest_name" id="guest_name" placeholder="Juan Dela Cruz" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
                     </div>
-                @endforeach
-            </div>
+                    <div class="space-y-1.5">
+                        <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Email</label>
+                        <input type="email" name="guest_email" id="guest_email" placeholder="juan@example.com" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
+                    </div>
+                @endguest
+
+                <div class="space-y-1.5">
+                    <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Related Program (Optional)</label>
+                    <select name="service_id" id="service_id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800">
+                        <option value="">General Inquiry</option>
+                        @foreach($services as $svc)
+                            <option value="{{ $svc->id }}">{{ $svc->service_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Your Message</label>
+                    <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="How can we help you today?" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] shadow-sm transition-all active:scale-[0.98]">
+                    Send Inquiry
+                </button>
+            </form>
         </div>
     </div>
 

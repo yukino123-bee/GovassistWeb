@@ -11,7 +11,14 @@ class UserInquiry extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'service_id', 'inquiry_text', 'status'];
+    protected $fillable = [
+        'user_id',
+        'service_id',
+        'guest_name',
+        'guest_email',
+        'inquiry_text',
+        'status',
+    ];
 
     public function user(): BelongsTo
     {

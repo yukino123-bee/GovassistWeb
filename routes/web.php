@@ -32,6 +32,7 @@ Route::prefix('citizen')->group(function () {
     Route::get('/eligibility', [CitizenController::class, 'eligibility'])->name('citizen.eligibility');
     Route::get('/inquiry', [CitizenController::class, 'inquiry'])->name('citizen.inquiry');
     Route::post('/inquiry/chat', [CitizenController::class, 'inquiryChat'])->name('citizen.inquiry.chat');
+    Route::post('/inquiry/manual', [CitizenController::class, 'submitManualInquiry'])->name('citizen.inquiry.manual');
 });
 
 // Citizen Protected Routes
