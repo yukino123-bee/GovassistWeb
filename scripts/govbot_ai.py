@@ -95,6 +95,70 @@ KNOWLEDGE_BASE = {
         ],
         "response_en": "To apply, please follow these steps:\n1. Go to the **Eligibility** tab.\n2. Start the **Eligibility Assessment** for the desired service.\n3. If you qualify, generate the **Requirements Checklist**.\n4. Upload the required documents and click **Submit Application**.",
         "response_ceb": "Aron mo-apply, sunda kini:\n1. Adto sa tab nga **Kwalipikasyon**.\n2. Sugdi ang **Pagsusi sa Kwalipikasyon** alang sa napili nga serbisyo.\n3. Kung kwalipikado ka, ipatungha ang **Checklist sa mga Kinahanglanon**.\n4. I-upload ang mga dokumento ug i-click ang **Isumite ang Aplikasyon**."
+    },
+    "about_system": {
+        "examples": [
+            "What is this system about?",
+            "What is GovAssist?",
+            "How does this system help?",
+            "What can I do here?",
+            "about the system details purpose",
+            "unsa ni nga sistema",
+            "para unsa ni"
+        ],
+        "response_en": "The system is an online portal for government social services. It helps citizens easily apply for assistance programs, check eligibility, upload documents, and ask inquiries online.",
+        "response_ceb": "Ang sistema usa ka online portal alang sa mga serbisyo sosyal sa gobyerno. Nagtabang kini sa mga lungsoranon nga dali makapangayo og tabang, magsusi kung kwalipikado, mag-upload og mga dokumento, ug mangutana online."
+    },
+    "programs_offered": {
+        "examples": [
+            "What programs are offered?",
+            "List of services",
+            "What assistance can I get?",
+            "What do you offer?",
+            "programs services assistance list",
+            "unsa nga mga programa",
+            "unsa ang mga tabang"
+        ],
+        "response_en": "We offer the following programs:\n1. Educational Assistance\n2. Medical Assistance\n3. Burial Assistance\n4. Transportation Assistance\n5. Employment and Livelihood Assistance.",
+        "response_ceb": "Kini ang among mga programa:\n1. Tabang sa Edukasyon\n2. Tabang sa Medikal\n3. Tabang sa Pagpalubong\n4. Tabang sa Transportasyon\n5. Tabang sa Trabaho ug Panginabuhian."
+    },
+    "office_info": {
+        "examples": [
+            "Where is your office located?",
+            "Who is the current head?",
+            "Office address",
+            "Where can I find you?",
+            "location office head contact where",
+            "asa ang opisina",
+            "kinsa ang head"
+        ],
+        "response_en": "Our main office is located at **City Hall, Ground Floor, Social Services Office**. The current head of the office is **Lanny M Cagatin**.",
+        "response_ceb": "Ang among opisina nahimutang sa **City Hall, Ground Floor, Social Services Office**. Ang kasamtangang pangulo sa opisina mao si **Lanny M Cagatin**."
+    },
+    "get_requirements": {
+        "examples": [
+            "Where can I get the requirements?",
+            "How to get barangay clearance?",
+            "Where to ask for indigency?",
+            "where to get obtain requirements certificate",
+            "asa mukuha ug requirements",
+            "asa mangayo"
+        ],
+        "response_en": "Most requirements like the **Certificate of Indigency** or **Clearance** can be obtained from your local **Barangay Hall**. Medical certificates can be requested from the **City Health Office** or your attending physician.",
+        "response_ceb": "Ang kasagarang mga kinahanglanon sama sa **Certificate of Indigency** makuha sa inyong **Barangay Hall**. Ang mga medical certificate mahimong pangayoon sa **City Health Office** o sa inyong doktor."
+    },
+    "online_assistance": {
+        "examples": [
+            "Where can I ask the admin?",
+            "I need online assistance",
+            "How to contact admin?",
+            "Where to chat?",
+            "online assistance ask admin contact help message",
+            "unsaon pag chat sa admin",
+            "mangutana sa admin"
+        ],
+        "response_en": "For online assistance from an administrator, you can submit an **Inquiry** by navigating to the **Inquiries** tab on your dashboard. An admin or facilitator will respond to your message there.",
+        "response_ceb": "Alang sa online nga tabang gikan sa admin, mahimo ka magpadala og **Inquiry** o pangutana pinaagi sa pag-adto sa **Inquiries** nga tab sa imong dashboard. Motubag ang admin o facilitator sa imong mensahe didto."
     }
 }
 
