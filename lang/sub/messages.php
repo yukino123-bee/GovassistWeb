@@ -1,0 +1,118 @@
+<?php
+
+return [
+    'app_name' => 'GovAssist',
+    'create_account' => 'Mbaal account niyo',
+    'sign_in_subtitle' => 'Sign in po maku serbisyo',
+    'full_name' => 'Ngalan',
+    'email' => 'Email',
+    'password' => 'Password',
+    'confirm_password' => 'Siguraduhon Password',
+    'login' => 'Sumulod',
+    'register' => 'Rehistro',
+    'create_account_btn' => 'Mbaal Account',
+    'already_have_account' => 'Naa nay account?',
+    'dont_have_account' => 'Waya pay account?',
+    'forgot_password' => 'Nalipat Password?',
+
+    // Bottom Nav
+    'nav_home' => 'Balay',
+    'nav_eligibility' => 'Kwalipikasyon',
+    'nav_inquiry' => 'Pangutana',
+    'nav_profile' => 'Profile',
+
+    // Dashboard
+    'welcome_back' => 'Maayong pagbalik,',
+    'search_placeholder' => 'Pamita serbisyo...',
+    'recent_applications' => 'Bag-ong Aplikasyon',
+    'all_services' => 'Tanan Serbisyo',
+    'submitted_on' => 'Gipasa adtong:',
+    'view_details' => 'Tingag Detalye',
+    'no_applications' => 'Dada bag-ong aplikasyon.',
+
+    // Profile & Settings
+    'profile_title' => 'Profile & Settings',
+    'account_settings' => 'Settings sa Account',
+    'edit_profile' => 'Usbon Profile',
+    'edit_profile_desc' => 'Usbon personal na detalye',
+    'language' => 'Basa (Language)',
+    'language_desc' => 'Usbon basa ng app',
+    'app_settings' => 'App Settings',
+    'app_settings_desc' => 'Notipikasyon',
+    'legal' => 'Legal',
+    'terms' => 'Terms & Conditions',
+    'terms_desc' => 'Basahon terms of service',
+    'privacy' => 'Privacy Policy',
+    'privacy_desc' => 'Proteksyon sa data',
+    'logout' => 'Gawas',
+
+    // Edit Profile Form
+    'email_address' => 'Email Address',
+    'dob' => 'Adlaw natawan',
+    'address' => 'Kumpleto Address',
+    'civil_status' => 'Civil Status',
+    'contact_info' => 'Kontak Info',
+    'upload_id' => 'Upload ID',
+    'new_password_optional' => 'Bag-ong Password (Optional)',
+    'password_placeholder' => 'Pabay-an kung di usbon',
+    'save_changes' => 'I-save',
+    'id_uploaded_status' => 'Na-upload na ID',
+    'upload_new_id' => 'Upload bag-ong ID',
+
+    // Eligibility Assessment
+    'eligibility_title' => 'Pagsusi sa Kwalipikasyon',
+    'eligibility_desc' => 'Susiha kung kwalipikado.',
+    'assess_services' => 'Susiha Serbisyo',
+    'assessment_history' => 'Kasaysayan',
+    'eligible' => 'Kwalipikado',
+    'ineligible' => 'Di Kwalipikado',
+    'start_assessment' => 'Sugdi Pagsusi',
+    'submit_assessment' => 'Ipasa Tubag',
+    'assessment_result' => 'Resulta',
+    'congrats_eligible' => 'Pahalipay! Kwalipikado ka.',
+    'sorry_ineligible' => 'Pasensya, di ka kwalipikado.',
+    'checklist_btn' => 'Kuhaa Checklist',
+    'back_to_eligibility' => 'Balik',
+
+    // Checklist Generator
+    'checklist_title' => 'Checklist sa mga Kinahanglanon',
+    'checklist_desc' => 'Mga dokumento na kinahanglan.',
+    'mandatory_docs' => 'Mandatory na Dokumento',
+    'optional_docs' => 'Optional na Dokumento',
+    'have_doc' => 'Na-upload na',
+    'missing_doc' => 'Kulang - I-upload',
+    'upload_btn' => 'Upload file',
+    'apply_now' => 'Ipasa Aplikasyon',
+    'apply_success' => 'Malampuson na gipasa!',
+    'apply_disabled' => 'Kumpletuha una.',
+    'status_pending' => 'pending',
+    'status_approved' => 'approved',
+    'status_rejected' => 'rejected',
+
+    // GovBot Inquiry
+    'bot_title' => 'GovBot Assistant',
+    'bot_greeting' => 'Maayong adlaw! Ako si GovBot. Unsay ikatabang?',
+    'bot_placeholder' => 'I-type ang pangutana...',
+    'voice_listen' => 'Gaminaw...',
+    'voice_error' => 'Guba ang voice recognition.',
+
+    // Manual Inquiry Form
+    'contact_admin' => 'Kontaka Admin',
+    'contact_admin_desc' => 'Gamita kining form aron makapangutana sa admin.',
+    'your_name' => 'Ngalan Niyo',
+    'your_email' => 'Email Niyo',
+    'related_program' => 'Programa (Optional)',
+    'general_inquiry' => 'Pangutana',
+    'your_message' => 'Mensahe',
+    'send_inquiry' => 'Ipasa Pangutana',
+
+    // Confirmations
+    'confirm_title' => 'Kumpirmaha',
+    'confirm_logout' => 'Sigurado mugawas?',
+    'confirm_avatar' => 'Sigurado usbon picture?',
+    'confirm_language' => 'Sigurado usbon basa?',
+    'confirm_submit_assessment' => 'Sigurado ipasa?',
+    'confirm_submit_application' => 'Sigurado ipasa aplikasyon?',
+    'cancel' => 'Kansela',
+    'confirm' => 'Kumpirmaha',
+];

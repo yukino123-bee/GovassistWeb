@@ -24,10 +24,12 @@
             <!-- Dialect Switcher in Upper Right Corner -->
             <div class="absolute top-4 right-4 flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                 <button type="button" onclick="changeLanguage('en')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'en' ? 'text-red-600 font-extrabold' : '' }}">EN</button>
-                <span class="text-slate-200">/</span>
+                <span class="text-slate-300">|</span>
                 <button type="button" onclick="changeLanguage('ceb')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'ceb' ? 'text-red-600 font-extrabold' : '' }}">CEB</button>
-                <span class="text-slate-200">/</span>
+                <span class="text-slate-300">|</span>
                 <button type="button" onclick="changeLanguage('fil')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'fil' ? 'text-red-600 font-extrabold' : '' }}">FIL</button>
+                <span class="text-slate-300">|</span>
+                <button type="button" onclick="changeLanguage('sub')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'sub' ? 'text-red-600 font-extrabold' : '' }}">SUB</button>
             </div>
             
             <!-- Logo Header -->

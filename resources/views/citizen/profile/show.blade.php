@@ -87,6 +87,7 @@
                             <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>
                             <option value="ceb" {{ app()->getLocale() === 'ceb' ? 'selected' : '' }}>Cebuano</option>
                             <option value="fil" {{ app()->getLocale() === 'fil' ? 'selected' : '' }}>Filipino</option>
+                            <option value="sub" {{ app()->getLocale() === 'sub' ? 'selected' : '' }}>Subanen</option>
                         </select>
                     </div>
                 </div>

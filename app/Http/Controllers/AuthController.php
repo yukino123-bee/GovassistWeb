@@ -86,7 +86,7 @@ class AuthController extends Controller
     public function toggleLanguage(Request $request)
     {
         $lang = $request->input('language');
-        if (! in_array($lang, ['en', 'ceb', 'fil'])) {
+        if (! in_array($lang, ['en', 'ceb', 'fil', 'sub'])) {
             $lang = 'en';
         }
 
