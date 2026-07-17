@@ -6,4 +6,17 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Custom Premium Red Palette combination matching the user's gradient reference */
+    --color-red-50: #fde8eb;
+    --color-red-100: #ffe3e6;
+    --color-red-200: #ffb3bc;
+    --color-red-300: #ff838e;
+    --color-red-400: #ff495a;
+    --color-red-500: #ff1424;
+    --color-red-600: #d5001c;
+    --color-red-700: #b80010;
+    --color-red-800: #850005;
+    --color-red-900: #540003;
+    --color-red-950: #330002;
 }

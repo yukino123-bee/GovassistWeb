@@ -1,0 +1,108 @@
+<?php
+
+return [
+    'app_name' => 'GovAssist',
+    'create_account' => 'Paghimo og account',
+    'sign_in_subtitle' => 'Pag-sign in aron ma-access ang imong mga serbisyo',
+    'full_name' => 'Tibuok Pangalan',
+    'email' => 'Email',
+    'password' => 'Password',
+    'confirm_password' => 'Kumpirmaha ang Password',
+    'login' => 'Login',
+    'register' => 'Rehistro',
+    'create_account_btn' => 'Himoa ang Account',
+    'already_have_account' => 'Aduna na kay account?',
+    'dont_have_account' => 'Wala kay account?',
+    'forgot_password' => 'Nakalimot sa Password?',
+
+    // Bottom Nav
+    'nav_home' => 'Home',
+    'nav_eligibility' => 'Kwalipikasyon',
+    'nav_inquiry' => 'Pangutana',
+    'nav_profile' => 'Profile',
+
+    // Dashboard
+    'welcome_back' => 'Maayong pagbalik,',
+    'search_placeholder' => 'Pangita og mga serbisyo sa gobyern...',
+    'recent_applications' => 'Bag-ong mga Aplikasyon',
+    'all_services' => 'Tanang Serbisyo',
+    'submitted_on' => 'Gisumite niadtong:',
+    'view_details' => 'Tan-awa ang Detalye',
+    'no_applications' => 'Walay bag-ong aplikasyon nga nakit-an.',
+
+    // Profile & Settings
+    'profile_title' => 'Profile & Settings',
+    'account_settings' => 'Mga Setting sa Account',
+    'edit_profile' => 'Edit Profile',
+    'edit_profile_desc' => 'Update your personal details',
+    'language' => 'Language',
+    'language_desc' => 'Change app display language',
+    'app_settings' => 'App Settings',
+    'app_settings_desc' => 'Notifications & display options',
+    'legal' => 'Legal',
+    'terms' => 'Terms & Conditions',
+    'terms_desc' => 'Read our terms of service',
+    'privacy' => 'Privacy Policy',
+    'privacy_desc' => 'Data usage and protection',
+    'logout' => 'Log Out',
+
+    // Edit Profile Form
+    'email_address' => 'Email Address',
+    'dob' => 'Date of Birth',
+    'address' => 'Complete Address',
+    'civil_status' => 'Civil Status',
+    'contact_info' => 'Contact Information',
+    'upload_id' => 'Upload Valid ID',
+    'new_password_optional' => 'New Password (Optional)',
+    'password_placeholder' => 'Leave blank to keep current',
+    'save_changes' => 'Save Changes',
+    'id_uploaded_status' => 'Valid ID Uploaded',
+    'upload_new_id' => 'Upload New Valid ID',
+
+    // Eligibility Assessment
+    'eligibility_title' => 'Eligibility Assessment',
+    'eligibility_desc' => 'Check your eligibility for government services before applying.',
+    'assess_services' => 'Assess Services',
+    'assessment_history' => 'Assessment History',
+    'eligible' => 'Eligible',
+    'ineligible' => 'Ineligible',
+    'start_assessment' => 'Start Assessment',
+    'submit_assessment' => 'Submit Answers',
+    'assessment_result' => 'Assessment Result',
+    'congrats_eligible' => 'Congratulations! You are eligible for this service.',
+    'sorry_ineligible' => 'Sorry, you do not meet the criteria for this service at this time.',
+    'checklist_btn' => 'Generate Checklist',
+    'back_to_eligibility' => 'Back to Eligibility',
+
+    // Checklist Generator
+    'checklist_title' => 'Requirements Checklist',
+    'checklist_desc' => 'Here are the documents you need to submit for this service. Highlight missing requirements and upload them to submit your application.',
+    'mandatory_docs' => 'Mandatory Requirements',
+    'optional_docs' => 'Optional Requirements',
+    'have_doc' => 'You have uploaded this document',
+    'missing_doc' => 'Missing - Upload document',
+    'upload_btn' => 'Upload file',
+    'apply_now' => 'Submit Application',
+    'apply_success' => 'Application submitted successfully!',
+    'apply_disabled' => 'Please upload all mandatory documents to submit.',
+    'status_pending' => 'pending',
+    'status_approved' => 'approved',
+    'status_rejected' => 'rejected',
+
+    // GovBot Inquiry
+    'bot_title' => 'GovBot Assistant',
+    'bot_greeting' => 'Halo! Ako si GovBot. Pangutan-a ako bahin sa unsaon pag-apply, kinsa ang kwalipikado, o ang mga kinahanglanon alang sa among mga programa sa tabang.',
+    'bot_placeholder' => 'Type your question...',
+    'voice_listen' => 'Naminaw...',
+    'voice_error' => 'Napakyas ang pag-ila sa tingog. Palihug sulayi pag-usab o i-type ang imong pangutana.',
+
+    // Confirmations
+    'confirm_title' => 'Kumpirmaha ang Aksyon',
+    'confirm_logout' => 'Sigurado ka ba nga gusto nimo mo-logout?',
+    'confirm_avatar' => 'Sigurado ka ba nga gusto nimo usbon ang imong profile picture?',
+    'confirm_language' => 'Sigurado ka ba nga gusto nimo usbon ang pinulongan?',
+    'confirm_submit_assessment' => 'Sigurado ka ba nga gusto nimo isumite kini nga assessment?',
+    'confirm_submit_application' => 'Sigurado ka ba nga gusto nimo isumite ang imong aplikasyon?',
+    'cancel' => 'Ikansela',
+    'confirm' => 'Kumpirmaha',
+];

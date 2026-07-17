@@ -1,0 +1,108 @@
+<?php
+
+return [
+    'app_name' => 'GovAssist',
+    'create_account' => 'Create your account',
+    'sign_in_subtitle' => 'Sign in to access your services',
+    'full_name' => 'Full Name',
+    'email' => 'Email',
+    'password' => 'Password',
+    'confirm_password' => 'Confirm Password',
+    'login' => 'Login',
+    'register' => 'Register',
+    'create_account_btn' => 'Create Account',
+    'already_have_account' => 'Already have an account?',
+    'dont_have_account' => "Don't have an account?",
+    'forgot_password' => 'Forgot Password?',
+
+    // Bottom Nav
+    'nav_home' => 'Home',
+    'nav_eligibility' => 'Eligibility',
+    'nav_inquiry' => 'Inquiry',
+    'nav_profile' => 'Profile',
+
+    // Dashboard
+    'welcome_back' => 'Welcome back,',
+    'search_placeholder' => 'Search for government services...',
+    'recent_applications' => 'Recent Applications',
+    'all_services' => 'All Services',
+    'submitted_on' => 'Submitted on:',
+    'view_details' => 'View Details',
+    'no_applications' => 'No recent applications found.',
+
+    // Profile & Settings
+    'profile_title' => 'Profile & Settings',
+    'account_settings' => 'Account Settings',
+    'edit_profile' => 'Edit Profile',
+    'edit_profile_desc' => 'Update your personal details',
+    'language' => 'Language',
+    'language_desc' => 'Change app display language',
+    'app_settings' => 'App Settings',
+    'app_settings_desc' => 'Notifications & display options',
+    'legal' => 'Legal',
+    'terms' => 'Terms & Conditions',
+    'terms_desc' => 'Read our terms of service',
+    'privacy' => 'Privacy Policy',
+    'privacy_desc' => 'Data usage and protection',
+    'logout' => 'Log Out',
+
+    // Edit Profile Form
+    'email_address' => 'Email Address',
+    'dob' => 'Date of Birth',
+    'address' => 'Complete Address',
+    'civil_status' => 'Civil Status',
+    'contact_info' => 'Contact Information',
+    'upload_id' => 'Upload Valid ID',
+    'new_password_optional' => 'New Password (Optional)',
+    'password_placeholder' => 'Leave blank to keep current',
+    'save_changes' => 'Save Changes',
+    'id_uploaded_status' => 'Valid ID Uploaded',
+    'upload_new_id' => 'Upload New Valid ID',
+
+    // Eligibility Assessment
+    'eligibility_title' => 'Eligibility Assessment',
+    'eligibility_desc' => 'Check your eligibility for government services before applying.',
+    'assess_services' => 'Assess Services',
+    'assessment_history' => 'Assessment History',
+    'eligible' => 'Eligible',
+    'ineligible' => 'Ineligible',
+    'start_assessment' => 'Start Assessment',
+    'submit_assessment' => 'Submit Answers',
+    'assessment_result' => 'Assessment Result',
+    'congrats_eligible' => 'Congratulations! You are eligible for this service.',
+    'sorry_ineligible' => 'Sorry, you do not meet the criteria for this service at this time.',
+    'checklist_btn' => 'Generate Checklist',
+    'back_to_eligibility' => 'Back to Eligibility',
+
+    // Checklist Generator
+    'checklist_title' => 'Requirements Checklist',
+    'checklist_desc' => 'Here are the documents you need to submit for this service. Highlight missing requirements and upload them to submit your application.',
+    'mandatory_docs' => 'Mandatory Requirements',
+    'optional_docs' => 'Optional Requirements',
+    'have_doc' => 'You have uploaded this document',
+    'missing_doc' => 'Missing - Upload document',
+    'upload_btn' => 'Upload file',
+    'apply_now' => 'Submit Application',
+    'apply_success' => 'Application submitted successfully!',
+    'apply_disabled' => 'Please upload all mandatory documents to submit.',
+    'status_pending' => 'pending',
+    'status_approved' => 'approved',
+    'status_rejected' => 'rejected',
+
+    // GovBot Inquiry
+    'bot_title' => 'GovBot Assistant',
+    'bot_greeting' => 'Hello! I am GovBot. Ask me about how to apply, who qualifies, or the requirements for our assistance programs.',
+    'bot_placeholder' => 'Type your question...',
+    'voice_listen' => 'Listening...',
+    'voice_error' => 'Voice recognition failed. Please try again or type your query.',
+
+    // Confirmations
+    'confirm_title' => 'Confirm Action',
+    'confirm_logout' => 'Are you sure you want to log out?',
+    'confirm_avatar' => 'Are you sure you want to update your profile picture?',
+    'confirm_language' => 'Are you sure you want to switch language?',
+    'confirm_submit_assessment' => 'Are you sure you want to submit this assessment?',
+    'confirm_submit_application' => 'Are you sure you want to submit your application?',
+    'cancel' => 'Cancel',
+    'confirm' => 'Confirm',
+];

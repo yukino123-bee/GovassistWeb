@@ -1,0 +1,108 @@
+<?php
+
+return [
+    'app_name' => 'GovAssist',
+    'create_account' => 'Gumawa ng iyong account',
+    'sign_in_subtitle' => 'Mag-sign in upang ma-access ang iyong mga serbisyo',
+    'full_name' => 'Buong Pangalan',
+    'email' => 'Email',
+    'password' => 'Password',
+    'confirm_password' => 'Kumpirmahin ang Password',
+    'login' => 'Mag-login',
+    'register' => 'Magparehistro',
+    'create_account_btn' => 'Gumawa ng Account',
+    'already_have_account' => 'Mayroon ka na bang account?',
+    'dont_have_account' => 'Walang account?',
+    'forgot_password' => 'Nakalimutan ang Password?',
+
+    // Bottom Nav
+    'nav_home' => 'Home',
+    'nav_eligibility' => 'Kwalipikasyon',
+    'nav_inquiry' => 'Pagtatanong',
+    'nav_profile' => 'Profile',
+
+    // Dashboard
+    'welcome_back' => 'Maligayang pagbabalik,',
+    'search_placeholder' => 'Maghanap ng mga serbisyo ng gobyerno...',
+    'recent_applications' => 'Mga Kamakailang Aplikasyon',
+    'all_services' => 'Lahat ng Serbisyo',
+    'submitted_on' => 'Isinumite noong:',
+    'view_details' => 'Tingnan ang Detalye',
+    'no_applications' => 'Walang nahanap na kamakailang aplikasyon.',
+
+    // Profile & Settings
+    'profile_title' => 'Profile at Mga Setting',
+    'account_settings' => 'Mga Setting ng Account',
+    'edit_profile' => 'I-edit ang Profile',
+    'edit_profile_desc' => 'I-update ang iyong mga personal na detalye',
+    'language' => 'Wika',
+    'language_desc' => 'Baguhin ang wika ng app',
+    'app_settings' => 'Mga Setting ng App',
+    'app_settings_desc' => 'Mga abiso at pagpipilian sa pagpapakita',
+    'legal' => 'Legal',
+    'terms' => 'Mga Tuntunin at Kundisyon',
+    'terms_desc' => 'Basahin ang aming mga tuntunin ng serbisyo',
+    'privacy' => 'Patakaran sa Privacy',
+    'privacy_desc' => 'Paggamit at proteksyon ng data',
+    'logout' => 'Mag-logout',
+
+    // Edit Profile Form
+    'email_address' => 'Email Address',
+    'dob' => 'Araw ng Kapanganakan',
+    'address' => 'Kumpletong Address',
+    'civil_status' => 'Katayuang Sibil',
+    'contact_info' => 'Impormasyon sa Pakikipag-ugnayan',
+    'upload_id' => 'Mag-upload ng Balidong ID',
+    'new_password_optional' => 'Bagong Password (Opsyonal)',
+    'password_placeholder' => 'Iwanang blangko upang mapanatili ang kasalukuyan',
+    'save_changes' => 'I-save ang mga Pagbabago',
+    'id_uploaded_status' => 'Na-upload na ang Balidong ID',
+    'upload_new_id' => 'Mag-upload ng Bagong Balidong ID',
+
+    // Eligibility Assessment
+    'eligibility_title' => 'Pagsusuri ng Kwalipikasyon',
+    'eligibility_desc' => 'Suriin ang iyong kwalipikasyon para sa mga serbisyo ng gobyerno bago mag-apply.',
+    'assess_services' => 'Suriin ang mga Serbisyo',
+    'assessment_history' => 'Kasaysayan ng Pagsusuri',
+    'eligible' => 'Kwalipikado',
+    'ineligible' => 'Hindi Kwalipikado',
+    'start_assessment' => 'Simulan ang Pagsusuri',
+    'submit_assessment' => 'Isumite ang mga Sagot',
+    'assessment_result' => 'Resulta ng Pagsusuri',
+    'congrats_eligible' => 'Binabati kita! Kwalipikado ka para sa serbisyong ito.',
+    'sorry_ineligible' => 'Paumanhin, hindi mo naabot ang mga pamantayan para sa serbisyong ito sa ngayon.',
+    'checklist_btn' => 'Gumawa ng Checklist',
+    'back_to_eligibility' => 'Bumalik sa Kwalipikasyon',
+
+    // Checklist Generator
+    'checklist_title' => 'Checklist ng mga Kinakailangan',
+    'checklist_desc' => 'Narito ang mga dokumentong kailangan mong isumite para sa serbisyong ito. I-highlight ang mga nawawalang kinakailangan at i-upload ang mga ito upang isumite ang iyong aplikasyon.',
+    'mandatory_docs' => 'Mga Obligatoryong Kinakailangan',
+    'optional_docs' => 'Mga Opsyonal na Kinakailangan',
+    'have_doc' => 'Na-upload mo na ang dokumentong ito',
+    'missing_doc' => 'Nawawala - Mag-upload ng dokumento',
+    'upload_btn' => 'Mag-upload ng file',
+    'apply_now' => 'Isumite ang Aplikasyon',
+    'apply_success' => 'Matagumpay na naisumite ang aplikasyon!',
+    'apply_disabled' => 'Mangyaring i-upload ang lahat ng obligadong dokumento upang isumite.',
+    'status_pending' => 'nakabinbin',
+    'status_approved' => 'inaprubahan',
+    'status_rejected' => 'tinanggihan',
+
+    // GovBot Inquiry
+    'bot_title' => 'GovBot Assistant',
+    'bot_greeting' => 'Kumusta! Ako si GovBot. Magtanong sa akin tungkol sa kung paano mag-apply, sino ang kwalipikado, o ang mga kinakailangan para sa aming mga programa ng tulong.',
+    'bot_placeholder' => 'I-type ang iyong tanong...',
+    'voice_listen' => 'Nakikinig...',
+    'voice_error' => 'Nabigo ang voice recognition. Mangyaring subukan muli o i-type ang iyong tanong.',
+
+    // Confirmations
+    'confirm_title' => 'Kumpirmahin ang Aksyon',
+    'confirm_logout' => 'Sigurado ka bang gusto mong mag-logout?',
+    'confirm_avatar' => 'Sigurado ka bang gusto mong baguhin ang iyong profile picture?',
+    'confirm_language' => 'Sigurado ka bang gusto mong palitan ang wika?',
+    'confirm_submit_assessment' => 'Sigurado ka bang gusto mong isumite ang assessment na ito?',
+    'confirm_submit_application' => 'Sigurado ka bang gusto mong isumite ang iyong aplikasyon?',
+    'cancel' => 'Kanselahin',
+    'confirm' => 'Kumpirmahin',
+];
