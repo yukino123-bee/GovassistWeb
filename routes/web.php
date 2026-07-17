@@ -31,6 +31,7 @@ Route::prefix('citizen')->group(function () {
     Route::get('/home', [CitizenController::class, 'home'])->name('citizen.home');
     Route::get('/eligibility', [CitizenController::class, 'eligibility'])->name('citizen.eligibility');
     Route::get('/inquiry', [CitizenController::class, 'inquiry'])->name('citizen.inquiry');
+    Route::post('/inquiry/chat', [CitizenController::class, 'inquiryChat'])->name('citizen.inquiry.chat');
 });
 
 // Citizen Protected Routes
@@ -44,9 +45,6 @@ Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->group(function (
     Route::get('/eligibility/checklist/{service}', [CitizenController::class, 'checklist'])->name('citizen.eligibility.checklist');
     Route::post('/eligibility/checklist/{service}/upload/{requirement}', [CitizenController::class, 'uploadDocument'])->name('citizen.eligibility.upload');
     Route::post('/eligibility/apply/{service}', [CitizenController::class, 'apply'])->name('citizen.eligibility.apply');
-
-    // GovBot Inquiry Chat API
-    Route::post('/inquiry/chat', [CitizenController::class, 'inquiryChat'])->name('citizen.inquiry.chat');
 
     // Profile Settings
     Route::get('/profile', [CitizenController::class, 'profile'])->name('citizen.profile');

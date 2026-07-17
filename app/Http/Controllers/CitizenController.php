@@ -278,25 +278,30 @@ class CitizenController extends Controller
     {
         $message = $request->input('message');
         $serviceId = $request->input('service_id');
-        $lang = Auth::user()->language;
-
-        $inquiry = UserInquiry::create([
-            'user_id' => Auth::id(),
-            'service_id' => $serviceId ?: null,
-            'inquiry_text' => $message,
-            'status' => 'pending',
-        ]);
+        
+        // Default to english if guest
+        $lang = Auth::check() && Auth::user()->language ? Auth::user()->language : 'en';
 
         $response = $this->getBotResponse($message, $lang);
 
-        $facilitator = User::where('role', 'facilitator')->first();
-        $responderId = $facilitator ? $facilitator->id : Auth::id();
+        // Only save the inquiry to the database if the user is authenticated
+        if (Auth::check()) {
+            $inquiry = UserInquiry::create([
+                'user_id' => Auth::id(),
+                'service_id' => $serviceId ?: null,
+                'inquiry_text' => $message,
+                'status' => 'pending',
+            ]);
 
-        InquiryRequirense::create([
-            'inquiry_id' => $inquiry->id,
-            'requireent_text' => $response,
-            'responded_by' => $responderId,
-        ]);
+            $facilitator = User::where('role', 'facilitator')->first();
+            $responderId = $facilitator ? $facilitator->id : Auth::id();
+
+            InquiryRequirense::create([
+                'inquiry_id' => $inquiry->id,
+                'requireent_text' => $response,
+                'responded_by' => $responderId,
+            ]);
+        }
 
         return response()->json([
             'reply' => $response,

@@ -67,7 +67,6 @@
             </div>
 
             <!-- Input area -->
-            @auth
             <form id="chat-form" class="border-t border-slate-200 p-4 flex items-center gap-2 bg-white">
                 <!-- Voice button -->
                 <button type="button" id="voice-btn" class="p-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 flex-shrink-0 transition-colors flex items-center justify-center">
@@ -84,12 +83,6 @@
                     </button>
                 </div>
             </form>
-            @else
-            <div class="border-t border-slate-200 p-4 bg-slate-50 flex items-center justify-between">
-                <span class="text-xs text-slate-500 font-medium">Please log in to chat with GovBot.</span>
-                <a href="{{ route('login') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-bold uppercase tracking-widest transition-colors">Log In</a>
-            </div>
-            @endauth
         </div>
     </div>
 
