@@ -114,4 +114,9 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::post('/inquiries/{inquiry}/reply', [FacilitatorController::class, 'replyInquiry'])->name('facilitator.inquiries.reply');
     Route::post('/inquiries/{inquiry}/ai-draft', [FacilitatorController::class, 'generateAIDraft'])->name('facilitator.inquiries.ai_draft');
     Route::post('/inquiries/{inquiry}/status', [FacilitatorController::class, 'updateInquiryStatus'])->name('facilitator.inquiries.update_status');
+
+    // Document Templates Management
+    Route::get('/templates', [FacilitatorController::class, 'templates'])->name('facilitator.templates');
+    Route::post('/templates', [FacilitatorController::class, 'storeTemplate'])->name('facilitator.templates.store');
+    Route::delete('/templates/{template}', [FacilitatorController::class, 'destroyTemplate'])->name('facilitator.templates.destroy');
 });

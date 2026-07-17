@@ -188,7 +188,7 @@ class CitizenController extends Controller
                 'status' => 'pending',
             ]);
 
-            UserChecklistItem::updateOrCreate([
+            $checklistItem = UserChecklistItem::updateOrCreate([
                 'checklist_id' => $checklist->id,
                 'requirement_id' => $requirement->id,
             ], [
@@ -197,6 +197,24 @@ class CitizenController extends Controller
                 'submitted_at' => now(),
                 'status' => 'pending',
             ]);
+
+            // Automation: Compare against Admin Template
+            $template = \App\Models\DocumentTemplate::where('requirement_id', $requirement->id)->first();
+            if ($template) {
+                $userDocPath = storage_path('app/public/' . $path);
+                $templatePath = storage_path('app/public/' . $template->file_path);
+                $scriptPath = base_path('scripts/compare_images.py');
+
+                $command = 'python3 ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($userDocPath) . ' ' . escapeshellarg($templatePath);
+                $output = shell_exec($command);
+
+                if ($output) {
+                    $result = json_decode($output, true);
+                    if (isset($result['match']) && $result['match'] === true) {
+                        $checklistItem->update(['status' => 'approved']);
+                    }
+                }
+            }
         }
 
         return back()->with('success', 'Document uploaded successfully.');

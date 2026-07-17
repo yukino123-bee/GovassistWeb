@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
@@ -585,5 +586,52 @@ class FacilitatorController extends Controller
         }
 
         return response()->json(['draft' => "AI Suggested Draft:\n".$response]);
+    }
+
+    // --- Document Templates Management ---
+    public function templates()
+    {
+        $templates = DocumentTemplate::with(['service', 'requirement'])->get();
+        $services = GovernmentService::all();
+        $requirements = ServiceRequirement::all();
+        return view('facilitator.templates.index', compact('templates', 'services', 'requirements'));
+    }
+
+    public function storeTemplate(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:government_services,id',
+            'requirement_id' => 'required|exists:service_requirements,id',
+            'name_en' => 'required|string|max:255',
+            'name_ceb' => 'required|string|max:255',
+            'description_en' => 'nullable|string',
+            'description_ceb' => 'nullable|string',
+            'template_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:5120',
+        ]);
+
+        $path = $request->file('template_file')->store('templates', 'public');
+
+        DocumentTemplate::create([
+            'service_id' => $request->service_id,
+            'requirement_id' => $request->requirement_id,
+            'name_en' => $request->name_en,
+            'name_ceb' => $request->name_ceb,
+            'description_en' => $request->description_en,
+            'description_ceb' => $request->description_ceb,
+            'file_path' => $path,
+        ]);
+
+        return redirect()->route('facilitator.templates')->with('success', 'Document template uploaded successfully.');
+    }
+
+    public function destroyTemplate(DocumentTemplate $template)
+    {
+        // Optionally delete the file from storage
+        if ($template->file_path && \Storage::disk('public')->exists($template->file_path)) {
+            \Storage::disk('public')->delete($template->file_path);
+        }
+        $template->delete();
+
+        return redirect()->route('facilitator.templates')->with('success', 'Document template deleted successfully.');
     }
 }

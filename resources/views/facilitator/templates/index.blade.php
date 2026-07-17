@@ -21,7 +21,7 @@
                 <thead>
                     <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                         <th class="pb-3">Template Name</th>
-                        <th class="pb-3">Procedure Guide Link</th>
+                        <th class="pb-3">Program / Requirement</th>
                         <th class="pb-3 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -32,8 +32,15 @@
                                 <span class="font-bold text-slate-800 block text-xs">{{ $tpl->name_en }}</span>
                                 <span class="text-[10px] text-slate-400 block mt-0.5">{{ $tpl->name_ceb }}</span>
                             </td>
-                            <td class="py-4 text-xs text-slate-400">
-                                {{ $tpl->file_path }}
+                            <td class="py-4">
+                                <span class="font-bold text-slate-700 block text-[11px]">{{ $tpl->service->service_name ?? 'N/A' }}</span>
+                                @php
+                                    $reqName = 'N/A';
+                                    if ($tpl->requirement) {
+                                        $reqName = json_decode($tpl->requirement->requirement_text, true)['en'] ?? 'Requirement';
+                                    }
+                                @endphp
+                                <span class="text-[10px] text-slate-500 block mt-0.5">{{ $reqName }}</span>
                             </td>
                             <td class="py-4 text-right flex items-center justify-end space-x-2">
                                 <a href="{{ asset('storage/' . $tpl->file_path) }}" target="_blank" class="p-1 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-50 transition-colors">
@@ -69,6 +76,31 @@
 
         <form action="{{ route('facilitator.templates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
+
+            <!-- Service (Program) -->
+            <div class="space-y-1.5">
+                <label for="service_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Government Service (Program)</label>
+                <select name="service_id" id="service_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800" required>
+                    <option value="" disabled selected>Select a program...</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}">{{ $service->service_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Specific Requirement -->
+            <div class="space-y-1.5">
+                <label for="requirement_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Specific Requirement</label>
+                <select name="requirement_id" id="requirement_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800" required>
+                    <option value="" disabled selected>Select a requirement...</option>
+                    @foreach($requirements as $req)
+                        @php
+                            $reqName = json_decode($req->requirement_text, true)['en'] ?? 'Requirement';
+                        @endphp
+                        <option value="{{ $req->id }}">{{ $reqName }} ({{ $req->service->service_name ?? 'Any' }})</option>
+                    @endforeach
+                </select>
+            </div>
 
             <!-- Name English -->
             <div class="space-y-1.5">
