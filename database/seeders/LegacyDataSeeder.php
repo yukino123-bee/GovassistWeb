@@ -74,38 +74,8 @@ class LegacyDataSeeder extends Seeder
         }
 
         // 4. Requirements
-        $requirements = [
-            // Educational (srv = 1)
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'Statement of Account (Private Schools Only)']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'Certificate of Enrollment']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'Certificate of Registration (COR)']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'Barangay Certificate of Indigency']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'School ID']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'One (1) Valid Government-Issued ID']), 'is_required' => 1],
-            ['service_id' => 1, 'requirement_text' => json_encode(['en' => 'Latest Grades']), 'is_required' => 1],
-            // Medical (srv = 2)
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Medical Certificate']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Barangay Certificate of Indigency']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'One (1) Valid Government-Issued ID of the Applicant']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'One (1) Valid Government-Issued ID of the Patient']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Hospital Bill or Statement of Account']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Authorization Letter']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Letter of Request']), 'is_required' => 1],
-            ['service_id' => 2, 'requirement_text' => json_encode(['en' => 'Social Case Study Report/Form (MSWDO)']), 'is_required' => 1],
-            // Burial (srv = 3)
-            ['service_id' => 3, 'requirement_text' => json_encode(['en' => 'Death Certificate']), 'is_required' => 1],
-            ['service_id' => 3, 'requirement_text' => json_encode(['en' => 'Barangay Certificate of Indigency']), 'is_required' => 1],
-            ['service_id' => 3, 'requirement_text' => json_encode(['en' => 'One (1) Valid Government-Issued ID of the Applicant']), 'is_required' => 1],
-            ['service_id' => 3, 'requirement_text' => json_encode(['en' => 'Letter of Request']), 'is_required' => 1],
-            ['service_id' => 3, 'requirement_text' => json_encode(['en' => 'Social Case Study Report/Form (MSWDO)']), 'is_required' => 1],
-            // Employment (srv = 5)
-            ['service_id' => 5, 'requirement_text' => json_encode(['en' => 'Personal Data Sheet (PDS)']), 'is_required' => 1],
-            ['service_id' => 5, 'requirement_text' => json_encode(['en' => 'Resume']), 'is_required' => 1],
-            ['service_id' => 5, 'requirement_text' => json_encode(['en' => 'Recommendation Letter']), 'is_required' => 1],
-            ['service_id' => 5, 'requirement_text' => json_encode(['en' => 'Endorsement Letter']), 'is_required' => 1],
-        ];
+        // (Removed legacy requirement seeding because DatabaseSeeder already seeds the translated, correct requirements for each program)
 
-        DB::table('service_requirements')->insert($requirements);
 
         // 5. Checklists/Applications
         // Educational (1)
