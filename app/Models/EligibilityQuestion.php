@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['service_id', 'question_text_en', 'question_text_ceb', 'question_text_fil', 'type', 'expected_value', 'operator'])]
+#[Fillable(['service_id', 'question_text_en', 'question_text_ceb', 'question_text_fil', 'question_text_sub', 'type', 'expected_value', 'operator'])]
 class EligibilityQuestion extends Model
 {
     use HasFactory;

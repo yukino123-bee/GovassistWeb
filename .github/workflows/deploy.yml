@@ -1,0 +1,62 @@
+name: Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get latest code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, bcmath
+        
+    - name: Install PHP Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install Node Dependencies & Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Create Production .env
+      run: |
+        cp .env.example .env
+        sed -i 's/APP_ENV=local/APP_ENV=production/' .env
+        sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
+        sed -i 's/APP_URL=http:\/\/localhost/APP_URL=http:\/\/${{ secrets.FTP_SERVER }}/' .env
+        sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
+        sed -i 's/DB_HOST=127.0.0.1/DB_HOST=sql312.infinityfree.com/' .env
+        sed -i 's/DB_PORT=3306/DB_PORT=3306/' .env
+        sed -i 's/DB_DATABASE=laravel/DB_DATABASE=if0_42325610_govassist/' .env
+        sed -i 's/DB_USERNAME=root/DB_USERNAME=if0_42325610/' .env
+        sed -i 's/DB_PASSWORD=/DB_PASSWORD=3fShnkJ56HCYn3E/' .env
+        php artisan key:generate
+
+    - name: Sync files to FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: "ftpupload.net"
+        username: "if0_42325610"
+        password: "3fShnkJ56HCYn3E"
+        server-dir: /htdocs/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/tests/**
+          .env.example
+          README.md

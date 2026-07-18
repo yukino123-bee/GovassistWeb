@@ -49,6 +49,8 @@
                     </div>
                 @elseif($q->type === 'number')
                     <input type="number" name="question_{{ $q->id }}" placeholder="Enter numeric value..." class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" required>
+                @elseif($q->type === 'text')
+                    <textarea name="question_{{ $q->id }}" rows="3" placeholder="Enter your response..." class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" required></textarea>
                 @endif
             </div>
         @endforeach

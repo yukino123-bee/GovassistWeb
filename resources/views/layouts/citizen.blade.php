@@ -65,6 +65,17 @@
                     </div>
 
                     @auth
+                        <!-- User Avatar -->
+                        <a href="{{ route('citizen.profile') }}" class="flex items-center space-x-2 pl-2 border-l border-white/20">
+                            <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white/30 shadow-sm bg-white/10 flex items-center justify-center">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                @else
+                                    <span class="text-white text-xs font-bold">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                @endif
+                            </div>
+                        </a>
+
                         <!-- Logout -->
                         <form action="{{ route('logout') }}" method="POST" class="inline" id="logout-form">
                             @csrf
@@ -87,6 +98,24 @@
 
         <!-- Main Content Area -->
         <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            @if(session('success'))
+                <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-600 p-4 shadow-sm">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-emerald-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <p class="text-xs font-bold text-emerald-800">{{ session('success') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-6 bg-rose-50 border-l-4 border-rose-600 p-4 shadow-sm">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-rose-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-xs font-bold text-rose-800">{{ session('error') }}</p>
+                    </div>
+                </div>
+            @endif
+
             @yield('content')
         </main>
 
@@ -210,6 +239,24 @@
                 });
             }
         });
+        // Scroll to Top functionality
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('scrollToTopBtn');
+            if (btn) {
+                if (window.scrollY > 100) {
+                    btn.style.bottom = window.innerWidth < 768 ? '5rem' : '2rem';
+                } else {
+                    btn.style.bottom = '-5rem';
+                }
+            }
+        });
     </script>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed right-6 md:right-8 bg-red-700 text-white p-3 shadow-lg transition-all duration-300 hover:bg-red-800 z-[9999] flex items-center justify-center rounded-none" style="bottom: -5rem;" aria-label="Scroll to top">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
 </body>
 </html>

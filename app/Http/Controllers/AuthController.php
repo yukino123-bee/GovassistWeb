@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -68,6 +70,8 @@ class AuthController extends Controller
             'language' => $lang,
         ]);
 
+        event(new Registered($user));
+
         Auth::login($user);
 
         return redirect()->route('citizen.home');
@@ -99,6 +103,44 @@ class AuthController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function verifyNotice(Request $request)
+    {
+        return $request->user()->hasVerifiedEmail()
+                    ? redirect()->route('citizen.home')
+                    : view('auth.verify');
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|string|size:6',
+        ]);
+
+        $user = $request->user();
+        $cachedOtp = Cache::get('verification_otp_' . $user->id);
+
+        if (!$cachedOtp || $cachedOtp !== $request->otp) {
+            return back()->withErrors(['otp' => 'The OTP you entered is invalid or has expired.']);
+        }
+
+        // OTP is correct
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new \Illuminate\Auth\Events\Verified($user));
+        }
+
+        Cache::forget('verification_otp_' . $user->id);
+
+        return redirect()->route('citizen.home');
+    }
+
+    public function verifyResend(Request $request)
+    {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('message', 'A new OTP has been sent to your email!');
     }
 
     protected function redirectBasedOnRole($user)

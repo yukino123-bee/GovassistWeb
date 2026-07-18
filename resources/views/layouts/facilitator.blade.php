@@ -37,7 +37,7 @@
             </div>
             <div>
                 <span class="text-base font-extrabold tracking-wider text-white leading-tight block">GovAssist</span>
-                <span class="text-[10px] text-red-200 uppercase tracking-widest font-extrabold">SSFO Facilitator</span>
+                <span class="text-[10px] text-red-200 uppercase tracking-widest font-extrabold">SSFO {{ __('messages.admin_facilitator') }}</span>
             </div>
         </div>
 
@@ -59,14 +59,14 @@
         <!-- Navigation Links -->
         <nav id="admin-sidebar-nav" class="flex-grow px-3 py-4 space-y-0.5">
             <!-- Section Label -->
-            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-1">Main Menu</p>
+            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-1">{{ __('messages.admin_main_menu') }}</p>
 
             <!-- Dashboard -->
             <a href="{{ route('facilitator.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-none transition-all duration-150 text-xs font-bold {{ Route::is('facilitator.dashboard') ? 'bg-white/20 text-white border-l-2 border-white/70' : 'text-red-100 hover:bg-white/10 hover:text-white border-l-2 border-transparent' }}">
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                 </svg>
-                <span>Dashboard</span>
+                <span>{{ __('messages.admin_dashboard') }}</span>
             </a>
 
             <!-- Services -->
@@ -74,7 +74,7 @@
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <span>Services</span>
+                <span>{{ __('messages.admin_services') }}</span>
             </a>
 
             <!-- Requirements -->
@@ -82,7 +82,7 @@
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                <span>Requirements</span>
+                <span>{{ __('messages.admin_requirements') }}</span>
             </a>
 
             <!-- Eligibility -->
@@ -90,17 +90,25 @@
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <span>Eligibility Rules</span>
+                <span>{{ __('messages.admin_eligibility') }}</span>
             </a>
 
-            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-4">Applications</p>
+            <!-- Reassessment Requests -->
+            <a href="{{ route('facilitator.reassessments') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-none transition-all duration-150 text-xs font-bold {{ Route::is('facilitator.reassessments*') ? 'bg-white/20 text-white border-l-2 border-white/70' : 'text-red-100 hover:bg-white/10 hover:text-white border-l-2 border-transparent' }}">
+                <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>{{ __('messages.admin_reassessments') }}</span>
+            </a>
+
+            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-4">{{ __('messages.admin_applications_menu') }}</p>
 
             <!-- Applications -->
             <a href="{{ route('facilitator.applications') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-none transition-all duration-150 text-xs font-bold {{ Route::is('facilitator.applications*') ? 'bg-white/20 text-white border-l-2 border-white/70' : 'text-red-100 hover:bg-white/10 hover:text-white border-l-2 border-transparent' }}">
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
                 </svg>
-                <span>Applications</span>
+                <span>{{ __('messages.admin_applications_menu') }}</span>
             </a>
 
             <!-- Inquiries -->
@@ -108,17 +116,17 @@
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
-                <span>Inquiries</span>
+                <span>{{ __('messages.admin_inquiries') }}</span>
             </a>
 
-            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-4">Reports</p>
+            <p class="text-[9px] font-extrabold uppercase tracking-widest text-red-300 px-3 pb-2 pt-4">{{ __('messages.admin_reports') }}</p>
 
             <!-- Users -->
             <a href="{{ route('facilitator.users') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-none transition-all duration-150 text-xs font-bold {{ Route::is('facilitator.users*') ? 'bg-white/20 text-white border-l-2 border-white/70' : 'text-red-100 hover:bg-white/10 hover:text-white border-l-2 border-transparent' }}">
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <span>Citizens Registry</span>
+                <span>{{ __('messages.admin_citizens') }}</span>
             </a>
 
             <!-- Assessments -->
@@ -126,7 +134,7 @@
                 <svg class="w-4 h-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span>Assessments</span>
+                <span>{{ __('messages.admin_assessments') }}</span>
             </a>
         </nav>
 
@@ -138,7 +146,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span>Log Out</span>
+                    <span>{{ __('messages.admin_log_out') }}</span>
                 </button>
             </form>
         </div>
@@ -186,7 +194,7 @@
                 <a href="{{ route('facilitator.profile.edit') }}" class="pl-4 flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
                     <div class="hidden sm:flex flex-col items-end leading-tight">
                         <span class="text-xs font-bold text-slate-800">{{ Auth::user()->name }}</span>
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Facilitator</span>
+                        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{{ __('messages.admin_facilitator') }}</span>
                     </div>
                     <div class="relative">
                         <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden shadow-sm">
@@ -205,7 +213,7 @@
         </header>
 
         <!-- Content Area -->
-        <main class="flex-grow p-6 overflow-y-auto">
+        <main id="main-content-area" class="flex-grow p-6 overflow-y-auto relative scroll-smooth">
             <!-- Alert Messages -->
             @if(session('success'))
                 <div class="mb-5 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-none text-emerald-800 shadow-sm flex items-center space-x-3">
@@ -333,6 +341,28 @@
                 sessionStorage.setItem(SCROLL_KEY, nav.scrollTop);
             });
         })();
+
+        // Scroll to Top functionality for the main container
+        const mainContent = document.getElementById('main-content-area');
+        if (mainContent) {
+            mainContent.addEventListener('scroll', function() {
+                const btn = document.getElementById('scrollToTopBtn');
+                if (btn) {
+                    if (mainContent.scrollTop > 100) {
+                        btn.style.bottom = '2rem';
+                    } else {
+                        btn.style.bottom = '-5rem';
+                    }
+                }
+            });
+        }
     </script>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" onclick="document.getElementById('main-content-area').scrollTo({top: 0, behavior: 'smooth'})" class="fixed right-8 bg-red-700 text-white p-3 shadow-lg transition-all duration-300 hover:bg-red-800 z-[9999] flex items-center justify-center rounded-none" style="bottom: -5rem;" aria-label="Scroll to top">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
 </body>
 </html>

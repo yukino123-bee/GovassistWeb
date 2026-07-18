@@ -10,9 +10,9 @@
     <!-- Welcome Banner -->
     <div class="bg-red-700 p-6 shadow-sm flex items-center justify-between">
         <div>
-            <span class="text-[10px] uppercase tracking-widest text-red-200 font-bold block">Welcome back,</span>
+            <span class="text-[10px] uppercase tracking-widest text-red-200 font-bold block">{{ __('messages.admin_welcome_back') }}</span>
             <h3 class="text-xl font-extrabold text-white tracking-tight mt-0.5">{{ Auth::user()->name }}</h3>
-            <p class="text-xs text-red-100 mt-1">Here's an overview of GovAssist activity.</p>
+            <p class="text-xs text-red-100 mt-1">{{ __('messages.admin_overview') }}</p>
         </div>
         <div class="hidden sm:flex items-center space-x-2 text-red-200">
             <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@
         <!-- Total Citizens -->
         <div class="bg-white border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Citizens</span>
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{{ __('messages.admin_total_citizens') }}</span>
                 <span class="text-3xl font-black text-slate-800 block mt-1">{{ $totalUsers }}</span>
             </div>
             <div class="p-2.5 bg-red-50 border border-red-100 text-red-600">
@@ -39,7 +39,7 @@
         <!-- Gov Services -->
         <div class="bg-white border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Gov Services</span>
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{{ __('messages.admin_gov_services') }}</span>
                 <span class="text-3xl font-black text-slate-800 block mt-1">{{ $totalServices }}</span>
             </div>
             <div class="p-2.5 bg-red-50 border border-red-100 text-red-600">
@@ -52,7 +52,7 @@
         <!-- Open Applications -->
         <div class="bg-white border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Applications</span>
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{{ __('messages.admin_open_applications') }}</span>
                 <span class="text-3xl font-black text-slate-800 block mt-1">{{ $openInquiries }}</span>
             </div>
             <div class="p-2.5 bg-amber-50 border border-amber-100 text-amber-600">
@@ -65,7 +65,7 @@
         <!-- Assessments -->
         <div class="bg-white border border-slate-200 p-5 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Assessments</span>
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{{ __('messages.admin_assessments') }}</span>
                 <span class="text-3xl font-black text-slate-800 block mt-1">{{ $totalAssessments }}</span>
             </div>
             <div class="p-2.5 bg-red-50 border border-red-100 text-red-600">
@@ -82,20 +82,20 @@
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-                Recent Submitted Applications
+                {{ __('messages.admin_recent_applications') }}
             </h3>
-            <a href="{{ route('facilitator.applications') }}" class="text-[10px] font-bold text-red-700 hover:text-red-800 uppercase tracking-wider">View All →</a>
+            <a href="{{ route('facilitator.applications') }}" class="text-[10px] font-bold text-red-700 hover:text-red-800 uppercase tracking-wider">{{ __('messages.admin_view_all') }} →</a>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
                 <thead>
                     <tr class="border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50/60">
-                        <th class="px-6 py-3">Citizen Name</th>
-                        <th class="px-6 py-3">Assistance Service</th>
-                        <th class="px-6 py-3">Submitted At</th>
-                        <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3 text-right">Action</th>
+                        <th class="px-6 py-3">{{ __('messages.admin_citizen_name') }}</th>
+                        <th class="px-6 py-3">{{ __('messages.admin_assistance_service') }}</th>
+                        <th class="px-6 py-3">{{ __('messages.admin_submitted_at') }}</th>
+                        <th class="px-6 py-3">{{ __('messages.admin_status') }}</th>
+                        <th class="px-6 py-3 text-right">{{ __('messages.admin_action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -121,7 +121,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-slate-400 font-medium text-xs">No recent applications submitted.</td>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs italic">{{ __('messages.admin_no_applications') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

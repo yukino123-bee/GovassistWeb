@@ -23,11 +23,19 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
+    Route::post('/email/verify/process', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+    Route::post('/email/verification-notification', [AuthController::class, 'verifyResend'])->middleware('throttle:6,1')->name('verification.send');
+});
+
 Route::post('/language/toggle', [AuthController::class, 'toggleLanguage'])->name('language.toggle');
 
+use App\Http\Middleware\EnsureEmailIsVerifiedIfLoggedIn;
+
 // Citizen Public Routes
-Route::prefix('citizen')->group(function () {
+Route::prefix('citizen')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
     Route::get('/home', [CitizenController::class, 'home'])->name('citizen.home');
     Route::get('/eligibility', [CitizenController::class, 'eligibility'])->name('citizen.eligibility');
     Route::get('/inquiry', [CitizenController::class, 'inquiry'])->name('citizen.inquiry');
@@ -36,11 +44,12 @@ Route::prefix('citizen')->group(function () {
 });
 
 // Citizen Protected Routes
-Route::middleware(['auth', 'role:citizen'])->prefix('citizen')->group(function () {
+Route::middleware(['auth', 'role:citizen', 'verified'])->prefix('citizen')->group(function () {
     // Eligibility Assessment
     Route::get('/eligibility/assess/{service}', [CitizenController::class, 'showAssessForm'])->name('citizen.eligibility.assess');
     Route::post('/eligibility/assess/{service}', [CitizenController::class, 'processAssessForm'])->name('citizen.eligibility.assess.submit');
     Route::get('/eligibility/result/{refNo}', [CitizenController::class, 'showAssessResult'])->name('citizen.eligibility.result');
+    Route::post('/eligibility/reassess/{service}', [CitizenController::class, 'requestReassessment'])->name('citizen.eligibility.reassess');
 
     // Checklist & Document Upload
     Route::get('/eligibility/checklist/{service}', [CitizenController::class, 'checklist'])->name('citizen.eligibility.checklist');
@@ -78,6 +87,8 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     // Eligibility criteria questions
     Route::get('/eligibility', [FacilitatorController::class, 'eligibility'])->name('facilitator.eligibility');
     Route::post('/eligibility', [FacilitatorController::class, 'storeQuestion'])->name('facilitator.eligibility.store');
+    Route::get('/eligibility/{question}/edit', [FacilitatorController::class, 'editQuestion'])->name('facilitator.eligibility.edit');
+    Route::put('/eligibility/{question}', [FacilitatorController::class, 'updateQuestion'])->name('facilitator.eligibility.update');
     Route::delete('/eligibility/{question}', [FacilitatorController::class, 'destroyQuestion'])->name('facilitator.eligibility.destroy');
 
     // Users / Citizens Registry CRUD
@@ -95,6 +106,10 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/assessments/{assessment}/edit', [FacilitatorController::class, 'editAssessment'])->name('facilitator.assessments.edit');
     Route::put('/assessments/{assessment}', [FacilitatorController::class, 'updateAssessment'])->name('facilitator.assessments.update');
     Route::delete('/assessments/{assessment}', [FacilitatorController::class, 'destroyAssessment'])->name('facilitator.assessments.destroy');
+
+    // Reassessments
+    Route::get('/reassessments', [FacilitatorController::class, 'reassessments'])->name('facilitator.reassessments');
+    Route::post('/reassessments/{reassessment}/status', [FacilitatorController::class, 'updateReassessmentStatus'])->name('facilitator.reassessments.update_status');
 
     // Checklists / Applications & Validation
     Route::get('/applications', [FacilitatorController::class, 'applications'])->name('facilitator.applications');

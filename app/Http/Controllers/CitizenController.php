@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
+use App\Models\ReassessmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -53,12 +54,27 @@ class CitizenController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get()
             : collect();
+            
+        $reassessmentRequests = Auth::check()
+            ? ReassessmentRequest::where('user_id', Auth::id())
+                ->where('status', 'pending')
+                ->get()
+                ->keyBy('service_id')
+            : collect();
 
-        return view('citizen.eligibility.index', compact('services', 'assessments'));
+        return view('citizen.eligibility.index', compact('services', 'assessments', 'reassessmentRequests'));
     }
 
     public function showAssessForm(GovernmentService $service)
     {
+        $existingAssessment = EligibilityAssessment::where('user_id', Auth::id())
+            ->where('service_id', $service->id)
+            ->first();
+
+        if ($existingAssessment) {
+            return redirect()->route('citizen.eligibility')->with('error', 'You have already taken the assessment for this program. You can request a reassessment if necessary.');
+        }
+
         $questions = $service->eligibilityQuestions;
 
         return view('citizen.eligibility.assess', compact('service', 'questions'));
@@ -67,6 +83,11 @@ class CitizenController extends Controller
     public function processAssessForm(Request $request, GovernmentService $service)
     {
         $user = Auth::user();
+
+        if (EligibilityAssessment::where('user_id', $user->id)->where('service_id', $service->id)->exists()) {
+            return redirect()->route('citizen.eligibility')->with('error', 'You have already taken the assessment for this program.');
+        }
+
         $questions = $service->eligibilityQuestions;
 
         $answers = [];
@@ -130,6 +151,31 @@ class CitizenController extends Controller
             ->firstOrFail();
 
         return view('citizen.eligibility.result', compact('assessment'));
+    }
+
+    public function requestReassessment(Request $request, GovernmentService $service)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:1000'
+        ]);
+
+        $existingRequest = ReassessmentRequest::where('user_id', Auth::id())
+            ->where('service_id', $service->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingRequest) {
+            return back()->with('error', 'You already have a pending reassessment request for this program.');
+        }
+
+        ReassessmentRequest::create([
+            'user_id' => Auth::id(),
+            'service_id' => $service->id,
+            'reason' => $request->reason,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Your reassessment request has been submitted and is waiting for Admin approval.');
     }
 
     public function checklist(GovernmentService $service)

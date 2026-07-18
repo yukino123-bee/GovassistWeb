@@ -418,6 +418,123 @@ class DatabaseSeeder extends Seeder
             'expected_value' => 'true',
             'operator' => '==',
         ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Do you have any failing grades from the previous semester?',
+            'question_text_ceb' => 'Aduna ba kay mga hagbong nga grado gikan sa miaging semester?',
+            'question_text_fil' => 'Mayroon ka bang mga bagsak na grado mula sa nakaraang semestre?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you a resident of this municipality for at least 6 months?',
+            'question_text_ceb' => 'Residente ba ikaw niini nga lungsod sulod sa labing menos 6 ka bulan?',
+            'question_text_fil' => 'Ikaw ba ay residente ng munisipalidad na ito ng hindi bababa sa 6 na buwan?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you currently a recipient of any other government scholarship or financial assistance?',
+            'question_text_ceb' => 'Nakadawat ba ikaw karon og bisan unsang laing scholarship o pinansyal nga tabang gikan sa gobyerno?',
+            'question_text_fil' => 'Kasalukuyan ka bang tumatanggap ng anumang ibang scholarship o tulong pinansyal mula sa gobyerno?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you a Filipino citizen?',
+            'question_text_ceb' => 'Usa ba ikaw ka lungsoranon sa Pilipinas?',
+            'question_text_fil' => 'Ikaw ba ay isang mamamayang Pilipino?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you a registered voter or a child of a registered voter in this municipality?',
+            'question_text_ceb' => 'Rehistrado ka ba nga botante o anak sa usa ka rehistradong botante niini nga lungsod?',
+            'question_text_fil' => 'Ikaw ba ay rehistradong botante o anak ng isang rehistradong botante sa munisipalidad na ito?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Do you possess a Certificate of Good Moral Character from your current/last school?',
+            'question_text_ceb' => 'Aduna ba kay Certificate of Good Moral Character gikan sa imong kasamtangan/katapusan nga eskwelahan?',
+            'question_text_fil' => 'Mayroon ka bang Sertipiko ng Mabuting Asal mula sa iyong kasalukuyan/huling paaralan?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you currently employed in a full-time capacity?',
+            'question_text_ceb' => 'Aduna ba kay full-time nga trabaho karon?',
+            'question_text_fil' => 'Kasalukuyan ka bang may full-time na trabaho?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Do you have any parents currently working as regular government employees?',
+            'question_text_ceb' => 'Aduna ba kay ginikanan nga nagtrabaho isip regular nga empleyado sa gobyerno?',
+            'question_text_fil' => 'Mayroon ka bang mga magulang na kasalukuyang nagtatrabaho bilang regular na empleyado ng gobyerno?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Have you ever been convicted of any crime or offense?',
+            'question_text_ceb' => 'Nakonbikto na ba ikaw sa bisan unsang krimen o kalapasan?',
+            'question_text_fil' => 'Nahatulan ka na ba sa anumang krimen o pagkakasala?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you willing to render at least 20 hours of community service per semester?',
+            'question_text_ceb' => 'Andam ka ba nga mohatag og labing menos 20 ka oras nga serbisyo sa komunidad matag semester?',
+            'question_text_fil' => 'Handa ka bang magbigay ng hindi bababa sa 20 oras ng serbisyo sa komunidad bawat semestre?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Is your general weighted average (GWA) from the previous semester 85% or higher?',
+            'question_text_ceb' => 'Ang imong general weighted average (GWA) ba gikan sa miaging semester kay 85% o pataas?',
+            'question_text_fil' => 'Ang iyong pangkalahatang average (GWA) ba mula sa nakaraang semestre ay 85% o mas mataas?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Are you transferring from a school outside this municipality?',
+            'question_text_ceb' => 'Nagbalhin ba ikaw gikan sa usa ka eskwelahan sa gawas niini nga lungsod?',
+            'question_text_fil' => 'Lumilipat ka ba mula sa isang paaralan sa labas ng munisipalidad na ito?',
+            'type' => 'boolean',
+            'expected_value' => 'false',
+            'operator' => '==',
+        ]);
+        EligibilityQuestion::create([
+            'service_id' => $edu->id,
+            'question_text_en' => 'Can you provide a valid Certificate of Indigency from your Barangay?',
+            'question_text_ceb' => 'Makahatag ba ikaw og balido nga Certificate of Indigency gikan sa imong Barangay?',
+            'question_text_fil' => 'Maaari ka bang magbigay ng balidong Sertipiko ng Kahirapan mula sa inyong Barangay?',
+            'type' => 'boolean',
+            'expected_value' => 'true',
+            'operator' => '==',
+        ]);
 
         // Medical
         EligibilityQuestion::create([
@@ -429,15 +546,7 @@ class DatabaseSeeder extends Seeder
             'expected_value' => 'true',
             'operator' => '==',
         ]);
-        EligibilityQuestion::create([
-            'service_id' => $med->id,
-            'question_text_en' => 'What is your family\'s monthly household income?',
-            'question_text_ceb' => 'Pila ang binuwan nga kita sa inyong panimalay?',
-            'question_text_fil' => 'Magkano ang buwanang kita ng inyong pamilya?',
-            'type' => 'number',
-            'expected_value' => '20000',
-            'operator' => '<=',
-        ]);
+
 
         // Employment
         EligibilityQuestion::create([

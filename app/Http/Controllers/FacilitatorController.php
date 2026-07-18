@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
+use App\Models\ReassessmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -225,6 +226,30 @@ class FacilitatorController extends Controller
         return back()->with('success', 'Requirement deleted successfully.');
     }
 
+    // --- Reassessment Requests ---
+    public function reassessments()
+    {
+        $requests = ReassessmentRequest::with(['user', 'service'])->orderBy('created_at', 'desc')->get();
+        return view('facilitator.reassessments.index', compact('requests'));
+    }
+
+    public function updateReassessmentStatus(Request $request, ReassessmentRequest $reassessment)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $reassessment->update(['status' => $request->status]);
+
+        if ($request->status === 'approved') {
+            EligibilityAssessment::where('user_id', $reassessment->user_id)
+                ->where('service_id', $reassessment->service_id)
+                ->delete();
+        }
+
+        return back()->with('success', 'Reassessment request ' . $request->status . ' successfully.');
+    }
+
     // --- Eligibility Questions CRUD ---
     public function eligibility()
     {
@@ -238,19 +263,61 @@ class FacilitatorController extends Controller
     {
         $request->validate([
             'service_id' => ['required', 'exists:government_services,id'],
-            'question_text_en' => ['required', 'string'],
-            'question_text_ceb' => ['required', 'string'],
-            'question_text_fil' => ['required', 'string'],
-            'type' => ['required', 'string', 'in:boolean,number'],
+            'question_text' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:boolean,number,text'],
             'expected_value' => ['required', 'string'],
             'operator' => ['required', 'string'],
         ]);
 
-        EligibilityQuestion::create($request->all());
+        $scriptPath = base_path('scripts/translate.py');
+        $command = 'python3 ' . escapeshellarg($scriptPath) . ' --text ' . escapeshellarg($request->question_text);
+        $output = shell_exec($command);
+        
+        $translations = ['en' => $request->question_text, 'ceb' => '', 'fil' => '', 'sub' => ''];
+        
+        if ($output) {
+            $result = json_decode($output, true);
+            if (!isset($result['error'])) {
+                $translations = $result;
+            }
+        }
 
-        return back()->with('success', 'Question created successfully.');
+        EligibilityQuestion::create([
+            'service_id' => $request->service_id,
+            'question_text_en' => $translations['en'],
+            'question_text_ceb' => $translations['ceb'],
+            'question_text_fil' => $translations['fil'],
+            'question_text_sub' => $translations['sub'],
+            'type' => $request->type,
+            'expected_value' => $request->expected_value,
+            'operator' => $request->operator,
+        ]);
+
+        return back()->with('success', 'Question created and automatically translated successfully.');
+    }
+    public function editQuestion(EligibilityQuestion $question)
+    {
+        $services = GovernmentService::all();
+        return view('facilitator.eligibility.edit', compact('question', 'services'));
     }
 
+    public function updateQuestion(Request $request, EligibilityQuestion $question)
+    {
+        $request->validate([
+            'service_id' => ['required', 'exists:government_services,id'],
+            'question_text_en' => ['required', 'string'],
+            'question_text_ceb' => ['required', 'string'],
+            'question_text_fil' => ['required', 'string'],
+            'question_text_sub' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:boolean,number,text'],
+            'expected_value' => ['required', 'string'],
+            'operator' => ['required', 'string'],
+        ]);
+
+        $question->update($request->all());
+
+        return redirect()->route('facilitator.eligibility')->with('success', 'Question updated successfully.');
+    }
     public function destroyQuestion(EligibilityQuestion $question)
     {
         $question->delete();
@@ -406,11 +473,20 @@ class FacilitatorController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'contact_number' => ['nullable', 'string'],
+            'avatar' => ['nullable', 'image', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->contact_number = $request->contact_number;
+
+        if ($file = $request->file('avatar')) {
+            $path = $file->store('avatars', 'public');
+            $user->avatar = $path;
+        }
+
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
