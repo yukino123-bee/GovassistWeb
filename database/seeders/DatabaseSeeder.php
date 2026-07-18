@@ -135,7 +135,7 @@ class DatabaseSeeder extends Seeder
 
         $emp = GovernmentService::create([
             'category_id' => $catEmp->id,
-            'service_name' => 'Employment and Livelihood Assistance',
+            'service_name' => 'Employment Assistance',
             'description' => 'Provides assistance to job seekers, including livelihood support, skill training, and referral programs.',
             'procedure' => "1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.",
             'icon' => 'briefcase',
@@ -238,7 +238,7 @@ class DatabaseSeeder extends Seeder
         ServiceTranslation::create([
             'service_id' => $emp->id,
             'language_code' => 'en',
-            'service_name' => 'Employment and Livelihood Assistance',
+            'service_name' => 'Employment Assistance',
             'description' => 'Provides assistance to job seekers, including livelihood support, skill training, and referral programs.',
             'procedure' => "1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.",
         ]);

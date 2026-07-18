@@ -44,8 +44,8 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `assessment_answers` WRITE;
 /*!40000 ALTER TABLE `assessment_answers` DISABLE KEYS */;
 INSERT INTO `assessment_answers` VALUES
-(1,1,'Are you at least 18 years of age?','21','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,'Are you currently unemployed and actively looking for work?','true','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'Are you at least 18 years of age?','21','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,'Are you currently unemployed and actively looking for work?','true','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `assessment_answers` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -119,7 +119,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `eligibility_assessments` WRITE;
 /*!40000 ALTER TABLE `eligibility_assessments` DISABLE KEYS */;
 INSERT INTO `eligibility_assessments` VALUES
-(1,2,5,'eligible','2026-07-14 04:36:48','2026-07-18 04:36:48');
+(1,2,5,'eligible','2026-07-14 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `eligibility_assessments` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -158,24 +158,24 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `eligibility_questions` WRITE;
 /*!40000 ALTER TABLE `eligibility_questions` DISABLE KEYS */;
 INSERT INTO `eligibility_questions` VALUES
-(1,1,'What is your family\'s monthly household income?','Pila ang binuwan nga kita sa inyong panimalay?','Magkano ang buwanang kita ng inyong pamilya?',NULL,'number','15000','<=','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,'Are you currently enrolled in an accredited school or college?','Kasamtangan ba ikaw nga naka-enrol sa usa ka akreditadong eskwelahan o kolehiyo?','Kasalukuyan ka bang nag-aaral sa isang kinikilalang paaralan?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,1,'Do you have any failing grades from the previous semester?','Aduna ba kay mga hagbong nga grado gikan sa miaging semester?','Mayroon ka bang mga bagsak na grado mula sa nakaraang semestre?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,1,'Are you a resident of this municipality for at least 6 months?','Residente ba ikaw niini nga lungsod sulod sa labing menos 6 ka bulan?','Ikaw ba ay residente ng munisipalidad na ito ng hindi bababa sa 6 na buwan?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(5,1,'Are you currently a recipient of any other government scholarship or financial assistance?','Nakadawat ba ikaw karon og bisan unsang laing scholarship o pinansyal nga tabang gikan sa gobyerno?','Kasalukuyan ka bang tumatanggap ng anumang ibang scholarship o tulong pinansyal mula sa gobyerno?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(6,1,'Are you a Filipino citizen?','Usa ba ikaw ka lungsoranon sa Pilipinas?','Ikaw ba ay isang mamamayang Pilipino?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(7,1,'Are you a registered voter or a child of a registered voter in this municipality?','Rehistrado ka ba nga botante o anak sa usa ka rehistradong botante niini nga lungsod?','Ikaw ba ay rehistradong botante o anak ng isang rehistradong botante sa munisipalidad na ito?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(8,1,'Do you possess a Certificate of Good Moral Character from your current/last school?','Aduna ba kay Certificate of Good Moral Character gikan sa imong kasamtangan/katapusan nga eskwelahan?','Mayroon ka bang Sertipiko ng Mabuting Asal mula sa iyong kasalukuyan/huling paaralan?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(9,1,'Are you currently employed in a full-time capacity?','Aduna ba kay full-time nga trabaho karon?','Kasalukuyan ka bang may full-time na trabaho?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(10,1,'Do you have any parents currently working as regular government employees?','Aduna ba kay ginikanan nga nagtrabaho isip regular nga empleyado sa gobyerno?','Mayroon ka bang mga magulang na kasalukuyang nagtatrabaho bilang regular na empleyado ng gobyerno?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(11,1,'Have you ever been convicted of any crime or offense?','Nakonbikto na ba ikaw sa bisan unsang krimen o kalapasan?','Nahatulan ka na ba sa anumang krimen o pagkakasala?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(12,1,'Are you willing to render at least 20 hours of community service per semester?','Andam ka ba nga mohatag og labing menos 20 ka oras nga serbisyo sa komunidad matag semester?','Handa ka bang magbigay ng hindi bababa sa 20 oras ng serbisyo sa komunidad bawat semestre?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(13,1,'Is your general weighted average (GWA) from the previous semester 85% or higher?','Ang imong general weighted average (GWA) ba gikan sa miaging semester kay 85% o pataas?','Ang iyong pangkalahatang average (GWA) ba mula sa nakaraang semestre ay 85% o mas mataas?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(14,1,'Are you transferring from a school outside this municipality?','Nagbalhin ba ikaw gikan sa usa ka eskwelahan sa gawas niini nga lungsod?','Lumilipat ka ba mula sa isang paaralan sa labas ng munisipalidad na ito?',NULL,'boolean','false','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(15,1,'Can you provide a valid Certificate of Indigency from your Barangay?','Makahatag ba ikaw og balido nga Certificate of Indigency gikan sa imong Barangay?','Maaari ka bang magbigay ng balidong Sertipiko ng Kahirapan mula sa inyong Barangay?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(16,2,'Do you have an active medical case, prescription, or hospital admission?','Aduna ba kay aktibo nga kaso sa medikal, reseta, o pagkasulod sa ospital?','Mayroon ka bang aktibong kasong medikal, reseta, o pagkaka-admit sa ospital?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(17,5,'Are you at least 18 years of age?','Aduna ba kay 18 anyos o pataas ang edad?','Ikaw ba ay may edad na 18 pataas?',NULL,'number','18','>=','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(18,5,'Are you currently unemployed and actively looking for work?','Kasamtangan ba ka nga walay trabaho ug aktibong nangita og trabaho?','Kasalukuyan ka bang walang trabaho at aktibong naghahanap ng trabaho?',NULL,'boolean','true','==','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'What is your family\'s monthly household income?','Pila ang binuwan nga kita sa inyong panimalay?','Magkano ang buwanang kita ng inyong pamilya?',NULL,'number','15000','<=','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,'Are you currently enrolled in an accredited school or college?','Kasamtangan ba ikaw nga naka-enrol sa usa ka akreditadong eskwelahan o kolehiyo?','Kasalukuyan ka bang nag-aaral sa isang kinikilalang paaralan?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,1,'Do you have any failing grades from the previous semester?','Aduna ba kay mga hagbong nga grado gikan sa miaging semester?','Mayroon ka bang mga bagsak na grado mula sa nakaraang semestre?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,1,'Are you a resident of this municipality for at least 6 months?','Residente ba ikaw niini nga lungsod sulod sa labing menos 6 ka bulan?','Ikaw ba ay residente ng munisipalidad na ito ng hindi bababa sa 6 na buwan?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(5,1,'Are you currently a recipient of any other government scholarship or financial assistance?','Nakadawat ba ikaw karon og bisan unsang laing scholarship o pinansyal nga tabang gikan sa gobyerno?','Kasalukuyan ka bang tumatanggap ng anumang ibang scholarship o tulong pinansyal mula sa gobyerno?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(6,1,'Are you a Filipino citizen?','Usa ba ikaw ka lungsoranon sa Pilipinas?','Ikaw ba ay isang mamamayang Pilipino?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(7,1,'Are you a registered voter or a child of a registered voter in this municipality?','Rehistrado ka ba nga botante o anak sa usa ka rehistradong botante niini nga lungsod?','Ikaw ba ay rehistradong botante o anak ng isang rehistradong botante sa munisipalidad na ito?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(8,1,'Do you possess a Certificate of Good Moral Character from your current/last school?','Aduna ba kay Certificate of Good Moral Character gikan sa imong kasamtangan/katapusan nga eskwelahan?','Mayroon ka bang Sertipiko ng Mabuting Asal mula sa iyong kasalukuyan/huling paaralan?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(9,1,'Are you currently employed in a full-time capacity?','Aduna ba kay full-time nga trabaho karon?','Kasalukuyan ka bang may full-time na trabaho?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(10,1,'Do you have any parents currently working as regular government employees?','Aduna ba kay ginikanan nga nagtrabaho isip regular nga empleyado sa gobyerno?','Mayroon ka bang mga magulang na kasalukuyang nagtatrabaho bilang regular na empleyado ng gobyerno?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(11,1,'Have you ever been convicted of any crime or offense?','Nakonbikto na ba ikaw sa bisan unsang krimen o kalapasan?','Nahatulan ka na ba sa anumang krimen o pagkakasala?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(12,1,'Are you willing to render at least 20 hours of community service per semester?','Andam ka ba nga mohatag og labing menos 20 ka oras nga serbisyo sa komunidad matag semester?','Handa ka bang magbigay ng hindi bababa sa 20 oras ng serbisyo sa komunidad bawat semestre?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(13,1,'Is your general weighted average (GWA) from the previous semester 85% or higher?','Ang imong general weighted average (GWA) ba gikan sa miaging semester kay 85% o pataas?','Ang iyong pangkalahatang average (GWA) ba mula sa nakaraang semestre ay 85% o mas mataas?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(14,1,'Are you transferring from a school outside this municipality?','Nagbalhin ba ikaw gikan sa usa ka eskwelahan sa gawas niini nga lungsod?','Lumilipat ka ba mula sa isang paaralan sa labas ng munisipalidad na ito?',NULL,'boolean','false','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(15,1,'Can you provide a valid Certificate of Indigency from your Barangay?','Makahatag ba ikaw og balido nga Certificate of Indigency gikan sa imong Barangay?','Maaari ka bang magbigay ng balidong Sertipiko ng Kahirapan mula sa inyong Barangay?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(16,2,'Do you have an active medical case, prescription, or hospital admission?','Aduna ba kay aktibo nga kaso sa medikal, reseta, o pagkasulod sa ospital?','Mayroon ka bang aktibong kasong medikal, reseta, o pagkaka-admit sa ospital?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(17,5,'Are you at least 18 years of age?','Aduna ba kay 18 anyos o pataas ang edad?','Ikaw ba ay may edad na 18 pataas?',NULL,'number','18','>=','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(18,5,'Are you currently unemployed and actively looking for work?','Kasamtangan ba ka nga walay trabaho ug aktibong nangita og trabaho?','Kasalukuyan ka bang walang trabaho at aktibong naghahanap ng trabaho?',NULL,'boolean','true','==','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `eligibility_questions` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -211,11 +211,11 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `government_services` WRITE;
 /*!40000 ALTER TABLE `government_services` DISABLE KEYS */;
 INSERT INTO `government_services` VALUES
-(1,1,'Educational Assistance','Educational Assistance Provides financial aid, scholarships, tuition support, school supplies, or other educational benefits to eligible students to help them continue their studies and reduce the cost of education.','1. Submit required documents to the SSFO office.\n2. Complete the Eligibility Assessment.\n3. Wait for validation and approval of application.\n4. Claim financial assistance during payout scheduling.','assets/icons/civil.png','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,'Medical Assistance','Provides financial assistance to eligible individuals to help cover medical expenses, including hospitalization, laboratory tests, medicines, surgical procedures, and other necessary healthcare services.','1. Submit Hospital Bill or Medical Certificate.\n2. Undergo assessment by facilitator.\n3. Approved requests will receive guarantee letters or financial payouts.','assets/icons/civil.png','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,1,'Burial Assistance','Provides financial assistance to the family or authorized representative of a deceased individual to help cover funeral, burial, and other related expenses.','1. Present Death Certificate and Funeral Contract.\n2. Fill out social case study report.\n3. Receive financial assistance for burial expenses.','assets/icons/civil.png','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,1,'Transportation','Provides financial assistance to eligible individuals who require transportation support for medical treatment, education, employment, emergencies, or other essential travel needs.','1. Present travel referral or endorsement.\n2. Submit indigency certification.\n3. Receive travel allowance or tickets.','assets/icons/civil.png','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(5,1,'Employment','Provides assistance to qualified individuals seeking employment by supporting job application requirements and facilitating access to employment opportunities.','1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.','assets/icons/civil.png','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'Educational Assistance','Educational Assistance Provides financial aid, scholarships, tuition support, school supplies, or other educational benefits to eligible students to help them continue their studies and reduce the cost of education.','1. Submit required documents to the SSFO office.\n2. Complete the Eligibility Assessment.\n3. Wait for validation and approval of application.\n4. Claim financial assistance during payout scheduling.','assets/icons/civil.png','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,'Medical Assistance','Provides financial assistance to eligible individuals to help cover medical expenses, including hospitalization, laboratory tests, medicines, surgical procedures, and other necessary healthcare services.','1. Submit Hospital Bill or Medical Certificate.\n2. Undergo assessment by facilitator.\n3. Approved requests will receive guarantee letters or financial payouts.','assets/icons/civil.png','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,1,'Burial Assistance','Provides financial assistance to the family or authorized representative of a deceased individual to help cover funeral, burial, and other related expenses.','1. Present Death Certificate and Funeral Contract.\n2. Fill out social case study report.\n3. Receive financial assistance for burial expenses.','assets/icons/civil.png','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,1,'Transportation','Provides financial assistance to eligible individuals who require transportation support for medical treatment, education, employment, emergencies, or other essential travel needs.','1. Present travel referral or endorsement.\n2. Submit indigency certification.\n3. Receive travel allowance or tickets.','assets/icons/civil.png','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(5,1,'Employment','Provides assistance to qualified individuals seeking employment by supporting job application requirements and facilitating access to employment opportunities.','1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.','assets/icons/civil.png','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `government_services` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -251,7 +251,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `inquiry_requirenses` WRITE;
 /*!40000 ALTER TABLE `inquiry_requirenses` DISABLE KEYS */;
 INSERT INTO `inquiry_requirenses` VALUES
-(1,1,'Hi Mark! Yes, we have an upcoming computer literacy workshop on July 20th. I have updated your application status to in-progress. Please make sure to upload your PSA Birth Certificate so we can verify your slot.',1,'2026-07-17 22:36:48','2026-07-18 04:36:48');
+(1,1,'Hi Mark! Yes, we have an upcoming computer literacy workshop on July 20th. I have updated your application status to in-progress. Please make sure to upload your PSA Birth Certificate so we can verify your slot.',1,'2026-07-17 23:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `inquiry_requirenses` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -351,11 +351,11 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `service_categories` WRITE;
 /*!40000 ALTER TABLE `service_categories` DISABLE KEYS */;
 INSERT INTO `service_categories` VALUES
-(1,'Civil Registry','Scholarships, tuition support, and allowances.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,'Licenses & Permits','Support for hospitalization, medicines, and surgical procedures.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,'Burial Assistance','Financial aid for casket, funeral services, and burial costs.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,'Transportation Assistance','Referrals and fare support for emergency displacement/travel.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(5,'Employment Assistance','Skills training, livelihood support, and job matching.','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,'Civil Registry','Scholarships, tuition support, and allowances.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,'Licenses & Permits','Support for hospitalization, medicines, and surgical procedures.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,'Burial Assistance','Financial aid for casket, funeral services, and burial costs.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,'Transportation Assistance','Referrals and fare support for emergency displacement/travel.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(5,'Employment Assistance','Skills training, livelihood support, and job matching.','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `service_categories` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -390,19 +390,19 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `service_requirements` WRITE;
 /*!40000 ALTER TABLE `service_requirements` DISABLE KEYS */;
 INSERT INTO `service_requirements` VALUES
-(1,1,'{\"en\":\"School ID\",\"ceb\":\"School ID\",\"fil\":\"School ID ng Mag-aaral\"}',1,1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,'{\"en\":\"Certificate of Enrollment\",\"ceb\":\"Sertipiko sa Pagpa-enrol\",\"fil\":\"Sertipiko ng Pagpapatala\"}',1,2,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,1,'{\"en\":\"Certificate of Indigency\",\"ceb\":\"Sertipiko sa Kakabus\",\"fil\":\"Sertipiko ng Katunayan ng Kahirapan\"}',1,3,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,2,'{\"en\":\"Medical Certificate\",\"ceb\":\"Sertipiko sa Medikal\",\"fil\":\"Sertipiko Medikal\"}',1,1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(5,2,'{\"en\":\"Hospital Bill or Quotation\",\"ceb\":\"Bayranan sa Ospital o Quotation\",\"fil\":\"Kabayaran sa Ospital o Reseta\"}',1,2,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(6,2,'{\"en\":\"Barangay Certificate of Indigency\",\"ceb\":\"Sertipiko sa Kakabus sa Barangay\",\"fil\":\"Sertipiko ng Barangay Indigency\"}',1,3,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(7,3,'{\"en\":\"Registered Death Certificate\",\"ceb\":\"Rehistradong Death Certificate\",\"fil\":\"Rehistradong Sertipiko ng Kamatayan\"}',1,1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(8,3,'{\"en\":\"Funeral Contract\",\"ceb\":\"Kontrata sa Punerarya\",\"fil\":\"Kontrata sa Punerarya\"}',1,2,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(9,4,'{\"en\":\"Referral Letter \\/ Endorsement\",\"ceb\":\"Sulat sa Referral \\/ Endorsement\",\"fil\":\"Liham ng Pagre-refer o Endorsement\"}',1,1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(10,4,'{\"en\":\"Valid ID of Traveler\",\"ceb\":\"Gibalido nga ID sa Mobyahi\",\"fil\":\"Balidong ID ng Manlalakbay\"}',1,2,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(11,5,'{\"en\":\"PSA Birth Certificate\",\"ceb\":\"PSA Birth Certificate\",\"fil\":\"Sertipiko ng Kapanganakan mula sa PSA\"}',1,1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(12,5,'{\"en\":\"Resume \\/ Bio-Data\",\"ceb\":\"Resume \\/ Bio-Data\",\"fil\":\"Resume o Bio-data\"}',1,2,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(13,5,'{\"en\":\"Barangay Clearance\",\"ceb\":\"Barangay Clearance\",\"fil\":\"Barangay Clearance\"}',0,3,'2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'{\"en\":\"School ID\",\"ceb\":\"School ID\",\"fil\":\"School ID ng Mag-aaral\"}',1,1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,'{\"en\":\"Certificate of Enrollment\",\"ceb\":\"Sertipiko sa Pagpa-enrol\",\"fil\":\"Sertipiko ng Pagpapatala\"}',1,2,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,1,'{\"en\":\"Certificate of Indigency\",\"ceb\":\"Sertipiko sa Kakabus\",\"fil\":\"Sertipiko ng Katunayan ng Kahirapan\"}',1,3,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,2,'{\"en\":\"Medical Certificate\",\"ceb\":\"Sertipiko sa Medikal\",\"fil\":\"Sertipiko Medikal\"}',1,1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(5,2,'{\"en\":\"Hospital Bill or Quotation\",\"ceb\":\"Bayranan sa Ospital o Quotation\",\"fil\":\"Kabayaran sa Ospital o Reseta\"}',1,2,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(6,2,'{\"en\":\"Barangay Certificate of Indigency\",\"ceb\":\"Sertipiko sa Kakabus sa Barangay\",\"fil\":\"Sertipiko ng Barangay Indigency\"}',1,3,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(7,3,'{\"en\":\"Registered Death Certificate\",\"ceb\":\"Rehistradong Death Certificate\",\"fil\":\"Rehistradong Sertipiko ng Kamatayan\"}',1,1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(8,3,'{\"en\":\"Funeral Contract\",\"ceb\":\"Kontrata sa Punerarya\",\"fil\":\"Kontrata sa Punerarya\"}',1,2,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(9,4,'{\"en\":\"Referral Letter \\/ Endorsement\",\"ceb\":\"Sulat sa Referral \\/ Endorsement\",\"fil\":\"Liham ng Pagre-refer o Endorsement\"}',1,1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(10,4,'{\"en\":\"Valid ID of Traveler\",\"ceb\":\"Gibalido nga ID sa Mobyahi\",\"fil\":\"Balidong ID ng Manlalakbay\"}',1,2,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(11,5,'{\"en\":\"PSA Birth Certificate\",\"ceb\":\"PSA Birth Certificate\",\"fil\":\"Sertipiko ng Kapanganakan mula sa PSA\"}',1,1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(12,5,'{\"en\":\"Resume \\/ Bio-Data\",\"ceb\":\"Resume \\/ Bio-Data\",\"fil\":\"Resume o Bio-data\"}',1,2,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(13,5,'{\"en\":\"Barangay Clearance\",\"ceb\":\"Barangay Clearance\",\"fil\":\"Barangay Clearance\"}',0,3,'2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `service_requirements` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -438,21 +438,21 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `service_translations` WRITE;
 /*!40000 ALTER TABLE `service_translations` DISABLE KEYS */;
 INSERT INTO `service_translations` VALUES
-(1,1,'en','Educational Assistance Program','Provides financial aid, scholarships, tuition support, and educational subsidies for underprivileged students.','1. Submit required documents to the SSFO office.\n2. Complete the Eligibility Assessment.\n3. Wait for validation and approval of application.\n4. Claim financial assistance during payout scheduling.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,'ceb','Tabang sa Edukasyon','Naghatag og pinansyal nga tabang, mga scholarship, suporta sa matrikula, ug mga subsidyo sa edukasyon alang sa mga nanginahanglan nga estudyante.','1. Isumite ang gikinahanglan nga mga dokumento sa opisina sa SSFO.\n2. Kompletoha ang Eligibility Assessment.\n3. Paghulat sa pag-validate ug pag-apruba sa aplikasyon.\n4. I-claim ang pinansyal nga tabang sa panahon sa gieskedyul nga payout.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,1,'fil','Tulong sa Edukasyon','Nagbibigay ng pinansyal na tulong, iskolarsip, suporta sa matrikula, at edukasyonal na subsidyo para sa mga kapus-palad na mag-aaral.','1. Isumite ang mga kinakailangang dokumento sa opisina ng SSFO.\n2. Kumpletuhin ang Eligibility Assessment.\n3. Maghintay para sa pagpapatunay at pag-apruba ng aplikasyon.\n4. Kunin ang tulong pinansyal sa nakatakdang oras.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,2,'en','Medical Assistance Program','Provides financial assistance to eligible individuals to help cover medical expenses, including hospital bills, medicine, and treatments.','1. Submit Hospital Bill or Medical Certificate.\n2. Undergo assessment by facilitator.\n3. Approved requests will receive guarantee letters or financial payouts.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(5,2,'ceb','Tabang sa Medikal','Naghatag og pinansyal nga tabang sa mga kwalipikadong indibidwal aron matabangan ang pagtabon sa mga gasto sa medikal, lakip ang mga bayranan sa ospital, tambal, ug mga pagtambal.','1. Isumite ang Hospital Bill o Medical Certificate.\n2. Moagi sa assessment sa facilitator.\n3. Ang giaprobahan nga mga hangyo makadawat og garantiya nga mga sulat o pinansyal nga payout.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(6,2,'fil','Tulong Medikal','Nagbibigay ng pinansyal na tulong sa mga kwalipikadong indibidwal upang matugunan ang mga gastusing medikal, kabilang ang bayad sa ospital, gamot, at paggamot.','1. Isumite ang Hospital Bill o Medical Certificate.\n2. Sumailalim sa pagsusuri ng facilitator.\n3. Ang mga naaprubahang aplikante ay makakatanggap ng guarantee letter o tulong pinansyal.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(7,3,'en','Burial Assistance Program','Provides financial assistance to the family or authorized representative of a deceased individual to cover funeral and burial costs.','1. Present Death Certificate and Funeral Contract.\n2. Fill out social case study report.\n3. Receive financial assistance for burial expenses.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(8,3,'ceb','Tabang sa Pagpalubong','Naghatag og pinansyal nga tabang sa pamilya o awtorisado nga representante sa namatay nga indibidwal aron matabonan ang gasto sa punerarya ug pagpalubong.','1. Ipakita ang Death Certificate ug Funeral Contract.\n2. Sulati ang social case study report.\n3. Makadawat og pinansyal nga tabang alang sa gasto sa pagpalubong.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(9,3,'fil','Tulong sa Libing','Nagbibigay ng tulong pinansyal sa pamilya ng namatay upang makatulong sa mga gastusin sa libing at punerarya.','1. Ipakita ang Death Certificate at Funeral Contract.\n2. Sagutan ang social case study report.\n3. Tanggapin ang tulong pinansyal para sa libing.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(10,4,'en','Transportation Assistance Program','Provides financial assistance to eligible individuals needing emergency travel support for medical, employment, or emergency displacement.','1. Present travel referral or endorsement.\n2. Submit indigency certification.\n3. Receive travel allowance or tickets.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(11,4,'ceb','Tabang sa Transportasyon','Naghatag og pinansyal nga tabang sa mga kwalipikadong indibidwal nga nanginahanglan og dinalian nga suporta sa pagbiyahe alang sa medikal, trabaho, o emerhensya nga pagbakwit.','1. Ipakita ang travel referral o endorsement.\n2. Isumite ang indigency certification.\n3. Makadawat og travel allowance o mga tiket.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(12,4,'fil','Tulong sa Transportasyon','Nagbibigay ng tulong pinansyal para sa emergency na pamasahe o transportasyon para sa mga layuning medikal, trabaho, o iba pang kagipitan.','1. Ipakita ang travel referral o endorsement.\n2. Isumite ang indigency certification.\n3. Tanggapin ang travel allowance o ticket.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(13,5,'en','Employment and Livelihood Assistance','Provides assistance to job seekers, including livelihood support, skill training, and referral programs.','1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(14,5,'ceb','Tabang sa Trabaho','Naghatag og tabang sa mga nangita og trabaho, lakip ang suporta sa panginabuhian, pagbansay sa kahanas, ug mga programa sa referral.','1. Pagrehistro sa database sa trabaho.\n2. Pagtambong sa mga workshop sa pagbansay sa kahanas.\n3. I-match sa mga tanyag sa gobyerno o pribadong trabaho.','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(15,5,'fil','Tulong sa Trabaho at Kabuhayan','Nagbibigay ng tulong sa mga naghahanap ng trabaho, kabilang ang suporta sa pangkabuhayan, pagsasanay, at mga programang referral.','1. Magparehistro sa database ng trabaho.\n2. Dumalo sa pagsasanay sa kasanayan.\n3. I-ugnay sa mga alok ng lokal na pamahalaan o pribadong kumpanya.','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'en','Educational Assistance Program','Provides financial aid, scholarships, tuition support, and educational subsidies for underprivileged students.','1. Submit required documents to the SSFO office.\n2. Complete the Eligibility Assessment.\n3. Wait for validation and approval of application.\n4. Claim financial assistance during payout scheduling.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,'ceb','Tabang sa Edukasyon','Naghatag og pinansyal nga tabang, mga scholarship, suporta sa matrikula, ug mga subsidyo sa edukasyon alang sa mga nanginahanglan nga estudyante.','1. Isumite ang gikinahanglan nga mga dokumento sa opisina sa SSFO.\n2. Kompletoha ang Eligibility Assessment.\n3. Paghulat sa pag-validate ug pag-apruba sa aplikasyon.\n4. I-claim ang pinansyal nga tabang sa panahon sa gieskedyul nga payout.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,1,'fil','Tulong sa Edukasyon','Nagbibigay ng pinansyal na tulong, iskolarsip, suporta sa matrikula, at edukasyonal na subsidyo para sa mga kapus-palad na mag-aaral.','1. Isumite ang mga kinakailangang dokumento sa opisina ng SSFO.\n2. Kumpletuhin ang Eligibility Assessment.\n3. Maghintay para sa pagpapatunay at pag-apruba ng aplikasyon.\n4. Kunin ang tulong pinansyal sa nakatakdang oras.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,2,'en','Medical Assistance Program','Provides financial assistance to eligible individuals to help cover medical expenses, including hospital bills, medicine, and treatments.','1. Submit Hospital Bill or Medical Certificate.\n2. Undergo assessment by facilitator.\n3. Approved requests will receive guarantee letters or financial payouts.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(5,2,'ceb','Tabang sa Medikal','Naghatag og pinansyal nga tabang sa mga kwalipikadong indibidwal aron matabangan ang pagtabon sa mga gasto sa medikal, lakip ang mga bayranan sa ospital, tambal, ug mga pagtambal.','1. Isumite ang Hospital Bill o Medical Certificate.\n2. Moagi sa assessment sa facilitator.\n3. Ang giaprobahan nga mga hangyo makadawat og garantiya nga mga sulat o pinansyal nga payout.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(6,2,'fil','Tulong Medikal','Nagbibigay ng pinansyal na tulong sa mga kwalipikadong indibidwal upang matugunan ang mga gastusing medikal, kabilang ang bayad sa ospital, gamot, at paggamot.','1. Isumite ang Hospital Bill o Medical Certificate.\n2. Sumailalim sa pagsusuri ng facilitator.\n3. Ang mga naaprubahang aplikante ay makakatanggap ng guarantee letter o tulong pinansyal.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(7,3,'en','Burial Assistance Program','Provides financial assistance to the family or authorized representative of a deceased individual to cover funeral and burial costs.','1. Present Death Certificate and Funeral Contract.\n2. Fill out social case study report.\n3. Receive financial assistance for burial expenses.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(8,3,'ceb','Tabang sa Pagpalubong','Naghatag og pinansyal nga tabang sa pamilya o awtorisado nga representante sa namatay nga indibidwal aron matabonan ang gasto sa punerarya ug pagpalubong.','1. Ipakita ang Death Certificate ug Funeral Contract.\n2. Sulati ang social case study report.\n3. Makadawat og pinansyal nga tabang alang sa gasto sa pagpalubong.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(9,3,'fil','Tulong sa Libing','Nagbibigay ng tulong pinansyal sa pamilya ng namatay upang makatulong sa mga gastusin sa libing at punerarya.','1. Ipakita ang Death Certificate at Funeral Contract.\n2. Sagutan ang social case study report.\n3. Tanggapin ang tulong pinansyal para sa libing.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(10,4,'en','Transportation Assistance Program','Provides financial assistance to eligible individuals needing emergency travel support for medical, employment, or emergency displacement.','1. Present travel referral or endorsement.\n2. Submit indigency certification.\n3. Receive travel allowance or tickets.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(11,4,'ceb','Tabang sa Transportasyon','Naghatag og pinansyal nga tabang sa mga kwalipikadong indibidwal nga nanginahanglan og dinalian nga suporta sa pagbiyahe alang sa medikal, trabaho, o emerhensya nga pagbakwit.','1. Ipakita ang travel referral o endorsement.\n2. Isumite ang indigency certification.\n3. Makadawat og travel allowance o mga tiket.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(12,4,'fil','Tulong sa Transportasyon','Nagbibigay ng tulong pinansyal para sa emergency na pamasahe o transportasyon para sa mga layuning medikal, trabaho, o iba pang kagipitan.','1. Ipakita ang travel referral o endorsement.\n2. Isumite ang indigency certification.\n3. Tanggapin ang travel allowance o ticket.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(13,5,'en','Employment Assistance','Provides assistance to job seekers, including livelihood support, skill training, and referral programs.','1. Register in the employment database.\n2. Attend skills training workshops.\n3. Get matched with local government or private job placement offers.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(14,5,'ceb','Tabang sa Trabaho','Naghatag og tabang sa mga nangita og trabaho, lakip ang suporta sa panginabuhian, pagbansay sa kahanas, ug mga programa sa referral.','1. Pagrehistro sa database sa trabaho.\n2. Pagtambong sa mga workshop sa pagbansay sa kahanas.\n3. I-match sa mga tanyag sa gobyerno o pribadong trabaho.','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(15,5,'fil','Tulong sa Trabaho at Kabuhayan','Nagbibigay ng tulong sa mga naghahanap ng trabaho, kabilang ang suporta sa pangkabuhayan, pagsasanay, at mga programang referral.','1. Magparehistro sa database ng trabaho.\n2. Dumalo sa pagsasanay sa kasanayan.\n3. I-ugnay sa mga alok ng lokal na pamahalaan o pribadong kumpanya.','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `service_translations` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -491,9 +491,9 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `user_checklist_items` WRITE;
 /*!40000 ALTER TABLE `user_checklist_items` DISABLE KEYS */;
 INSERT INTO `user_checklist_items` VALUES
-(1,1,11,0,NULL,NULL,'pending','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,1,12,0,NULL,NULL,'pending','2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,1,13,0,NULL,NULL,'pending','2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,11,0,NULL,NULL,'pending','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,1,12,0,NULL,NULL,'pending','2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,1,13,0,NULL,NULL,'pending','2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `user_checklist_items` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -530,7 +530,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `user_checklists` WRITE;
 /*!40000 ALTER TABLE `user_checklists` DISABLE KEYS */;
 INSERT INTO `user_checklists` VALUES
-(1,5,1,'pending',NULL,'2026-07-05 01:12:09','2026-07-18 04:36:48'),
+(1,5,1,'pending',NULL,'2026-07-05 01:12:09','2026-07-18 05:05:58'),
 (2,11,5,'pending',NULL,'2026-07-11 05:55:27',NULL),
 (3,2,5,'pending',NULL,'2026-07-12 22:12:09',NULL),
 (4,14,2,'pending',NULL,'2026-07-12 22:12:18',NULL),
@@ -573,7 +573,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `user_inquiries` WRITE;
 /*!40000 ALTER TABLE `user_inquiries` DISABLE KEYS */;
 INSERT INTO `user_inquiries` VALUES
-(1,2,NULL,NULL,5,'Hello, I uploaded my resume but I would like to ask if there are any specific local trainings happening this month for San Miguel residents?','in_progress','2026-07-17 04:36:48','2026-07-18 04:36:48');
+(1,2,NULL,NULL,5,'Hello, I uploaded my resume but I would like to ask if there are any specific local trainings happening this month for San Miguel residents?','in_progress','2026-07-17 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `user_inquiries` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -607,10 +607,10 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `user_languages` WRITE;
 /*!40000 ALTER TABLE `user_languages` DISABLE KEYS */;
 INSERT INTO `user_languages` VALUES
-(1,1,'en',1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(2,2,'ceb',1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(3,3,'en',1,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,4,'en',1,'2026-07-18 04:36:48','2026-07-18 04:36:48');
+(1,1,'en',1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(2,2,'ceb',1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(3,3,'en',1,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
+(4,4,'en',1,'2026-07-18 05:05:58','2026-07-18 05:05:58');
 /*!40000 ALTER TABLE `user_languages` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -653,10 +653,10 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
-(1,'Lanny M Cagatin','jedcagat@gmail.com',NULL,'$2y$12$tRh7hpucWDgks7qxJvEA8OP9dWIfFWemPmjEOmWSSakleYdILw/vi','facilitator','en','uploads/profiles/profile_7_1783237197.jpg','1974-02-14','Fatima, San Miguel, Zamboanga del Sur','Married','09123129957',NULL,NULL,'2026-07-05 00:14:28','2026-07-18 04:36:47'),
-(2,'Mark Cagatin','cagatinmark26@gmail.com',NULL,'$2y$10$Xm2HMlBIqpgDMij/ZdShaug7tGciFpt3MoxhfUsxPenfyZysAzxky','citizen','ceb','https://api.dicebear.com/9.x/adventurer/png?seed=GovAssistUser5','2005-03-11','Fatima, San Miguel, Zamboanga del Sur','Single','09563559181','uploads/ids/user_16_1783923127.jpg',NULL,'2026-07-09 19:39:25','2026-07-18 04:36:48'),
-(3,'John Doe','john@example.com',NULL,'$2y$12$YFzkl/M8NfiS2Xjd4FJXqeFaXNoWOO44j8aK6BpDXG3W.6b7FrvDS','citizen','en',NULL,'1998-05-15','Poblacion, San Miguel, Zamboanga del Sur','Single','09123456789',NULL,NULL,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
-(4,'Jane Smith','jane@example.com',NULL,'$2y$12$UMB5BRozsCDxPKAUKpWVFebPKk1EMp5Om.ncI1AcjwV2wKrDmYhdO','citizen','en',NULL,'1990-10-22','Dumalian, San Miguel, Zamboanga del Sur','Married','09987654321',NULL,NULL,'2026-07-18 04:36:48','2026-07-18 04:36:48'),
+(1,'Lanny M Cagatin','jedcagat@gmail.com',NULL,'$2y$12$tRh7hpucWDgks7qxJvEA8OP9dWIfFWemPmjEOmWSSakleYdILw/vi','facilitator','en','uploads/profiles/profile_7_1783237197.jpg','1974-02-14','Fatima, San Miguel, Zamboanga del Sur','Married','09123129957',NULL,NULL,'2026-07-05 00:14:28','2026-07-18 05:05:57'),
+(2,'Mark Cagatin','cagatinmark26@gmail.com',NULL,'$2y$10$Xm2HMlBIqpgDMij/ZdShaug7tGciFpt3MoxhfUsxPenfyZysAzxky','citizen','ceb','https://api.dicebear.com/9.x/adventurer/png?seed=GovAssistUser5','2005-03-11','Fatima, San Miguel, Zamboanga del Sur','Single','09563559181','uploads/ids/user_16_1783923127.jpg',NULL,'2026-07-09 19:39:25','2026-07-18 05:05:57'),
+(3,'John Doe','john@example.com',NULL,'$2y$12$YPWaZ/fP7Z9CCh812/jtJuNN2.hIo3wO9un5Wpj4x7IkyQ4AwoKFK','citizen','en',NULL,'1998-05-15','Poblacion, San Miguel, Zamboanga del Sur','Single','09123456789',NULL,NULL,'2026-07-18 05:05:57','2026-07-18 05:05:57'),
+(4,'Jane Smith','jane@example.com',NULL,'$2y$12$3HntkP5kwaozAGU1693B1.dhjXcOgv1OxmQYvLEyumB0bQaf4uwF.','citizen','en',NULL,'1990-10-22','Dumalian, San Miguel, Zamboanga del Sur','Married','09987654321',NULL,NULL,'2026-07-18 05:05:58','2026-07-18 05:05:58'),
 (5,'Jaycer Arat Baterna','baternajaycer@gmail.com',NULL,'$2y$10$20bobluo6dlxSA00HdXjI.8XVxHjpwdRveuoCLCadGE22gHTwrfeS','citizen','en','uploads/profiles/profile_10_1783242727.jpg',NULL,'Kabatan Vincenzo Sagun Zamboanga del sur','married','+639667323237','uploads/ids/user_10_1783242727.jpg',NULL,'2026-07-05 01:03:43',NULL),
 (6,'Aimie villabeto','aimievillabeto@gmail.com',NULL,'$2y$10$mBLY6ww3vaTXliaE.qD2g.4TQ7Gn.QHQJqJBVClEa.jMHTwWcOW0i','citizen','en',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-06 20:34:10',NULL),
 (7,'Mark','cagatirarjed@gmail.com',NULL,'$2y$10$BAMw8sdkFsJ3DUSBA2pH4eyH2aFHNB2pO.PgtbhW32XPr.7zw1CFC','citizen','en',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-09 21:00:57',NULL),
@@ -681,4 +681,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-07-18 20:36:49
+-- Dump completed on 2026-07-18 21:05:58
