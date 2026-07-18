@@ -225,7 +225,8 @@ class CitizenController extends Controller
         ]);
 
         if ($file = $request->file('document')) {
-            $path = $file->store('documents', 'public');
+            $folderName = \Illuminate\Support\Str::slug($service->name);
+            $path = $file->store('documents/' . $folderName, 'public');
 
             $checklist = UserChecklist::firstOrCreate([
                 'user_id' => Auth::id(),
