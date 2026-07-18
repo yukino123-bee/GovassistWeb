@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerifyOtpEmail;
 
-#[Fillable(['name', 'email', 'password', 'role', 'language', 'avatar', 'dob', 'address', 'civil_status', 'contact_number', 'valid_id_path'])]
+#[Fillable(['name', 'email', 'password', 'role', 'language', 'avatar', 'dob', 'address', 'civil_status', 'contact_number', 'valid_id_path', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {

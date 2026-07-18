@@ -95,6 +95,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/users', [FacilitatorController::class, 'users'])->name('facilitator.users');
     Route::get('/users/create', [FacilitatorController::class, 'createUser'])->name('facilitator.users.create');
     Route::post('/users', [FacilitatorController::class, 'storeUser'])->name('facilitator.users.store');
+    Route::get('/users/{user}', [FacilitatorController::class, 'showUser'])->name('facilitator.users.show');
     Route::get('/users/{user}/edit', [FacilitatorController::class, 'editUser'])->name('facilitator.users.edit');
     Route::put('/users/{user}', [FacilitatorController::class, 'updateUser'])->name('facilitator.users.update');
     Route::delete('/users/{user}', [FacilitatorController::class, 'destroyUser'])->name('facilitator.users.destroy');

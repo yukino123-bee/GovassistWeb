@@ -523,6 +523,12 @@ class FacilitatorController extends Controller
         return redirect()->route('facilitator.users')->with('success', 'User created successfully.');
     }
 
+    public function showUser(User $user)
+    {
+        $user->load(['checklists.service', 'inquiries']);
+        return view('facilitator.users.show', compact('user'));
+    }
+
     public function editUser(User $user)
     {
         return view('facilitator.users.edit', compact('user'));

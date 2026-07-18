@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('manok123'),
             'role' => 'facilitator',
             'language' => 'en',
+            'email_verified_at' => now(),
         ]);
 
         $citizen = User::create([
@@ -46,6 +47,7 @@ class DatabaseSeeder extends Seeder
             'civil_status' => 'Single',
             'contact_number' => '09563559181',
             'avatar' => null,
+            'email_verified_at' => now(),
         ]);
 
         $john = User::create([
@@ -58,6 +60,7 @@ class DatabaseSeeder extends Seeder
             'address' => 'Poblacion, San Miguel, Zamboanga del Sur',
             'civil_status' => 'Single',
             'contact_number' => '09123456789',
+            'email_verified_at' => now(),
         ]);
 
         $jane = User::create([
@@ -70,6 +73,7 @@ class DatabaseSeeder extends Seeder
             'address' => 'Dumalian, San Miguel, Zamboanga del Sur',
             'civil_status' => 'Married',
             'contact_number' => '09987654321',
+            'email_verified_at' => now(),
         ]);
 
         // Seed User Languages
@@ -623,7 +627,7 @@ class DatabaseSeeder extends Seeder
             'created_at' => Carbon::now()->subHours(6),
         ]);
 
-        // Load legacy data
-        $this->call(LegacyDataSeeder::class);
+        // Legacy data seeder disabled as per user request
+        // $this->call(LegacyDataSeeder::class);
     }
 }

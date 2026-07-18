@@ -54,6 +54,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-3.5 text-right space-x-2">
+                            <a href="{{ route('facilitator.users.show', $user) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:text-red-700 transition-colors">View</a>
                             <a href="{{ route('facilitator.users.edit', $user) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:text-red-700 transition-colors">Edit</a>
                             <form action="{{ route('facilitator.users.destroy', $user) }}" method="POST" class="inline" id="delete-user-{{ $user->id }}">
                                 @csrf

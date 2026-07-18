@@ -58,5 +58,10 @@ jobs:
           **/.git*/**
           **/node_modules/**
           **/tests/**
+          **/storage/app/public/**
+          **/storage/framework/sessions/**
+          **/storage/framework/cache/**
+          **/storage/framework/views/**
+          **/storage/logs/**
           .env.example
           README.md
