@@ -166,11 +166,21 @@
 
                 <!-- Language Selector -->
                 <div class="pr-4 flex items-center">
-                    <div class="flex items-center bg-slate-100 p-0.5 rounded-none border border-slate-200">
+                    <!-- Desktop Selector (Visible on desktop) -->
+                    <div class="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-none border border-slate-200">
                         <button type="button" onclick="confirmLanguage('en')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'en' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">EN</button>
                         <button type="button" onclick="confirmLanguage('ceb')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'ceb' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">CEB</button>
                         <button type="button" onclick="confirmLanguage('fil')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'fil' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">FIL</button>
                         <button type="button" onclick="confirmLanguage('sub')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'sub' ? 'bg-red-700 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200' }}">SUB</button>
+                    </div>
+                    <!-- Mobile Selector (Visible on mobile) -->
+                    <div class="flex sm:hidden items-center bg-slate-100 px-1.5 py-1 border border-slate-200">
+                        <select id="header-lang-select-mobile-fac" onchange="confirmLanguage(this.value, 'header-lang-select-mobile-fac')" class="bg-transparent text-slate-700 text-[10px] font-extrabold uppercase tracking-wider outline-none cursor-pointer border-none pr-1">
+                            <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>EN</option>
+                            <option value="ceb" {{ app()->getLocale() === 'ceb' ? 'selected' : '' }}>CEB</option>
+                            <option value="fil" {{ app()->getLocale() === 'fil' ? 'selected' : '' }}>FIL</option>
+                            <option value="sub" {{ app()->getLocale() === 'sub' ? 'selected' : '' }}>SUB</option>
+                        </select>
                     </div>
                 </div>
 
@@ -285,11 +295,20 @@
             confirmCallback = null;
         }
 
-        function confirmLanguage(lang) {
+        function confirmLanguage(lang, elementId = null) {
             if (lang === "{{ app()->getLocale() }}") return;
             showConfirmModal("Are you sure you want to change the language?", () => {
                 changeLanguage(lang);
             }, "Change Language");
+            
+            if (elementId) {
+                const cancelBtn = document.getElementById('confirm-modal-cancel');
+                const onCancelReset = () => {
+                    document.getElementById(elementId).value = "{{ app()->getLocale() }}";
+                    cancelBtn.removeEventListener('click', onCancelReset);
+                };
+                cancelBtn.addEventListener('click', onCancelReset);
+            }
         }
 
         function changeLanguage(lang) {

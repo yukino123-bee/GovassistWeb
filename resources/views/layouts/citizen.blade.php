@@ -35,7 +35,7 @@
                     <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center overflow-hidden p-0.5 shadow-sm border border-red-200">
                         <img src="{{ asset('ssfo_logo.png') }}" alt="SSFO Logo" class="w-full h-full object-contain">
                     </div>
-                    <h1 class="text-xl font-extrabold tracking-wider uppercase text-white">@yield('header_title', __('messages.app_name'))</h1>
+                    <h1 class="text-sm sm:text-xl font-extrabold tracking-wider uppercase text-white truncate max-w-[120px] sm:max-w-none">@yield('header_title', __('messages.app_name'))</h1>
                 </div>
 
                 <!-- Desktop Navigation Links (Hidden on Mobile) -->
@@ -55,13 +55,23 @@
                 </nav>
                 
                 <!-- Action Controls -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4">
                     <!-- Language Selector -->
-                    <div class="flex items-center bg-white/10 p-0.5 rounded-none">
+                    <!-- Desktop Selector (Visible on desktop) -->
+                    <div class="hidden md:flex items-center bg-white/10 p-0.5 rounded-none">
                         <button type="button" onclick="confirmLanguage('en')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'en' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">EN</button>
                         <button type="button" onclick="confirmLanguage('ceb')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'ceb' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">CEB</button>
                         <button type="button" onclick="confirmLanguage('fil')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'fil' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">FIL</button>
                         <button type="button" onclick="confirmLanguage('sub')" class="text-[9px] font-extrabold px-2.5 py-1 transition-all {{ app()->getLocale() === 'sub' ? 'bg-white text-red-700' : 'text-red-100 hover:text-white hover:bg-white/10' }}">SUB</button>
+                    </div>
+                    <!-- Mobile Selector (Visible on mobile) -->
+                    <div class="flex md:hidden items-center bg-white/15 px-1.5 py-1 border border-white/20">
+                        <select id="header-lang-select-mobile" onchange="confirmLanguage(this.value, 'header-lang-select-mobile')" class="bg-transparent text-white text-[10px] font-extrabold uppercase tracking-wider outline-none cursor-pointer border-none pr-1">
+                            <option value="en" class="text-slate-800" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>EN</option>
+                            <option value="ceb" class="text-slate-800" {{ app()->getLocale() === 'ceb' ? 'selected' : '' }}>CEB</option>
+                            <option value="fil" class="text-slate-800" {{ app()->getLocale() === 'fil' ? 'selected' : '' }}>FIL</option>
+                            <option value="sub" class="text-slate-800" {{ app()->getLocale() === 'sub' ? 'selected' : '' }}>SUB</option>
+                        </select>
                     </div>
 
                     @auth
@@ -202,11 +212,20 @@
             confirmCallback = null;
         }
 
-        function confirmLanguage(lang) {
+        function confirmLanguage(lang, elementId = null) {
             if (lang === "{{ app()->getLocale() }}") return;
             showConfirmModal("{{ __('messages.confirm_language') }}", () => {
                 changeLanguage(lang);
-            });
+            }, "{{ __('messages.confirm_title') }}");
+            
+            if (elementId) {
+                const cancelBtn = document.getElementById('confirm-modal-cancel');
+                const onCancelReset = () => {
+                    document.getElementById(elementId).value = "{{ app()->getLocale() }}";
+                    cancelBtn.removeEventListener('click', onCancelReset);
+                };
+                cancelBtn.addEventListener('click', onCancelReset);
+            }
         }
 
         function changeLanguage(lang) {

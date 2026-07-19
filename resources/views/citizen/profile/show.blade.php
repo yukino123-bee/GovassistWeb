@@ -83,7 +83,7 @@
                         </div>
                     </div>
                     <div>
-                        <select onchange="changeLanguage(this.value)" class="bg-slate-50 text-slate-800 text-[10px] font-bold uppercase tracking-wider px-3 py-2 border border-slate-200 focus:outline-none cursor-pointer">
+                        <select id="profile-lang-select" onchange="confirmLanguage(this.value, 'profile-lang-select')" class="bg-slate-50 text-slate-800 text-[10px] font-bold uppercase tracking-wider px-3 py-2 border border-slate-200 focus:outline-none cursor-pointer">
                             <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>
                             <option value="ceb" {{ app()->getLocale() === 'ceb' ? 'selected' : '' }}>Cebuano</option>
                             <option value="fil" {{ app()->getLocale() === 'fil' ? 'selected' : '' }}>Filipino</option>
