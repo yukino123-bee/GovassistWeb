@@ -5,104 +5,119 @@
 @section('header_title', __('messages.bot_title'))
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-9rem)]">
+<!-- Main Container (Full-width bot view) -->
+<div class="max-w-4xl mx-auto h-[calc(100vh-9rem)] flex flex-col">
 
-    <!-- Left: Manual Inquiry Form -->
-    <div class="lg:col-span-1 flex flex-col space-y-6">
-        <div class="border-b border-slate-200 pb-3">
+    <!-- Header of the Chat Assistant -->
+    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
+            <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
+            Inquiry Assistance (GovBot)
+        </h3>
+
+        <!-- Button/Icon to trigger the Admin contact form modal -->
+        <button type="button" onclick="openAdminContactModal()" class="flex items-center space-x-2 bg-red-700 hover:bg-red-800 text-white px-3.5 py-2 transition-all text-[10px] font-extrabold uppercase tracking-wider focus:outline-none shadow-sm cursor-pointer" title="{{ __('messages.contact_admin') }}">
+            <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>Contact Admin</span>
+        </button>
+    </div>
+
+    <!-- Chat Assistant Body -->
+    <div class="flex-grow flex flex-col bg-white border border-slate-200 shadow-sm mt-3 overflow-hidden">
+        <!-- Messages view -->
+        <div id="chat-window" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col bg-slate-50/50">
+            <!-- Bot Initial Message -->
+            <div class="flex items-start space-x-3 max-w-[85%]">
+                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[10px] font-bold">
+                    GB
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
+                    {{ __('messages.bot_greeting') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <form id="chat-form" class="border-t border-slate-200 p-4 flex items-center gap-2 bg-white">
+            <!-- Voice button -->
+            <button type="button" id="voice-btn" class="p-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 flex-shrink-0 transition-colors flex items-center justify-center">
+                <svg id="mic-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <div id="mic-pulse" class="w-2.5 h-2.5 bg-red-700 rounded-full animate-ping hidden"></div>
+            </button>
+
+            <div class="relative flex-grow flex">
+                <input type="text" id="chat-input" placeholder="{{ __('messages.bot_placeholder') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+                <button type="submit" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
+                    Send
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Admin Contact Modal -->
+<div id="admin-contact-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white border-l-4 border-red-700 max-w-md w-full p-6 shadow-xl space-y-4 rounded-none transform transition-all relative">
+        
+        <!-- Close Button -->
+        <button type="button" onclick="closeAdminContactModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 focus:outline-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <div class="border-b border-slate-200 pb-2">
             <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
                 {{ __('messages.contact_admin') }}
             </h3>
         </div>
-
-        <div class="bg-white border border-slate-200 p-5 shadow-sm flex-grow overflow-y-auto">
-            <p class="text-[11px] text-slate-500 leading-relaxed mb-4">
-                {{ __('messages.contact_admin_desc') }}
-            </p>
+        
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+            {{ __('messages.contact_admin_desc') }}
+        </p>
+        
+        <form action="{{ route('citizen.inquiry.manual') }}" method="POST" class="space-y-4">
+            @csrf
             
-            <form action="{{ route('citizen.inquiry.manual') }}" method="POST" class="space-y-4">
-                @csrf
-                
-                @guest
-                    <div class="space-y-1.5">
-                        <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_name') }}</label>
-                        <input type="text" name="guest_name" id="guest_name" placeholder="Juan Dela Cruz" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_email') }}</label>
-                        <input type="email" name="guest_email" id="guest_email" placeholder="juan@example.com" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
-                    </div>
-                @endguest
-
+            @guest
                 <div class="space-y-1.5">
-                    <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.related_program') }}</label>
-                    <select name="service_id" id="service_id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800">
-                        <option value="">{{ __('messages.general_inquiry') }}</option>
-                        @foreach($services as $svc)
-                            @php
-                                $svcName = app()->getLocale() === 'ceb' ? $svc->name_ceb : (app()->getLocale() === 'fil' ? ($svc->name_fil ?? $svc->name_en) : $svc->name_en);
-                            @endphp
-                            <option value="{{ $svc->id }}">{{ $svcName ?: $svc->service_name }}</option>
-                        @endforeach
-                    </select>
+                    <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_name') }}</label>
+                    <input type="text" name="guest_name" id="guest_name" placeholder="Juan Dela Cruz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
                 </div>
-
                 <div class="space-y-1.5">
-                    <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_message') }}</label>
-                    <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
+                    <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_email') }}</label>
+                    <input type="email" name="guest_email" id="guest_email" placeholder="juan@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
                 </div>
+            @endguest
 
-                <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] shadow-sm transition-all active:scale-[0.98]">
-                    {{ __('messages.send_inquiry') }}
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Right: Chat Assistant -->
-    <div class="lg:col-span-2 flex flex-col h-full">
-        <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
-            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                Inquiry Assistance (GovBot)
-            </h3>
-        </div>
-
-        <div class="flex-grow flex flex-col bg-white border border-slate-200 shadow-sm mt-3 overflow-hidden">
-            <!-- Messages view -->
-            <div id="chat-window" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col bg-slate-50/50">
-                <!-- Bot Initial Message -->
-                <div class="flex items-start space-x-3 max-w-[85%]">
-                    <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[10px] font-bold">
-                        GB
-                    </div>
-                    <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
-                        {{ __('messages.bot_greeting') }}
-                    </div>
-                </div>
+            <div class="space-y-1.5">
+                <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.related_program') }}</label>
+                <select name="service_id" id="service_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800">
+                    <option value="">{{ __('messages.general_inquiry') }}</option>
+                    @foreach($services as $svc)
+                        @php
+                            $svcName = app()->getLocale() === 'ceb' ? $svc->name_ceb : (app()->getLocale() === 'fil' ? ($svc->name_fil ?? $svc->name_en) : $svc->name_en);
+                        @endphp
+                        <option value="{{ $svc->id }}">{{ $svcName ?: $svc->service_name }}</option>
+                    @endforeach
+                </select>
             </div>
 
-            <!-- Input area -->
-            <form id="chat-form" class="border-t border-slate-200 p-4 flex items-center gap-2 bg-white">
-                <!-- Voice button -->
-                <button type="button" id="voice-btn" class="p-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 flex-shrink-0 transition-colors flex items-center justify-center">
-                    <svg id="mic-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                    <div id="mic-pulse" class="w-2.5 h-2.5 bg-red-700 rounded-full animate-ping hidden"></div>
-                </button>
+            <div class="space-y-1.5">
+                <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_message') }}</label>
+                <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
+            </div>
 
-                <div class="relative flex-grow flex">
-                    <input type="text" id="chat-input" placeholder="{{ __('messages.bot_placeholder') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-                    <button type="submit" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
-                        Send
-                    </button>
-                </div>
-            </form>
-        </div>
+            <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] shadow-sm transition-all active:scale-[0.98]">
+                {{ __('messages.send_inquiry') }}
+            </button>
+        </form>
     </div>
-
 </div>
 
 <script>
@@ -112,6 +127,22 @@
     const voiceBtn = document.getElementById('voice-btn');
     const micIcon = document.getElementById('mic-icon');
     const micPulse = document.getElementById('mic-pulse');
+
+    function openAdminContactModal() {
+        const modal = document.getElementById('admin-contact-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeAdminContactModal() {
+        const modal = document.getElementById('admin-contact-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
 
     if (chatForm) {
         chatForm.addEventListener('submit', function(e) {
