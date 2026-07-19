@@ -132,9 +132,7 @@ test('facilitator can manage eligibility questions', function () {
     // 2. Add question
     $storeResponse = $this->actingAs($facilitator)->post(route('facilitator.eligibility.store'), [
         'service_id' => $service->id,
-        'question_text_en' => 'Are you a resident?',
-        'question_text_ceb' => 'Residente ba ka?',
-        'question_text_fil' => 'Residente ka ba?',
+        'question_text' => 'Are you a resident?',
         'type' => 'boolean',
         'operator' => '==',
         'expected_value' => 'true',

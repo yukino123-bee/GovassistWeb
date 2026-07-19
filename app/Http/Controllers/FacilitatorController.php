@@ -7,6 +7,7 @@ use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
 use App\Models\InquiryRequirense;
+use App\Models\ReassessmentRequest;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
 use App\Models\ServiceTranslation;
@@ -14,7 +15,6 @@ use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
-use App\Models\ReassessmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -230,6 +230,7 @@ class FacilitatorController extends Controller
     public function reassessments()
     {
         $requests = ReassessmentRequest::with(['user', 'service'])->orderBy('created_at', 'desc')->get();
+
         return view('facilitator.reassessments.index', compact('requests'));
     }
 
@@ -247,7 +248,7 @@ class FacilitatorController extends Controller
                 ->delete();
         }
 
-        return back()->with('success', 'Reassessment request ' . $request->status . ' successfully.');
+        return back()->with('success', 'Reassessment request '.$request->status.' successfully.');
     }
 
     // --- Eligibility Questions CRUD ---
@@ -270,14 +271,14 @@ class FacilitatorController extends Controller
         ]);
 
         $scriptPath = base_path('scripts/translate.py');
-        $command = 'python3 ' . escapeshellarg($scriptPath) . ' --text ' . escapeshellarg($request->question_text);
+        $command = 'python3 '.escapeshellarg($scriptPath).' --text '.escapeshellarg($request->question_text);
         $output = shell_exec($command);
-        
+
         $translations = ['en' => $request->question_text, 'ceb' => '', 'fil' => '', 'sub' => ''];
-        
+
         if ($output) {
             $result = json_decode($output, true);
-            if (!isset($result['error'])) {
+            if (! isset($result['error'])) {
                 $translations = $result;
             }
         }
@@ -295,9 +296,11 @@ class FacilitatorController extends Controller
 
         return back()->with('success', 'Question created and automatically translated successfully.');
     }
+
     public function editQuestion(EligibilityQuestion $question)
     {
         $services = GovernmentService::all();
+
         return view('facilitator.eligibility.edit', compact('question', 'services'));
     }
 
@@ -318,6 +321,7 @@ class FacilitatorController extends Controller
 
         return redirect()->route('facilitator.eligibility')->with('success', 'Question updated successfully.');
     }
+
     public function destroyQuestion(EligibilityQuestion $question)
     {
         $question->delete();
@@ -483,7 +487,7 @@ class FacilitatorController extends Controller
         $user->contact_number = $request->contact_number;
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', 'public');
+            $path = $file->store('avatars', env('FILESYSTEM_DISK', 'public'));
             $user->avatar = $path;
         }
 
@@ -526,6 +530,7 @@ class FacilitatorController extends Controller
     public function showUser(User $user)
     {
         $user->load(['checklists.service', 'inquiries']);
+
         return view('facilitator.users.show', compact('user'));
     }
 
@@ -676,6 +681,7 @@ class FacilitatorController extends Controller
         $templates = DocumentTemplate::with(['service', 'requirement'])->get();
         $services = GovernmentService::all();
         $requirements = ServiceRequirement::all();
+
         return view('facilitator.templates.index', compact('templates', 'services', 'requirements'));
     }
 
@@ -691,7 +697,7 @@ class FacilitatorController extends Controller
             'template_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
-        $path = $request->file('template_file')->store('templates', 'public');
+        $path = $request->file('template_file')->store('templates', env('FILESYSTEM_DISK', 'public'));
 
         DocumentTemplate::create([
             'service_id' => $request->service_id,

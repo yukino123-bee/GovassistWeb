@@ -22,7 +22,7 @@
         <!-- Profile Column -->
         <div class="col-span-1 md:border-r border-slate-100 pr-0 md:pr-8 flex flex-col items-center text-center">
             @if($user->avatar)
-                <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-32 h-32 object-cover border-4 border-slate-50 mb-4 shadow-sm">
+                <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="{{ $user->name }}" class="w-32 h-32 object-cover border-4 border-slate-50 mb-4 shadow-sm">
             @else
                 <div class="w-32 h-32 bg-slate-100 border-4 border-slate-50 mb-4 shadow-sm flex items-center justify-center text-slate-400">
                     <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">

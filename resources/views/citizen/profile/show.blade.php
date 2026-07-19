@@ -13,7 +13,7 @@
         <div class="relative w-20 h-20 mb-4 sm:mb-0 flex-shrink-0">
             <div class="w-full h-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-600 font-bold text-2xl overflow-hidden">
                 @if(Auth::user()->avatar)
-                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                    <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
                 @else
                     <span>{{ substr(Auth::user()->name, 0, 1) }}</span>
                 @endif

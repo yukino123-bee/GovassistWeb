@@ -45,7 +45,7 @@
         <a href="{{ route('facilitator.profile.edit') }}" class="px-5 py-3 border-b border-red-800 bg-red-800/20 flex items-center space-x-3 hover:bg-red-800/40 transition-colors cursor-pointer">
             <div class="w-8 h-8 rounded-full bg-white border border-red-200 flex items-center justify-center text-red-700 font-extrabold text-sm flex-shrink-0 overflow-hidden">
                 @if(Auth::user()->avatar)
-                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                    <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
                 @else
                     {{ substr(Auth::user()->name, 0, 1) }}
                 @endif
@@ -199,7 +199,7 @@
                     <div class="relative">
                         <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 font-bold text-sm overflow-hidden shadow-sm">
                             @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
                             @else
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             @endif

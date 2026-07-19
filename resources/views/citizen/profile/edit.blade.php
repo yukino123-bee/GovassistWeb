@@ -21,7 +21,7 @@
             <div id="avatar-placeholder" class="w-full h-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-3xl {{ Auth::user()->avatar ? 'hidden' : '' }}">
                 <span>{{ substr(Auth::user()->name, 0, 1) }}</span>
             </div>
-            <img id="avatar-preview" src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : '' }}" alt="Avatar" class="w-full h-full object-cover {{ Auth::user()->avatar ? '' : 'hidden' }}">
+            <img id="avatar-preview" src="{{ Auth::user()->avatar ? Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) : '' }}" alt="Avatar" class="w-full h-full object-cover {{ Auth::user()->avatar ? '' : 'hidden' }}">
             
             <form action="{{ route('citizen.profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form-edit" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                 @csrf

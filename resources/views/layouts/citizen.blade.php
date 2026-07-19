@@ -69,7 +69,7 @@
                         <a href="{{ route('citizen.profile') }}" class="flex items-center space-x-2 pl-2 border-l border-white/20">
                             <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white/30 shadow-sm bg-white/10 flex items-center justify-center">
                                 @if(Auth::user()->avatar)
-                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                    <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
                                 @else
                                     <span class="text-white text-xs font-bold">{{ substr(Auth::user()->name, 0, 1) }}</span>
                                 @endif

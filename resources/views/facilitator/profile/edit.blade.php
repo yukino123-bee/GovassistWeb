@@ -27,7 +27,7 @@
             <div class="relative group cursor-pointer mb-6">
                 <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-white flex items-center justify-center">
                     @if($user->avatar)
-                        <img id="avatar-preview" src="{{ asset('storage/' . $user->avatar) }}" alt="Admin Avatar" class="w-full h-full object-cover">
+                        <img id="avatar-preview" src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="Admin Avatar" class="w-full h-full object-cover">
                     @else
                         <img id="avatar-preview" src="" alt="Avatar Preview" class="w-full h-full object-cover hidden">
                         <div id="avatar-placeholder" class="w-full h-full bg-slate-100 text-slate-400 flex items-center justify-center text-4xl font-black">

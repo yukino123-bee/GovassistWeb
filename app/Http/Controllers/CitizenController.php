@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssessmentAnswer;
+use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\GovernmentService;
 use App\Models\InquiryRequirense;
+use App\Models\ReassessmentRequest;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
 use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
-use App\Models\ReassessmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
 class CitizenController extends Controller
@@ -54,7 +56,7 @@ class CitizenController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get()
             : collect();
-            
+
         $reassessmentRequests = Auth::check()
             ? ReassessmentRequest::where('user_id', Auth::id())
                 ->where('status', 'pending')
@@ -156,7 +158,7 @@ class CitizenController extends Controller
     public function requestReassessment(Request $request, GovernmentService $service)
     {
         $request->validate([
-            'reason' => 'required|string|max:1000'
+            'reason' => 'required|string|max:1000',
         ]);
 
         $existingRequest = ReassessmentRequest::where('user_id', Auth::id())
@@ -225,8 +227,8 @@ class CitizenController extends Controller
         ]);
 
         if ($file = $request->file('document')) {
-            $folderName = \Illuminate\Support\Str::slug($service->name);
-            $path = $file->store('documents/' . $folderName, 'public');
+            $folderName = Str::slug($service->name);
+            $path = $file->store('documents/'.$folderName, env('FILESYSTEM_DISK', 'public'));
 
             $checklist = UserChecklist::firstOrCreate([
                 'user_id' => Auth::id(),
@@ -246,13 +248,13 @@ class CitizenController extends Controller
             ]);
 
             // Automation: Compare against Admin Template
-            $template = \App\Models\DocumentTemplate::where('requirement_id', $requirement->id)->first();
+            $template = DocumentTemplate::where('requirement_id', $requirement->id)->first();
             if ($template) {
-                $userDocPath = storage_path('app/public/' . $path);
-                $templatePath = storage_path('app/public/' . $template->file_path);
+                $userDocPath = storage_path('app/public/'.$path);
+                $templatePath = storage_path('app/public/'.$template->file_path);
                 $scriptPath = base_path('scripts/compare_images.py');
 
-                $command = 'python3 ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($userDocPath) . ' ' . escapeshellarg($templatePath);
+                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath);
                 $output = shell_exec($command);
 
                 if ($output) {
@@ -325,7 +327,7 @@ class CitizenController extends Controller
     {
         $message = $request->input('message');
         $serviceId = $request->input('service_id');
-        
+
         // Default to english if guest
         $lang = Auth::check() && Auth::user()->language ? Auth::user()->language : 'en';
 
@@ -363,7 +365,7 @@ class CitizenController extends Controller
             'service_id' => ['nullable', 'exists:government_services,id'],
         ];
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $rules['guest_name'] = ['required', 'string', 'max:255'];
             $rules['guest_email'] = ['required', 'email', 'max:255'];
         }
@@ -419,7 +421,7 @@ class CitizenController extends Controller
         }
 
         if ($file = $request->file('valid_id')) {
-            $path = $file->store('valid_ids', 'public');
+            $path = $file->store('valid_ids', env('FILESYSTEM_DISK', 'public'));
             $user->valid_id_path = $path;
         }
 
@@ -437,7 +439,7 @@ class CitizenController extends Controller
         $user = Auth::user();
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', 'public');
+            $path = $file->store('avatars', env('FILESYSTEM_DISK', 'public'));
             $user->avatar = $path;
             $user->save();
         }
@@ -463,7 +465,7 @@ class CitizenController extends Controller
         } elseif ($lang === 'sub') {
             return 'Pasensya, daa nako nasabtan inyo pangutana. Pwede niyo pangutan-on ang mga programa sa: **Edukasyon, Medikal, Palubong, Pamasahe, o Trabaho**.';
         }
-        
+
         return "I'm sorry, I didn't quite understand your query. You can ask about our programs: **Educational, Medical, Burial, Transportation, or Employment** assistance, and their required documents.";
     }
 }
