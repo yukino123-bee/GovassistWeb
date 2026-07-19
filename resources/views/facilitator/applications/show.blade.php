@@ -8,13 +8,22 @@
 <div class="space-y-8">
 
     <!-- Top Summary Info -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('facilitator.applications') }}" class="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center space-x-1.5 border border-slate-200 px-3 py-1.5 bg-white rounded-none hover:bg-slate-50 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <a href="{{ route('facilitator.applications') }}" class="w-fit text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center space-x-1.5 border border-slate-200 px-3 py-1.5 bg-white rounded-none hover:bg-slate-50 transition-colors">
             <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
             </svg>
             <span>Back to Applications</span>
         </a>
+
+        @if($checklist->application_type)
+            <div class="flex items-center space-x-2">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Application Type:</span>
+                <span class="px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-extrabold border border-red-200 uppercase tracking-wider">
+                    {{ $checklist->application_type === 'renewal' ? 'Renewal of Employment' : 'New Employment' }}
+                </span>
+            </div>
+        @endif
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:citizen', 'verified'])->prefix('citizen')->grou
     // Checklist & Document Upload
     Route::get('/eligibility/checklist/{service}', [CitizenController::class, 'checklist'])->name('citizen.eligibility.checklist');
     Route::post('/eligibility/checklist/{service}/upload/{requirement}', [CitizenController::class, 'uploadDocument'])->name('citizen.eligibility.upload');
+    Route::post('/eligibility/checklist/{service}/type', [CitizenController::class, 'setApplicationType'])->name('citizen.eligibility.set_type');
     Route::post('/eligibility/apply/{service}', [CitizenController::class, 'apply'])->name('citizen.eligibility.apply');
 
     // Profile Settings

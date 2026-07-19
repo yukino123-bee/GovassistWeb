@@ -266,9 +266,9 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $edu->id,
             'requirement_text' => [
-                'en' => 'School ID',
-                'ceb' => 'School ID',
-                'fil' => 'School ID ng Mag-aaral',
+                'en' => 'Certificate of Enrollment',
+                'ceb' => 'Sertipiko sa Pagpa-enrol',
+                'fil' => 'Sertipiko ng Pagpapatala',
             ],
             'is_required' => true,
             'display_order' => 1,
@@ -276,9 +276,9 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $edu->id,
             'requirement_text' => [
-                'en' => 'Certificate of Enrollment',
-                'ceb' => 'Sertipiko sa Pagpa-enrol',
-                'fil' => 'Sertipiko ng Pagpapatala',
+                'en' => 'Certificate of Registration',
+                'ceb' => 'Sertipiko sa Rehistrasyon',
+                'fil' => 'Sertipiko ng Rehistrasyon',
             ],
             'is_required' => true,
             'display_order' => 2,
@@ -286,12 +286,42 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $edu->id,
             'requirement_text' => [
-                'en' => 'Certificate of Indigency',
-                'ceb' => 'Sertipiko sa Kakabus',
-                'fil' => 'Sertipiko ng Katunayan ng Kahirapan',
+                'en' => 'Barangay Indigency',
+                'ceb' => 'Barangay Indigency',
+                'fil' => 'Barangay Indigency',
             ],
             'is_required' => true,
             'display_order' => 3,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $edu->id,
+            'requirement_text' => [
+                'en' => 'School ID',
+                'ceb' => 'School ID',
+                'fil' => 'School ID ng Mag-aaral',
+            ],
+            'is_required' => true,
+            'display_order' => 4,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $edu->id,
+            'requirement_text' => [
+                'en' => '1 Valid ID (National / Postal ID)',
+                'ceb' => '1 Valid ID (National / Postal ID)',
+                'fil' => '1 Valid ID (National / Postal ID)',
+            ],
+            'is_required' => true,
+            'display_order' => 5,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $edu->id,
+            'requirement_text' => [
+                'en' => 'Grade (2nd Sem / Incoming 1st Year)',
+                'ceb' => 'Grade (2nd Sem / Incoming 1st Year)',
+                'fil' => 'Grade (2nd Sem / Incoming 1st Year)',
+            ],
+            'is_required' => true,
+            'display_order' => 6,
         ]);
 
         // Medical
@@ -308,9 +338,9 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $med->id,
             'requirement_text' => [
-                'en' => 'Hospital Bill or Quotation',
-                'ceb' => 'Bayranan sa Ospital o Quotation',
-                'fil' => 'Kabayaran sa Ospital o Reseta',
+                'en' => 'Barangay Indigency',
+                'ceb' => 'Barangay Indigency',
+                'fil' => 'Barangay Indigency',
             ],
             'is_required' => true,
             'display_order' => 2,
@@ -318,21 +348,71 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $med->id,
             'requirement_text' => [
-                'en' => 'Barangay Certificate of Indigency',
-                'ceb' => 'Sertipiko sa Kakabus sa Barangay',
-                'fil' => 'Sertipiko ng Barangay Indigency',
+                'en' => '1 Valid ID (of the Applicant)',
+                'ceb' => '1 Valid ID (sa Aplikante)',
+                'fil' => '1 Valid ID (ng Aplikante)',
             ],
             'is_required' => true,
             'display_order' => 3,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $med->id,
+            'requirement_text' => [
+                'en' => '1 Valid ID (of the Patient)',
+                'ceb' => '1 Valid ID (sa Pasyente)',
+                'fil' => '1 Valid ID (ng Pasyente)',
+            ],
+            'is_required' => true,
+            'display_order' => 4,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $med->id,
+            'requirement_text' => [
+                'en' => 'Hospital Bill',
+                'ceb' => 'Bayranan sa Ospital',
+                'fil' => 'Kabayaran sa Ospital',
+            ],
+            'is_required' => true,
+            'display_order' => 5,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $med->id,
+            'requirement_text' => [
+                'en' => 'Authorization of Patient',
+                'ceb' => 'Autorisasyon sa Pasyente',
+                'fil' => 'Pahintulot ng Pasyente',
+            ],
+            'is_required' => true,
+            'display_order' => 6,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $med->id,
+            'requirement_text' => [
+                'en' => 'Letter Request of the Provincial Governor',
+                'ceb' => 'Sulat Hangyo sa Gobernador sa Probinsya',
+                'fil' => 'Liham Kahilingan sa Gobernador ng Lalawigan',
+            ],
+            'is_required' => true,
+            'display_order' => 7,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $med->id,
+            'requirement_text' => [
+                'en' => 'Social Case Study Form (MSWDO)',
+                'ceb' => 'Social Case Study Form (MSWDO)',
+                'fil' => 'Social Case Study Form (MSWDO)',
+            ],
+            'is_required' => true,
+            'display_order' => 8,
         ]);
 
         // Burial
         ServiceRequirement::create([
             'service_id' => $burial->id,
             'requirement_text' => [
-                'en' => 'Registered Death Certificate',
-                'ceb' => 'Rehistradong Death Certificate',
-                'fil' => 'Rehistradong Sertipiko ng Kamatayan',
+                'en' => 'Death Certificate',
+                'ceb' => 'Death Certificate',
+                'fil' => 'Sertipiko ng Kamatayan',
             ],
             'is_required' => true,
             'display_order' => 1,
@@ -340,43 +420,63 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $burial->id,
             'requirement_text' => [
-                'en' => 'Funeral Contract',
-                'ceb' => 'Kontrata sa Punerarya',
-                'fil' => 'Kontrata sa Punerarya',
+                'en' => 'Barangay Indigency',
+                'ceb' => 'Barangay Indigency',
+                'fil' => 'Barangay Indigency',
             ],
             'is_required' => true,
             'display_order' => 2,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $burial->id,
+            'requirement_text' => [
+                'en' => '1 Valid ID (of the Applicant)',
+                'ceb' => '1 Valid ID (sa Aplikante)',
+                'fil' => '1 Valid ID (ng Aplikante)',
+            ],
+            'is_required' => true,
+            'display_order' => 3,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $burial->id,
+            'requirement_text' => [
+                'en' => 'Letter Request of the Provincial Governor',
+                'ceb' => 'Sulat Hangyo sa Gobernador sa Probinsya',
+                'fil' => 'Liham Kahilingan sa Gobernador ng Lalawigan',
+            ],
+            'is_required' => true,
+            'display_order' => 4,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $burial->id,
+            'requirement_text' => [
+                'en' => 'Social Case Study Form (MSWDO)',
+                'ceb' => 'Social Case Study Form (MSWDO)',
+                'fil' => 'Social Case Study Form (MSWDO)',
+            ],
+            'is_required' => true,
+            'display_order' => 5,
         ]);
 
         // Transportation
         ServiceRequirement::create([
             'service_id' => $trans->id,
             'requirement_text' => [
-                'en' => 'Referral Letter / Endorsement',
-                'ceb' => 'Sulat sa Referral / Endorsement',
-                'fil' => 'Liham ng Pagre-refer o Endorsement',
+                'en' => 'Driver\'s Information',
+                'ceb' => 'Impormasyon sa Driver',
+                'fil' => 'Impormasyon ng Driver',
             ],
             'is_required' => true,
             'display_order' => 1,
-        ]);
-        ServiceRequirement::create([
-            'service_id' => $trans->id,
-            'requirement_text' => [
-                'en' => 'Valid ID of Traveler',
-                'ceb' => 'Gibalido nga ID sa Mobyahi',
-                'fil' => 'Balidong ID ng Manlalakbay',
-            ],
-            'is_required' => true,
-            'display_order' => 2,
         ]);
 
         // Employment
         ServiceRequirement::create([
             'service_id' => $emp->id,
             'requirement_text' => [
-                'en' => 'PSA Birth Certificate',
-                'ceb' => 'PSA Birth Certificate',
-                'fil' => 'Sertipiko ng Kapanganakan mula sa PSA',
+                'en' => 'PDS (Personal Data Sheet)',
+                'ceb' => 'PDS (Personal Data Sheet)',
+                'fil' => 'PDS (Personal Data Sheet)',
             ],
             'is_required' => true,
             'display_order' => 1,
@@ -384,9 +484,9 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $emp->id,
             'requirement_text' => [
-                'en' => 'Resume / Bio-Data',
-                'ceb' => 'Resume / Bio-Data',
-                'fil' => 'Resume o Bio-data',
+                'en' => 'Resume',
+                'ceb' => 'Resume',
+                'fil' => 'Resume',
             ],
             'is_required' => true,
             'display_order' => 2,
@@ -394,12 +494,22 @@ class DatabaseSeeder extends Seeder
         ServiceRequirement::create([
             'service_id' => $emp->id,
             'requirement_text' => [
-                'en' => 'Barangay Clearance',
-                'ceb' => 'Barangay Clearance',
-                'fil' => 'Barangay Clearance',
+                'en' => 'Recommendation',
+                'ceb' => 'Rekomendasyon',
+                'fil' => 'Rekomendasyon',
             ],
-            'is_required' => false,
+            'is_required' => true,
             'display_order' => 3,
+        ]);
+        ServiceRequirement::create([
+            'service_id' => $emp->id,
+            'requirement_text' => [
+                'en' => 'Endorsement',
+                'ceb' => 'Endorsement',
+                'fil' => 'Endorsement',
+            ],
+            'is_required' => true,
+            'display_order' => 4,
         ]);
 
         // 6. Create Eligibility Questions
@@ -540,37 +650,7 @@ class DatabaseSeeder extends Seeder
             'operator' => '==',
         ]);
 
-        // Medical
-        EligibilityQuestion::create([
-            'service_id' => $med->id,
-            'question_text_en' => 'Do you have an active medical case, prescription, or hospital admission?',
-            'question_text_ceb' => 'Aduna ba kay aktibo nga kaso sa medikal, reseta, o pagkasulod sa ospital?',
-            'question_text_fil' => 'Mayroon ka bang aktibong kasong medikal, reseta, o pagkaka-admit sa ospital?',
-            'type' => 'boolean',
-            'expected_value' => 'true',
-            'operator' => '==',
-        ]);
-
-
-        // Employment
-        EligibilityQuestion::create([
-            'service_id' => $emp->id,
-            'question_text_en' => 'Are you at least 18 years of age?',
-            'question_text_ceb' => 'Aduna ba kay 18 anyos o pataas ang edad?',
-            'question_text_fil' => 'Ikaw ba ay may edad na 18 pataas?',
-            'type' => 'number',
-            'expected_value' => '18',
-            'operator' => '>=',
-        ]);
-        EligibilityQuestion::create([
-            'service_id' => $emp->id,
-            'question_text_en' => 'Are you currently unemployed and actively looking for work?',
-            'question_text_ceb' => 'Kasamtangan ba ka nga walay trabaho ug aktibong nangita og trabaho?',
-            'question_text_fil' => 'Kasalukuyan ka bang walang trabaho at aktibong naghahanap ng trabaho?',
-            'type' => 'boolean',
-            'expected_value' => 'true',
-            'operator' => '==',
-        ]);
+        $this->call(EligibilityQuestionsSeeder::class);
 
         // 7. Seed History for Mark Cagatin
         $assessment = EligibilityAssessment::create([

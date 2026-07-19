@@ -42,6 +42,33 @@
         </div>
     @endif
 
+    <!-- Application Type Selection (for Employment Assistance only) -->
+    @if(str_contains(strtolower($service->service_name), 'employment'))
+        <div class="bg-white border border-slate-200 p-6 shadow-sm space-y-4">
+            <span class="text-[9px] font-bold uppercase tracking-widest text-red-700">Application Options</span>
+            <h3 class="text-sm font-bold text-slate-900">Application Type</h3>
+            <form action="{{ route('citizen.eligibility.set_type', $service->id) }}" method="POST" id="app-type-form">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="border p-4 flex items-start space-x-3 cursor-pointer hover:bg-slate-50 transition-colors {{ ($checklist && $checklist->application_type === 'new') || !$checklist || !$checklist->application_type ? 'border-red-700 bg-red-50/5' : 'border-slate-200' }}">
+                        <input type="radio" name="application_type" value="new" onchange="this.form.submit()" class="mt-0.5 text-red-700 focus:ring-red-500" {{ ($checklist && $checklist->application_type === 'new') || !$checklist || !$checklist->application_type ? 'checked' : '' }} {{ $alreadyApplied ? 'disabled' : '' }}>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">New Employment Application</span>
+                            <span class="block text-[10px] text-slate-400 mt-0.5">Applies for a new position. Requires PDS, Resume, Recommendation, and Endorsement.</span>
+                        </div>
+                    </label>
+                    <label class="border p-4 flex items-start space-x-3 cursor-pointer hover:bg-slate-50 transition-colors {{ $checklist && $checklist->application_type === 'renewal' ? 'border-red-700 bg-red-50/5' : 'border-slate-200' }}">
+                        <input type="radio" name="application_type" value="renewal" onchange="this.form.submit()" class="mt-0.5 text-red-700 focus:ring-red-500" {{ $checklist && $checklist->application_type === 'renewal' ? 'checked' : '' }} {{ $alreadyApplied ? 'disabled' : '' }}>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Renewal of Employment</span>
+                            <span class="block text-[10px] text-slate-400 mt-0.5">Applies for renewal. Requires PDS (Personal Data Sheet) only.</span>
+                        </div>
+                    </label>
+                </div>
+            </form>
+        </div>
+    @endif
+
     <!-- Requirements list -->
     <div class="space-y-4">
         @foreach($requirements as $req)

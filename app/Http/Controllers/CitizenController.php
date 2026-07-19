@@ -191,11 +191,26 @@ class CitizenController extends Controller
             return redirect()->route('citizen.eligibility')->with('error', 'You must first qualify through the Eligibility Assessment.');
         }
 
-        $requirements = $service->requirements;
-
         $checklist = UserChecklist::where('user_id', Auth::id())
             ->where('service_id', $service->id)
             ->first();
+
+        // Check if this is the Employment Assistance service
+        $isEmployment = str_contains(strtolower($service->service_name), 'employment');
+
+        // Default application type for Employment if not set
+        if ($isEmployment && $checklist && ! $checklist->application_type) {
+            $checklist->update(['application_type' => 'new']);
+        }
+
+        $requirements = $service->requirements;
+
+        // Apply renewal filter if active
+        if ($isEmployment && $checklist && $checklist->application_type === 'renewal') {
+            $requirements = $requirements->filter(function ($req) {
+                return str_contains(strtolower($req->name_en), 'pds');
+            });
+        }
 
         $uploadedDocs = collect();
         if ($checklist) {
@@ -218,6 +233,43 @@ class CitizenController extends Controller
         $alreadyApplied = $checklist && $checklist->status !== 'pending';
 
         return view('citizen.eligibility.checklist', compact('service', 'requirements', 'uploadedDocs', 'allMandatoryUploaded', 'alreadyApplied', 'checklist'));
+    }
+
+    public function setApplicationType(Request $request, GovernmentService $service)
+    {
+        $request->validate([
+            'application_type' => 'required|in:new,renewal',
+        ]);
+
+        $checklist = UserChecklist::firstOrCreate([
+            'user_id' => Auth::id(),
+            'service_id' => $service->id,
+        ], [
+            'status' => 'pending',
+        ]);
+
+        if ($checklist->status === 'pending') {
+            $checklist->update([
+                'application_type' => $request->application_type,
+            ]);
+
+            // Clean up files that do not belong to renewal when switching
+            if ($request->application_type === 'renewal') {
+                $pdsReq = $service->requirements->first(function ($req) {
+                    return str_contains(strtolower($req->name_en), 'pds');
+                });
+
+                if ($pdsReq) {
+                    UserChecklistItem::where('checklist_id', $checklist->id)
+                        ->where('requirement_id', '!=', $pdsReq->id)
+                        ->delete();
+                }
+            }
+
+            return back()->with('success', 'Application type updated successfully.');
+        }
+
+        return back()->with('error', 'Cannot change application type after submission.');
     }
 
     public function uploadDocument(Request $request, GovernmentService $service, ServiceRequirement $requirement)
@@ -254,7 +306,15 @@ class CitizenController extends Controller
                 $templatePath = storage_path('app/public/'.$template->file_path);
                 $scriptPath = base_path('scripts/compare_images.py');
 
-                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath);
+                // Pass english/cebuano requirement names and template names as search terms
+                $keywords = implode(',', array_filter([
+                    $requirement->name_en,
+                    $requirement->name_ceb,
+                    $template->name_en,
+                    $template->name_ceb,
+                ]));
+
+                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath).' '.escapeshellarg($keywords);
                 $output = shell_exec($command);
 
                 if ($output) {
@@ -289,6 +349,12 @@ class CitizenController extends Controller
         }
 
         $requirements = $service->requirements;
+        $isEmployment = str_contains(strtolower($service->service_name), 'employment');
+        if ($isEmployment && $checklist->application_type === 'renewal') {
+            $requirements = $requirements->filter(function ($req) {
+                return str_contains(strtolower($req->name_en), 'pds');
+            });
+        }
         foreach ($requirements as $req) {
             if ($req->is_required) {
                 $item = UserChecklistItem::where('checklist_id', $checklist->id)

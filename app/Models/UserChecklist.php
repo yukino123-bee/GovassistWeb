@@ -11,7 +11,7 @@ class UserChecklist extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'service_id', 'status', 'remarks'];
+    protected $fillable = ['user_id', 'service_id', 'status', 'remarks', 'application_type'];
 
     public function user(): BelongsTo
     {

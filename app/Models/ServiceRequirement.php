@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ServiceRequirement extends Model
 {
@@ -45,5 +46,10 @@ class ServiceRequirement extends Model
     public function getNameFilAttribute(): string
     {
         return is_array($this->requirement_text) ? ($this->requirement_text['fil'] ?? '') : '';
+    }
+
+    public function template(): HasOne
+    {
+        return $this->hasOne(DocumentTemplate::class, 'requirement_id');
     }
 }

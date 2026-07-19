@@ -1,12 +1,16 @@
 <?php
 
+use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
 use App\Models\ServiceCategory;
+use App\Models\ServiceRequirement;
 use App\Models\ServiceTranslation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -144,4 +148,97 @@ test('eligibility assessment logic works correctly', function () {
     expect($failAssessment)->not->toBeNull();
     expect($failAssessment->status)->toBe('ineligible');
     $failResponse->assertRedirect(route('citizen.eligibility.result', $failAssessment->id));
+});
+
+test('facilitator can manage document templates by program', function () {
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+
+    // Create a category and service
+    $category = ServiceCategory::create(['category_name' => 'Test Service Category']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance Program',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    // Create a requirement for the service
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Indigency Certificate', 'ceb' => 'Indigency'],
+        'is_required' => true,
+    ]);
+
+    // 1. Visit the templates management page as facilitator
+    $response = $this->actingAs($facilitator)->get(route('facilitator.templates'));
+    $response->assertStatus(200);
+    $response->assertSee('Medical Assistance Program');
+    $response->assertSee('Indigency Certificate');
+
+    // 2. Upload a template for the requirement
+    Storage::fake('public');
+    $file = UploadedFile::fake()->image('template.png');
+
+    $postResponse = $this->actingAs($facilitator)->post(route('facilitator.templates.store'), [
+        'service_id' => $service->id,
+        'requirement_id' => $requirement->id,
+        'keywords' => 'English Template Name',
+        'template_file' => $file,
+    ]);
+
+    $postResponse->assertRedirect(route('facilitator.templates'));
+    $this->assertDatabaseHas('document_templates', [
+        'requirement_id' => $requirement->id,
+        'name_en' => 'English Template Name',
+    ]);
+
+    $template = DocumentTemplate::first();
+
+    // 3. Delete the template
+    $deleteResponse = $this->actingAs($facilitator)->delete(route('facilitator.templates.destroy', $template->id));
+    $deleteResponse->assertRedirect(route('facilitator.templates'));
+    $this->assertDatabaseMissing('document_templates', [
+        'id' => $template->id,
+    ]);
+});
+
+test('document templates verification matches keywords for PDF uploads', function () {
+    $citizen = User::factory()->create(['role' => 'citizen']);
+
+    $category = ServiceCategory::create(['category_name' => 'Category']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service Program',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Indigency Certificate', 'ceb' => 'Indigency'],
+        'is_required' => true,
+    ]);
+
+    // Create a mock template
+    $template = DocumentTemplate::create([
+        'service_id' => $service->id,
+        'requirement_id' => $requirement->id,
+        'name_en' => 'Indigency',
+        'name_ceb' => 'Indigency',
+        'file_path' => 'templates/mock_template.pdf',
+    ]);
+
+    // Mock upload file
+    Storage::fake('public');
+    $file = UploadedFile::fake()->create('document.pdf', 10);
+
+    $response = $this->actingAs($citizen)->post(route('citizen.eligibility.upload', [$service->id, $requirement->id]), [
+        'document' => $file,
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('user_checklist_items', [
+        'requirement_id' => $requirement->id,
+        'is_submitted' => true,
+    ]);
 });

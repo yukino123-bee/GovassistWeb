@@ -678,11 +678,9 @@ class FacilitatorController extends Controller
     // --- Document Templates Management ---
     public function templates()
     {
-        $templates = DocumentTemplate::with(['service', 'requirement'])->get();
-        $services = GovernmentService::all();
-        $requirements = ServiceRequirement::all();
+        $services = GovernmentService::with(['requirements.template'])->get();
 
-        return view('facilitator.templates.index', compact('templates', 'services', 'requirements'));
+        return view('facilitator.templates.index', compact('services'));
     }
 
     public function storeTemplate(Request $request)
@@ -690,33 +688,48 @@ class FacilitatorController extends Controller
         $request->validate([
             'service_id' => 'required|exists:government_services,id',
             'requirement_id' => 'required|exists:service_requirements,id',
-            'name_en' => 'required|string|max:255',
-            'name_ceb' => 'required|string|max:255',
-            'description_en' => 'nullable|string',
-            'description_ceb' => 'nullable|string',
+            'keywords' => 'required|string|max:255',
             'template_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
-        $path = $request->file('template_file')->store('templates', env('FILESYSTEM_DISK', 'public'));
+        $disk = env('FILESYSTEM_DISK', 'public');
+        $path = $request->file('template_file')->store('templates', $disk);
 
-        DocumentTemplate::create([
-            'service_id' => $request->service_id,
-            'requirement_id' => $request->requirement_id,
-            'name_en' => $request->name_en,
-            'name_ceb' => $request->name_ceb,
-            'description_en' => $request->description_en,
-            'description_ceb' => $request->description_ceb,
-            'file_path' => $path,
-        ]);
+        // Overwrite or create template for this requirement
+        $template = DocumentTemplate::where('requirement_id', $request->requirement_id)->first();
+        if ($template) {
+            // Delete old file
+            if ($template->file_path && \Storage::disk($disk)->exists($template->file_path)) {
+                \Storage::disk($disk)->delete($template->file_path);
+            }
+            $template->update([
+                'service_id' => $request->service_id,
+                'name_en' => $request->keywords,
+                'name_ceb' => $request->keywords,
+                'description_en' => null,
+                'description_ceb' => null,
+                'file_path' => $path,
+            ]);
+        } else {
+            DocumentTemplate::create([
+                'service_id' => $request->service_id,
+                'requirement_id' => $request->requirement_id,
+                'name_en' => $request->keywords,
+                'name_ceb' => $request->keywords,
+                'description_en' => null,
+                'description_ceb' => null,
+                'file_path' => $path,
+            ]);
+        }
 
-        return redirect()->route('facilitator.templates')->with('success', 'Document template uploaded successfully.');
+        return redirect()->route('facilitator.templates')->with('success', 'Document template set successfully.');
     }
 
     public function destroyTemplate(DocumentTemplate $template)
     {
-        // Optionally delete the file from storage
-        if ($template->file_path && \Storage::disk('public')->exists($template->file_path)) {
-            \Storage::disk('public')->delete($template->file_path);
+        $disk = env('FILESYSTEM_DISK', 'public');
+        if ($template->file_path && \Storage::disk($disk)->exists($template->file_path)) {
+            \Storage::disk($disk)->delete($template->file_path);
         }
         $template->delete();
 
