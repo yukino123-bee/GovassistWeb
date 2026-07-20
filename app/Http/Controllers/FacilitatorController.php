@@ -468,6 +468,7 @@ class FacilitatorController extends Controller
     public function inquiries()
     {
         $inquiries = UserInquiry::with(['user', 'service', 'responses.responder'])
+            ->where('is_bot', false)
             ->orderBy('created_at', 'desc')
             ->get();
 

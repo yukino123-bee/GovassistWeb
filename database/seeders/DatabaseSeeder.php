@@ -697,7 +697,7 @@ class DatabaseSeeder extends Seeder
             'service_id' => $emp->id,
             'inquiry_text' => 'Hello, I uploaded my resume but I would like to ask if there are any specific local trainings happening this month for San Miguel residents?',
             'status' => 'in_progress',
-            'is_bot' => true,
+            'is_bot' => false,
             'created_at' => Carbon::now()->subDays(1),
         ]);
 
