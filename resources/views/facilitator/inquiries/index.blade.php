@@ -30,7 +30,7 @@
                 <tbody class="divide-y divide-slate-50">
                     @forelse($inquiries as $inq)
                         <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="px-6 py-3.5">
+                            <td class="px-6 py-3.5 whitespace-nowrap">
                                 @if($inq->user)
                                     <span class="font-bold text-slate-800 block">{{ $inq->user->name }}</span>
                                     <span class="text-[10px] text-slate-400 block mt-0.5">{{ $inq->user->email }}</span>
@@ -42,20 +42,20 @@
                                     <span class="text-[10px] text-slate-400 block mt-0.5">{{ $inq->guest_email }}</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-3.5 font-medium text-slate-700 max-w-xs truncate">
+                            <td class="px-6 py-3.5 font-medium text-slate-700 max-w-[200px]">
                                 <div class="mb-1">
                                     @if($inq->is_bot)
-                                        <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-extrabold border border-purple-200 uppercase tracking-wider rounded-none">GovBot Chat</span>
+                                        <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-extrabold border border-purple-200 uppercase tracking-wider rounded-none whitespace-nowrap">GovBot Chat</span>
                                     @else
-                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[8px] font-extrabold border border-blue-200 uppercase tracking-wider rounded-none">Manual Helpdesk</span>
+                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[8px] font-extrabold border border-blue-200 uppercase tracking-wider rounded-none whitespace-nowrap">Manual Helpdesk</span>
                                     @endif
                                 </div>
-                                <span class="text-xs">{{ $inq->inquiry_text }}</span>
+                                <p class="text-xs truncate text-slate-600 font-normal" title="{{ $inq->inquiry_text }}">{{ $inq->inquiry_text }}</p>
                             </td>
-                            <td class="px-6 py-3.5">
+                            <td class="px-6 py-3.5 whitespace-nowrap font-medium text-slate-700">
                                 {{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}
                             </td>
-                            <td class="px-6 py-3.5">
+                            <td class="px-6 py-3.5 whitespace-nowrap">
                                 @if($inq->status === 'resolved')
                                     <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-extrabold rounded-none uppercase tracking-wider border border-emerald-200">Resolved</span>
                                 @elseif($inq->status === 'in_progress')
@@ -64,7 +64,7 @@
                                     <span class="px-2 py-0.5 bg-red-50 text-red-700 text-[10px] font-extrabold rounded-none uppercase tracking-wider border border-red-200">Pending</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-3.5 text-right">
+                            <td class="px-6 py-3.5 text-right whitespace-nowrap">
                                 <button onclick="selectInquiry({{ json_encode($inq->load('responses.responder')) }})" class="px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold rounded-none uppercase tracking-wider shadow-sm transition-all">
                                     View & Reply
                                 </button>
