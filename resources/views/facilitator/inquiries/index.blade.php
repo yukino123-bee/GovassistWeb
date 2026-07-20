@@ -105,18 +105,9 @@
             <div id="reply-form-container">
                 <form id="reply-form" method="POST" class="space-y-3">
                     @csrf
-                    <div class="space-y-1.5 relative">
-                        <div class="flex items-center justify-between">
-                            <label for="reply_message" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Your Reply</label>
-                            <button type="button" id="btn-ai-draft" onclick="generateAIDraft()" class="flex items-center text-[9px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-800 transition-colors bg-red-50 hover:bg-red-100 px-2 py-1 rounded-none border border-red-200">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                AI Draft
-                            </button>
-                        </div>
+                    <div class="space-y-1.5">
+                        <label for="reply_message" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Your Reply</label>
                         <textarea name="message" id="reply_message" rows="4" placeholder="Type your response to the citizen..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required></textarea>
-                        <div id="ai-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm hidden flex items-center justify-center">
-                            <span class="text-[10px] font-extrabold text-red-700 uppercase tracking-widest animate-pulse">Generating Draft...</span>
-                        </div>
                     </div>
 
                     <div class="flex items-center justify-between">
@@ -205,33 +196,6 @@
         statusBadge.innerText = 'Status: ' + inq.status.toUpperCase();
     }
 
-    function generateAIDraft() {
-        if (!currentInquiryId) return;
-        
-        const loader = document.getElementById('ai-loading');
-        const textarea = document.getElementById('reply_message');
-        loader.classList.remove('hidden');
-        
-        fetch(`/facilitator/inquiries/${currentInquiryId}/ai-draft`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.draft) {
-                textarea.value = data.draft;
-            }
-        })
-        .catch(err => {
-            console.error('AI Draft Error:', err);
-            alert('Failed to generate AI draft.');
-        })
-        .finally(() => {
-            loader.classList.add('hidden');
-        });
     }
 </script>
 @endsection
