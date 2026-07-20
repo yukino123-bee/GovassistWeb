@@ -228,8 +228,8 @@
                     <tbody class="divide-y divide-slate-50">
                         @forelse($recentApplications as $app)
                             <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-6 py-3.5 font-bold text-slate-800">{{ $app->user->name ?? 'Citizen' }}</td>
-                                <td class="px-6 py-3.5 text-slate-600">{{ $app->service->name_en ?? 'Service' }}</td>
+                                <td class="px-6 py-3.5 font-bold text-slate-800">{{ $app->user?->name ?? 'Citizen' }}</td>
+                                <td class="px-6 py-3.5 text-slate-600">{{ $app->service?->name_en ?? 'Service' }}</td>
                                 <td class="px-6 py-3.5 text-slate-400">{{ $app->created_at->format('M d, Y h:i A') }}</td>
                                 <td class="px-6 py-3.5">
                                     @if($app->status === 'pending')
