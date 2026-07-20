@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('user_checklists', function (Blueprint $table) {
-            $table->string('application_type')->nullable()->after('service_id');
-        });
+        if (! Schema::hasColumn('user_checklists', 'application_type')) {
+            Schema::table('user_checklists', function (Blueprint $table) {
+                $table->string('application_type')->nullable()->after('service_id');
+            });
+        }
     }
 
     /**

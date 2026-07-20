@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('user_inquiries', function (Blueprint $table) {
-            $table->boolean('is_bot')->default(false)->after('status');
-        });
+        if (! Schema::hasColumn('user_inquiries', 'is_bot')) {
+            Schema::table('user_inquiries', function (Blueprint $table) {
+                $table->boolean('is_bot')->default(false)->after('status');
+            });
+        }
     }
 
     /**
