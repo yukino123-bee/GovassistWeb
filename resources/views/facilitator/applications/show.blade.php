@@ -5,7 +5,7 @@
 @section('page_title', 'Process Assistance Application')
 
 @section('content')
-<div class="space-y-8">
+<div class="space-y-6">
 
     <!-- Top Summary Info -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -15,15 +15,22 @@
             </svg>
             <span>Back to Applications</span>
         </a>
+    </div>
 
-        @if($checklist->application_type)
-            <div class="flex items-center space-x-2">
-                <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">Application Type:</span>
-                <span class="px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-extrabold border border-red-200 uppercase tracking-wider">
-                    {{ $checklist->application_type === 'renewal' ? 'Renewal of Employment' : 'New Employment' }}
-                </span>
-            </div>
-        @endif
+    <!-- Applied Program Header Card -->
+    <div class="bg-white border border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div>
+            <span class="text-[9px] font-extrabold text-red-700 uppercase tracking-widest block mb-1">Applied Assistance Program</span>
+            <h1 class="text-lg font-bold text-slate-800 tracking-tight">{{ $checklist->service->name_en ?? 'N/A' }}</h1>
+            <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ $checklist->service->name_ceb ?? '' }}</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            @if($checklist->application_type)
+                <div class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-extrabold uppercase tracking-wider rounded-none">
+                    Type: <span class="text-red-700">{{ $checklist->application_type === 'renewal' ? 'Renewal' : 'New' }}</span>
+                </div>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
