@@ -32,9 +32,6 @@
                         Type: <span class="text-red-700">{{ $checklist->application_type === 'renewal' ? 'Renewal' : 'New' }}</span>
                     </div>
                 @endif
-                <div class="px-3 py-1.5 bg-red-50 border border-red-200 text-red-700 text-[10px] font-black uppercase tracking-wider rounded-none">
-                    Ref ID: #{{ $checklist->id }}
-                </div>
             </div>
         </div>
 
