@@ -38,71 +38,109 @@
         <!-- Checklist & Verification (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Documents verification card -->
-            <div class="bg-white rounded-none border border-slate-200 p-6">
-                <h3 class="text-base font-bold text-slate-800 mb-6 flex items-center">
-                    <svg class="w-5 h-5 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Submitted Checklist Documents
-                </h3>
+            <div class="bg-white rounded-none border border-slate-200 p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
+                    <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                        <svg class="w-5 h-5 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Submitted Checklist Documents
+                    </h3>
 
-                <div class="space-y-4">
-                    @forelse($uploadedDocs as $doc)
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-none space-y-3">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-800">{{ $doc->requirement->name_en }}</h4>
-                                    <span class="text-[10px] text-slate-400 block mt-0.5">{{ $doc->requirement->name_ceb }}</span>
-                                </div>
-                                
-                                <!-- Document Status Badge -->
-                                @if($doc->status === 'pending')
-                                    <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-none border border-amber-200 uppercase tracking-wider">pending</span>
-                                @elseif($doc->status === 'approved')
-                                    <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-none border border-emerald-200 uppercase tracking-wider">approved</span>
-                                @else
-                                    <span class="px-2.5 py-0.5 bg-rose-50 text-rose-700 text-[10px] font-bold rounded-none border border-rose-200 uppercase tracking-wider">rejected</span>
-                                @endif
-                            </div>
-
-                            <!-- Document file view -->
-                            <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                                <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="text-red-700 font-bold hover:underline flex items-center space-x-1 border border-red-200 px-2 py-1 bg-white hover:bg-red-50 transition-colors">
-                                    <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                    <span>Download File</span>
-                                </a>
-
-                                <div class="flex items-center">
-                                    <!-- Auto Verify Button -->
-                                    @if($checklist->user->valid_id_path && $doc->status === 'pending')
-                                    <form action="{{ route('facilitator.checklist_items.auto_verify', $doc->id) }}" method="POST" class="mr-2">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-none text-xs font-bold shadow-sm transition-colors border border-slate-900 flex items-center space-x-1" title="Compare this document with the user's valid ID">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                                            <span>Auto Verify</span>
-                                        </button>
-                                    </form>
-                                    @endif
-
-                                    <!-- Individual Doc Status Changer -->
-                                    <form action="{{ route('facilitator.checklist_items.update_status', $doc->id) }}" method="POST" class="flex items-center space-x-2">
-                                        @csrf
-                                        <select name="status" class="bg-white text-xs border border-slate-200 rounded-none px-2 py-1 text-slate-800 font-bold focus:outline-none cursor-pointer">
-                                            <option value="pending" {{ $doc->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                            <option value="approved" {{ $doc->status === 'approved' ? 'selected' : '' }}>Approve</option>
-                                            <option value="rejected" {{ $doc->status === 'rejected' ? 'selected' : '' }}>Reject</option>
-                                        </select>
-                                        <button type="submit" class="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded-none text-xs font-bold shadow-sm transition-colors border border-red-800">
-                                            Update
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="py-6 text-center text-slate-400 font-medium">No documents uploaded for this application.</div>
-                    @endforelse
+                    @if($uploadedDocs->whereNotNull('file_path')->isNotEmpty())
+                        <a href="{{ route('facilitator.applications.download_all', $checklist->id) }}" class="px-3.5 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-none shadow-sm transition-colors flex items-center justify-center space-x-1.5">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>Download All Files (ZIP)</span>
+                        </a>
+                    @endif
                 </div>
+
+                <form action="{{ route('facilitator.checklist_items.batch_update', $checklist->id) }}" method="POST" class="space-y-6">
+                    @csrf
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @forelse($uploadedDocs as $doc)
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-none flex flex-col justify-between space-y-4 h-full">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide leading-tight">{{ $doc->requirement->name_en }}</h4>
+                                        <span class="text-[10px] text-slate-400 block mt-1 font-medium">{{ $doc->requirement->name_ceb }}</span>
+                                    </div>
+                                    
+                                    <!-- Document Status Badge -->
+                                    @if($doc->status === 'pending')
+                                        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-[9px] font-bold rounded-none border border-amber-200 uppercase tracking-wide whitespace-nowrap">pending</span>
+                                    @elseif($doc->status === 'approved')
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold rounded-none border border-emerald-200 uppercase tracking-wide whitespace-nowrap">approved</span>
+                                    @else
+                                        <span class="px-2 py-0.5 bg-rose-50 text-rose-700 text-[9px] font-bold rounded-none border border-rose-200 uppercase tracking-wide whitespace-nowrap">rejected</span>
+                                    @endif
+                                </div>
+
+                                <!-- Document file view & status changer -->
+                                <div class="pt-3 border-t border-slate-200 space-y-3">
+                                    @if($doc->file_path)
+                                        <!-- Inline Document Webview -->
+                                        <div class="w-full h-40 bg-slate-100 border border-slate-200 overflow-hidden relative shadow-inner">
+                                            <iframe src="{{ asset('storage/' . $doc->file_path) }}" class="w-full h-full border-none"></iframe>
+                                        </div>
+
+                                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="w-full text-center text-red-700 font-extrabold hover:underline flex items-center justify-center space-x-1.5 border border-red-200 py-2 bg-white hover:bg-red-50 transition-colors text-[10px] uppercase tracking-widest">
+                                                <svg class="w-3.5 h-3.5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                <span>Fullscreen</span>
+                                            </a>
+                                            
+                                            @if($checklist->user->valid_id_path && $doc->status === 'pending')
+                                                <button type="submit" form="auto-verify-form-{{ $doc->id }}" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-none text-[10px] font-extrabold shadow-sm transition-colors border border-slate-900 flex items-center justify-center space-x-1 uppercase tracking-widest" title="Compare this document with the user's valid ID">
+                                                    <span>Auto Verify</span>
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Set Status</label>
+                                            <select name="statuses[{{ $doc->id }}]" class="w-full bg-white text-[10px] border border-slate-200 rounded-none px-2 py-1.5 text-slate-800 font-extrabold uppercase tracking-wider focus:outline-none cursor-pointer">
+                                                <option value="pending" {{ $doc->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                                <option value="approved" {{ $doc->status === 'approved' ? 'selected' : '' }}>Approve</option>
+                                                <option value="rejected" {{ $doc->status === 'rejected' ? 'selected' : '' }}>Reject</option>
+                                            </select>
+                                        </div>
+                                    @else
+                                        <div class="w-full text-center text-slate-400 border border-slate-200 py-2 bg-slate-100/50 text-[10px] font-extrabold uppercase tracking-widest select-none">
+                                            No File Uploaded
+                                        </div>
+                                        <input type="hidden" name="statuses[{{ $doc->id }}]" value="pending">
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="col-span-2 py-8 text-center text-slate-400 italic">No checklist documents assigned to this service.</div>
+                        @endforelse
+                    </div>
+
+                    @if($uploadedDocs->isNotEmpty())
+                        <div class="flex justify-end pt-4 border-t border-slate-100">
+                            <button type="submit" class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none shadow-sm flex items-center justify-center space-x-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Save All Document Statuses</span>
+                            </button>
+                        </div>
+                    @endif
+                </form>
+
+                <!-- Hidden Auto-Verify Forms -->
+                @foreach($uploadedDocs as $doc)
+                    @if($doc->file_path && $checklist->user->valid_id_path && $doc->status === 'pending')
+                        <form id="auto-verify-form-{{ $doc->id }}" action="{{ route('facilitator.checklist_items.auto_verify', $doc->id) }}" method="POST" class="hidden">
+                            @csrf
+                        </form>
+                    @endif
+                @endforeach
             </div>
         </div>
 

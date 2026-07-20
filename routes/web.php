@@ -116,11 +116,13 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/applications/create', [FacilitatorController::class, 'createApplication'])->name('facilitator.applications.create');
     Route::post('/applications', [FacilitatorController::class, 'storeApplication'])->name('facilitator.applications.store');
     Route::get('/applications/{checklist}', [FacilitatorController::class, 'showApplication'])->name('facilitator.applications.show');
+    Route::get('/applications/{checklist}/download-all', [FacilitatorController::class, 'downloadAllApplicationFiles'])->name('facilitator.applications.download_all');
     Route::get('/applications/{checklist}/edit', [FacilitatorController::class, 'editApplication'])->name('facilitator.applications.edit');
     Route::put('/applications/{checklist}', [FacilitatorController::class, 'updateApplication'])->name('facilitator.applications.update');
     Route::delete('/applications/{checklist}', [FacilitatorController::class, 'destroyApplication'])->name('facilitator.applications.destroy');
     Route::post('/applications/{checklist}/status', [FacilitatorController::class, 'updateApplicationStatus'])->name('facilitator.applications.update_status');
     Route::post('/checklist-items/{item}/status', [FacilitatorController::class, 'updateItemStatus'])->name('facilitator.checklist_items.update_status');
+    Route::post('/checklist-items/batch/{checklist}', [FacilitatorController::class, 'batchUpdateChecklistItems'])->name('facilitator.checklist_items.batch_update');
     Route::post('/checklist-items/{item}/auto-verify', [FacilitatorController::class, 'autoVerifyItem'])->name('facilitator.checklist_items.auto_verify');
 
     // Inquiries Management

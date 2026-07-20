@@ -431,6 +431,53 @@ class FacilitatorController extends Controller
         return back()->with('success', 'Document status updated.');
     }
 
+    public function batchUpdateChecklistItems(Request $request, UserChecklist $checklist)
+    {
+        $request->validate([
+            'statuses' => ['required', 'array'],
+            'statuses.*' => ['required', 'string', 'in:pending,approved,rejected'],
+        ]);
+
+        foreach ($request->statuses as $itemId => $status) {
+            UserChecklistItem::where('id', $itemId)
+                ->where('checklist_id', $checklist->id)
+                ->update(['status' => $status]);
+        }
+
+        return back()->with('success', 'All document statuses updated successfully.');
+    }
+
+    public function downloadAllApplicationFiles(UserChecklist $checklist)
+    {
+        $uploadedDocs = UserChecklistItem::where('checklist_id', $checklist->id)
+            ->whereNotNull('file_path')
+            ->get();
+
+        if ($uploadedDocs->isEmpty()) {
+            return back()->with('error', 'No documents have been uploaded for this application.');
+        }
+
+        $zip = new \ZipArchive;
+        $fileName = 'application_'.$checklist->id.'_documents.zip';
+        $tempFile = tempnam(sys_get_temp_dir(), 'zip');
+
+        if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($uploadedDocs as $doc) {
+                $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($doc->file_path);
+                if (file_exists($filePath)) {
+                    $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+                    $zipEntryName = str_replace(' ', '_', $doc->requirement->name_en).'.'.$extension;
+                    $zip->addFile($filePath, $zipEntryName);
+                }
+            }
+            $zip->close();
+
+            return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+        }
+
+        return back()->with('error', 'Failed to generate zip file.');
+    }
+
     public function autoVerifyItem(UserChecklistItem $item)
     {
         $user = $item->checklist->user;

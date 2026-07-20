@@ -12,6 +12,7 @@ use App\Models\ServiceRequirement;
 use App\Models\ServiceTranslation;
 use App\Models\User;
 use App\Models\UserChecklist;
+use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -385,4 +386,85 @@ test('assessment details route displays user answers', function () {
     $response->assertSee('Calculation Overview');
     $response->assertSee('Are you indigent?');
     $response->assertSee('Yes');
+});
+
+test('facilitator can batch update document statuses', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $checklist = UserChecklist::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'pending',
+    ]);
+
+    $req = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Indigency Certificate'],
+    ]);
+
+    $item = UserChecklistItem::create([
+        'checklist_id' => $checklist->id,
+        'requirement_id' => $req->id,
+        'status' => 'pending',
+        'is_submitted' => true,
+    ]);
+
+    $response = $this->actingAs($admin)->post(route('facilitator.checklist_items.batch_update', $checklist->id), [
+        'statuses' => [
+            $item->id => 'approved',
+        ],
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('user_checklist_items', [
+        'id' => $item->id,
+        'status' => 'approved',
+    ]);
+});
+
+test('facilitator can download all documents zipped', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $checklist = UserChecklist::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'pending',
+    ]);
+
+    $req = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Indigency Certificate'],
+    ]);
+
+    Storage::fake('public');
+    $file = UploadedFile::fake()->create('document.pdf', 10);
+    $path = $file->store('documents', 'public');
+
+    $item = UserChecklistItem::create([
+        'checklist_id' => $checklist->id,
+        'requirement_id' => $req->id,
+        'file_path' => $path,
+        'status' => 'pending',
+        'is_submitted' => true,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('facilitator.applications.download_all', $checklist->id));
+    $response->assertStatus(200);
+    $response->assertHeader('content-type', 'application/zip');
 });
