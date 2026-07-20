@@ -171,9 +171,13 @@
                 const isCitizen = resp.responder && resp.responder.role === 'citizen';
                 const div = document.createElement('div');
                 div.className = 'p-2.5 border-l-2 ' + (isCitizen ? 'border-red-700 bg-red-50/20' : 'border-slate-400 bg-slate-100/50');
+                
+                // Show as GovBot if this is a chatbot inquiry and not written by the citizen
+                const nameToShow = (inq.is_bot && !isCitizen) ? 'GovBot' : (resp.responder ? resp.responder.name : 'System/Bot');
+                
                 div.innerHTML = `
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">${resp.responder ? resp.responder.name : 'System/Bot'}</span>
+                        <span class="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">${nameToShow}</span>
                         <span class="text-[8px] text-slate-400">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     </div>
                     <p class="text-xs text-slate-700">${resp.response_text || resp.requireent_text}</p>
