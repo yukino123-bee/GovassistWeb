@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
 Route::post('/language/toggle', [AuthController::class, 'toggleLanguage'])->name('language.toggle');
 
 use App\Http\Middleware\EnsureEmailIsVerifiedIfLoggedIn;
+use Illuminate\Support\Facades\Artisan;
 
 // Citizen Public Routes
 Route::prefix('citizen')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
@@ -132,4 +133,14 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/templates', [FacilitatorController::class, 'templates'])->name('facilitator.templates');
     Route::post('/templates', [FacilitatorController::class, 'storeTemplate'])->name('facilitator.templates.store');
     Route::delete('/templates/{template}', [FacilitatorController::class, 'destroyTemplate'])->name('facilitator.templates.destroy');
+});
+
+Route::get('/run-migrations', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+
+        return 'Migrations ran successfully: <br><pre>'.Artisan::output().'</pre>';
+    } catch (Exception $e) {
+        return 'Migration failed: '.$e->getMessage();
+    }
 });
