@@ -7,13 +7,25 @@
 @section('content')
 <div class="bg-white border border-slate-200 shadow-sm">
     <!-- Section Header -->
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div class="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
             <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
             Application Submissions Manager
         </h3>
-        <a href="{{ route('facilitator.applications.create') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none flex items-center">
-            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+
+        <!-- Program Filter Dropdown -->
+        <form action="{{ route('facilitator.applications') }}" method="GET" class="flex items-center space-x-2">
+            <label for="service_id" class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Filter by Program</label>
+            <select name="service_id" id="service_id" onchange="this.form.submit()" class="bg-white border border-slate-200 text-xs px-3 py-1.5 rounded-none font-bold text-slate-700 cursor-pointer focus:outline-none focus:border-red-700">
+                <option value="">All Programs</option>
+                @foreach($services as $svc)
+                    <option value="{{ $svc->id }}" {{ request('service_id') == $svc->id ? 'selected' : '' }}>{{ $svc->service_name }}</option>
+                @endforeach
+            </select>
+        </form>
+
+        <a href="{{ route('facilitator.applications.create') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none flex items-center w-fit">
+            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Add Application
         </a>
     </div>

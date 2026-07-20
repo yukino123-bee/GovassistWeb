@@ -152,7 +152,14 @@ test('citizen can switch languages and complete full flow', function () {
     Storage::fake('public');
 
     $facilitator = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $citizen = User::factory()->create([
+        'role' => 'citizen',
+        'dob' => '2000-01-01',
+        'address' => 'Test Address',
+        'civil_status' => 'Single',
+        'contact_number' => '09123456789',
+        'valid_id_path' => 'valid_ids/test.png',
+    ]);
     $category = ServiceCategory::create(['category_name' => 'Education']);
 
     $service = GovernmentService::create([

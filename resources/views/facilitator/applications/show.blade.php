@@ -142,21 +142,20 @@
                                 <!-- Document file view & status changer -->
                                 <div class="pt-4 border-t border-slate-200/60 space-y-4">
                                     @if($doc->file_path)
-                                        <!-- Inline Document Webview Wrapper -->
-                                        <div class="relative w-full h-48 bg-slate-200 border border-slate-300 overflow-hidden shadow-inner">
-                                            <div class="absolute top-0 left-0 right-0 bg-slate-800/90 text-white text-[9px] font-extrabold px-3 py-1.5 uppercase tracking-widest z-10 flex items-center justify-between">
-                                                <span>Live Document Webview</span>
-                                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                                            </div>
-                                            <iframe src="{{ asset('storage/' . $doc->file_path) }}" class="w-full h-full pt-6 border-none"></iframe>
+                                        <div class="flex items-center space-x-2 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <span>Document Uploaded</span>
                                         </div>
 
                                         <div class="flex flex-col sm:flex-row items-center gap-2">
-                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="w-full text-center text-red-700 font-extrabold hover:underline flex items-center justify-center space-x-1.5 border border-red-200 py-2.5 bg-white hover:bg-red-50 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
-                                                <svg class="w-3.5 h-3.5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                                <span>Fullscreen View</span>
+                                            <button type="button" onclick="openDocumentWebview('{{ asset('storage/' . $doc->file_path) }}', '{{ $doc->requirement->name_en }}')" class="w-full text-center text-white font-extrabold flex items-center justify-center space-x-1.5 border border-red-700 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                <span>Web View</span>
+                                            </button>
+                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="w-full text-center text-slate-700 font-extrabold flex items-center justify-center space-x-1.5 border border-slate-300 py-2.5 bg-white hover:bg-slate-50 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                <span>Fullscreen</span>
                                             </a>
-                                            
                                             @if($checklist->user->valid_id_path && $doc->status === 'pending')
                                                 <button type="submit" form="auto-verify-form-{{ $doc->id }}" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-none text-[10px] font-extrabold shadow-sm transition-colors border border-slate-900 flex items-center justify-center space-x-1 uppercase tracking-widest" title="Compare this document with the user's valid ID">
                                                     <span>Auto Verify</span>
@@ -173,10 +172,9 @@
                                             </select>
                                         </div>
                                     @else
-                                        <!-- No File Placeholder -->
-                                        <div class="w-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 bg-slate-100/40 text-slate-400 select-none">
-                                            <svg class="w-8 h-8 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                            <span class="text-[10px] font-extrabold uppercase tracking-widest">No File Uploaded</span>
+                                        <div class="flex items-center space-x-2 text-slate-400 bg-slate-100 border border-slate-200 px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest select-none">
+                                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>No File Uploaded</span>
                                         </div>
                                         <input type="hidden" name="statuses[{{ $doc->id }}]" value="pending">
                                     @endif
@@ -247,8 +245,60 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
     </div>
 </div>
+
+<!-- Document Webview Modal -->
+<div id="document-webview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white border-t-4 border-red-700 max-w-4xl w-full h-[85vh] p-6 shadow-2xl flex flex-col justify-between relative rounded-none">
+        <!-- Close Button -->
+        <button type="button" onclick="closeDocumentWebview()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <div class="border-b border-slate-200 pb-3 mb-4 flex items-center justify-between">
+            <h3 id="modal-document-title" class="text-xs font-black uppercase tracking-widest text-slate-800">
+                Document Preview
+            </h3>
+        </div>
+
+        <div class="flex-grow bg-slate-100 border border-slate-200 relative overflow-hidden">
+            <iframe id="modal-document-iframe" src="" class="w-full h-full border-none"></iframe>
+        </div>
+        
+        <div class="mt-4 flex justify-end">
+            <button type="button" onclick="closeDocumentWebview()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-none shadow-sm transition-colors">
+                Close Preview
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDocumentWebview(fileUrl, title) {
+        const modal = document.getElementById('document-webview-modal');
+        const iframe = document.getElementById('modal-document-iframe');
+        const titleElem = document.getElementById('modal-document-title');
+        
+        if (modal && iframe && titleElem) {
+            titleElem.innerText = title;
+            iframe.src = fileUrl;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeDocumentWebview() {
+        const modal = document.getElementById('document-webview-modal');
+        const iframe = document.getElementById('modal-document-iframe');
+        
+        if (modal && iframe) {
+            modal.classList.add('hidden');
+            iframe.src = '';
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+</script>
 @endsection

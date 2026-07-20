@@ -340,6 +340,12 @@ class CitizenController extends Controller
             return back()->with('error', 'You must be eligible to apply.');
         }
 
+        // Prevent application if profile is incomplete
+        $user = Auth::user();
+        if (! $user->dob || ! $user->address || ! $user->civil_status || ! $user->contact_number || ! $user->valid_id_path) {
+            return back()->with('error', 'Please complete your profile details (Date of Birth, Complete Address, Civil Status, Contact Number, and Valid ID) before submitting your application.');
+        }
+
         $checklist = UserChecklist::where('user_id', Auth::id())
             ->where('service_id', $service->id)
             ->first();

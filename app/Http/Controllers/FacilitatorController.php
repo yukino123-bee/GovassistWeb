@@ -377,13 +377,18 @@ class FacilitatorController extends Controller
     }
 
     // --- Submitted Applications ---
-    public function applications()
+    public function applications(Request $request)
     {
-        $applications = UserChecklist::with(['user', 'service'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = UserChecklist::with(['user', 'service']);
 
-        return view('facilitator.applications.index', compact('applications'));
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        $applications = $query->orderBy('created_at', 'desc')->get();
+        $services = GovernmentService::all();
+
+        return view('facilitator.applications.index', compact('applications', 'services'));
     }
 
     public function showApplication(UserChecklist $checklist)

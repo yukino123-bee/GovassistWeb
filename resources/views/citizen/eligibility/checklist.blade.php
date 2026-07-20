@@ -4,6 +4,8 @@
     $serviceTrans = $service->translations->where('language_code', app()->getLocale())->first();
     $serviceName = $serviceTrans ? $serviceTrans->service_name : $service->service_name;
     $serviceDesc = $serviceTrans ? $serviceTrans->description : $service->description;
+    $user = Auth::user();
+    $profileCompleted = $user && $user->dob && $user->address && $user->civil_status && $user->contact_number && $user->valid_id_path;
 @endphp
 
 @section('title', __('messages.checklist_title'))
@@ -29,6 +31,17 @@
             {{ __('messages.checklist_desc') }}
         </p>
     </div>
+
+    <!-- Profile Incomplete Alert -->
+    @if(!$profileCompleted)
+        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs shadow-sm space-y-2">
+            <p class="font-extrabold uppercase tracking-widest text-[9px] text-amber-800">Incomplete Profile Details</p>
+            <p class="leading-relaxed font-medium">You must complete your profile details (Date of Birth, Complete Address, Civil Status, Contact Number, and upload a Valid Government ID) before you can submit this application.</p>
+            <a href="{{ route('citizen.profile.edit') }}" class="inline-block mt-1 bg-amber-600 hover:bg-amber-700 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 transition-colors">
+                Complete Profile Now
+            </a>
+        </div>
+    @endif
 
     <!-- Alert status -->
     @if(session('success'))
@@ -145,7 +158,14 @@
             <form id="apply-form" action="{{ route('citizen.eligibility.apply', $service->id) }}" method="POST">
                 @csrf
                 
-                @if($allMandatoryUploaded)
+                @if(!$profileCompleted)
+                    <button type="button" class="w-full py-3.5 bg-slate-200 text-slate-400 font-bold uppercase tracking-wider text-xs cursor-not-allowed rounded-none" disabled>
+                        {{ __('messages.apply_now') }}
+                    </button>
+                    <p class="text-[10px] text-center text-rose-600 font-bold uppercase tracking-wider mt-3">
+                        Please complete your profile details and upload a valid government ID to enable submission.
+                    </p>
+                @elseif($allMandatoryUploaded)
                     <button type="button" onclick="confirmApplySubmit()" class="w-full py-3.5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-xs rounded-none">
                         {{ __('messages.apply_now') }}
                     </button>
