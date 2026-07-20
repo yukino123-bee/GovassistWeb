@@ -406,6 +406,7 @@ class CitizenController extends Controller
                 'service_id' => $serviceId ?: null,
                 'inquiry_text' => $message,
                 'status' => 'pending',
+                'is_bot' => true,
             ]);
 
             $facilitator = User::where('role', 'facilitator')->first();

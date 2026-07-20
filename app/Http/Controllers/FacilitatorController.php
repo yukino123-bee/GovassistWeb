@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ApplicationApprovedEmail;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
@@ -18,6 +19,8 @@ use App\Models\UserInquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class FacilitatorController extends Controller
 {
@@ -26,9 +29,21 @@ class FacilitatorController extends Controller
         $totalUsers = User::where('role', 'citizen')->count();
         $totalServices = GovernmentService::count();
         $totalAssessments = EligibilityAssessment::count();
+        $totalInquiries = UserInquiry::count();
+        $pendingInquiries = UserInquiry::where('status', 'pending')->count();
 
-        // Count pending inquiries as open
-        $openInquiries = UserInquiry::where('status', 'pending')->count();
+        $totalApplications = UserChecklist::count();
+        $pendingApplications = UserChecklist::where('status', 'pending')->count();
+        $approvedApplications = UserChecklist::where('status', 'approved')->count();
+        $rejectedApplications = UserChecklist::where('status', 'rejected')->count();
+
+        $pendingReassessments = ReassessmentRequest::where('status', 'pending')->count();
+
+        // Get application counts by service
+        $servicesBreakdown = GovernmentService::withCount('checklists')
+            ->orderBy('checklists_count', 'desc')
+            ->limit(5)
+            ->get();
 
         // Get recent applications (checklists)
         $recentApplications = UserChecklist::with(['user', 'service'])
@@ -36,7 +51,20 @@ class FacilitatorController extends Controller
             ->limit(5)
             ->get();
 
-        return view('facilitator.dashboard', compact('totalUsers', 'totalServices', 'totalAssessments', 'openInquiries', 'recentApplications'));
+        return view('facilitator.dashboard', compact(
+            'totalUsers',
+            'totalServices',
+            'totalAssessments',
+            'totalInquiries',
+            'pendingInquiries',
+            'totalApplications',
+            'pendingApplications',
+            'approvedApplications',
+            'rejectedApplications',
+            'pendingReassessments',
+            'servicesBreakdown',
+            'recentApplications'
+        ));
     }
 
     // --- Services CRUD ---
@@ -379,6 +407,15 @@ class FacilitatorController extends Controller
             'remarks' => $request->remarks,
         ]);
 
+        if ($request->status === 'approved') {
+            try {
+                Mail::to($checklist->user->email)->send(new ApplicationApprovedEmail($checklist));
+            } catch (\Exception $e) {
+                // Log or handle mail sending failures gracefully, don't block request in development
+                Log::error('Failed to send approval email: '.$e->getMessage());
+            }
+        }
+
         return redirect()->route('facilitator.applications')->with('success', 'Application status updated.');
     }
 
@@ -560,45 +597,12 @@ class FacilitatorController extends Controller
         return redirect()->route('facilitator.users')->with('success', 'User deleted successfully.');
     }
 
-    // --- Assessments CRUD extensions ---
-    public function createAssessment()
+    // --- Assessments Detail View ---
+    public function showAssessment(EligibilityAssessment $assessment)
     {
-        $users = User::where('role', 'citizen')->get();
-        $services = GovernmentService::all();
+        $assessment->load(['user', 'service', 'answers']);
 
-        return view('facilitator.assessments.create', compact('users', 'services'));
-    }
-
-    public function storeAssessment(Request $request)
-    {
-        $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'service_id' => ['required', 'exists:government_services,id'],
-            'is_eligible' => ['required', 'boolean'],
-        ]);
-        EligibilityAssessment::create($request->all());
-
-        return redirect()->route('facilitator.assessments')->with('success', 'Assessment created successfully.');
-    }
-
-    public function editAssessment(EligibilityAssessment $assessment)
-    {
-        $users = User::where('role', 'citizen')->get();
-        $services = GovernmentService::all();
-
-        return view('facilitator.assessments.edit', compact('assessment', 'users', 'services'));
-    }
-
-    public function updateAssessment(Request $request, EligibilityAssessment $assessment)
-    {
-        $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-            'service_id' => ['required', 'exists:government_services,id'],
-            'is_eligible' => ['required', 'boolean'],
-        ]);
-        $assessment->update($request->all());
-
-        return redirect()->route('facilitator.assessments')->with('success', 'Assessment updated successfully.');
+        return view('facilitator.assessments.show', compact('assessment'));
     }
 
     public function destroyAssessment(EligibilityAssessment $assessment)

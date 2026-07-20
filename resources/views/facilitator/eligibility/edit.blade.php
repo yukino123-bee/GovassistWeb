@@ -63,20 +63,22 @@
                 </select>
             </div>
 
-            <div class="space-y-1.5">
-                <label for="operator" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Operator</label>
-                <select name="operator" id="operator" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
-                    <option value="==" {{ $question->operator == '==' ? 'selected' : '' }}>equals (==)</option>
-                    <option value=">" {{ $question->operator == '>' ? 'selected' : '' }}>greater than (&gt;)</option>
-                    <option value="<" {{ $question->operator == '<' ? 'selected' : '' }}>less than (&lt;)</option>
-                    <option value=">=" {{ $question->operator == '>=' ? 'selected' : '' }}>greater than or equal (&gt;=)</option>
-                    <option value="<=" {{ $question->operator == '<=' ? 'selected' : '' }}>less than or equal (&lt;=)</option>
-                </select>
-            </div>
+            <input type="hidden" name="operator" id="operator_hidden" value="{{ $question->operator }}">
 
             <div class="space-y-1.5 md:col-span-2">
-                <label for="expected_value" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expected Value to Pass</label>
-                <input type="text" name="expected_value" id="expected_value" value="{{ $question->expected_value }}" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>
+                <label class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expected Value to Pass</label>
+                
+                <!-- Dropdown choice for Boolean type -->
+                <select id="expected_value_boolean" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
+                    <option value="true" {{ $question->expected_value == 'true' ? 'selected' : '' }}>Yes</option>
+                    <option value="false" {{ $question->expected_value == 'false' ? 'selected' : '' }}>No</option>
+                </select>
+
+                <!-- Input for numeric/text types -->
+                <input type="text" id="expected_value_text" value="{{ $question->expected_value }}" placeholder="e.g. 15000" class="hidden w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
+                
+                <!-- Real hidden input submitted -->
+                <input type="hidden" name="expected_value" id="expected_value" value="{{ $question->expected_value }}">
             </div>
         </div>
 
@@ -91,26 +93,63 @@
 
 <script>
     function toggleInputs(type) {
-        const opSelect = document.getElementById('operator');
-        const valInput = document.getElementById('expected_value');
+        const opHidden = document.getElementById('operator_hidden');
+        const valReal = document.getElementById('expected_value');
+        const valBool = document.getElementById('expected_value_boolean');
+        const valText = document.getElementById('expected_value_text');
+        
         if (type === 'boolean') {
-            opSelect.value = '==';
-            valInput.value = 'true';
-            valInput.placeholder = 'true or false';
-            opSelect.disabled = false;
-            valInput.readOnly = false;
+            opHidden.value = '==';
+            valBool.classList.remove('hidden');
+            valText.classList.add('hidden');
+            valReal.value = valBool.value;
         } else if (type === 'number') {
-            opSelect.value = '<';
-            valInput.value = '';
-            valInput.placeholder = 'e.g. 15000';
-            opSelect.disabled = false;
-            valInput.readOnly = false;
+            opHidden.value = opHidden.value === '==' ? '<' : opHidden.value; // Keep existing non-equals operator, otherwise default to <
+            valBool.classList.add('hidden');
+            valText.classList.remove('hidden');
+            valText.placeholder = 'e.g. 15000';
+            valText.readOnly = false;
+            valReal.value = valText.value;
         } else if (type === 'text') {
-            opSelect.value = '==';
-            valInput.value = 'N/A';
-            valInput.placeholder = 'Any answer accepted';
-            valInput.readOnly = true;
+            opHidden.value = '==';
+            valBool.classList.add('hidden');
+            valText.classList.remove('hidden');
+            valText.value = 'N/A';
+            valText.readOnly = true;
+            valReal.value = 'N/A';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const valBool = document.getElementById('expected_value_boolean');
+        const valText = document.getElementById('expected_value_text');
+        const valReal = document.getElementById('expected_value');
+        const typeSelect = document.getElementById('type');
+        
+        valBool.addEventListener('change', () => {
+            if (typeSelect.value === 'boolean') {
+                valReal.value = valBool.value;
+            }
+        });
+        
+        valText.addEventListener('input', () => {
+            if (typeSelect.value !== 'boolean') {
+                valReal.value = valText.value;
+            }
+        });
+
+        // Initialize state based on existing question
+        const initialType = "{{ $question->type }}";
+        const initialVal = "{{ $question->expected_value }}";
+        if (initialType === 'boolean') {
+            valBool.value = initialVal;
+            valBool.classList.remove('hidden');
+            valText.classList.add('hidden');
+        } else {
+            valText.value = initialVal;
+            valBool.classList.add('hidden');
+            valText.classList.remove('hidden');
+        }
+    });
 </script>
 @endsection

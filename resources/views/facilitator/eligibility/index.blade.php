@@ -35,7 +35,7 @@
                             <tr class="border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider bg-white">
                                 <th class="px-6 py-3 w-1/2">Assessment Question</th>
                                 <th class="px-6 py-3">Type</th>
-                                <th class="px-6 py-3">Criterion</th>
+                                <th class="px-6 py-3">Expected Answer</th>
                                 <th class="px-6 py-3 text-right">Action</th>
                             </tr>
                         </thead>
@@ -57,9 +57,19 @@
                                     </td>
                                     <td class="px-6 py-3.5 capitalize">{{ $q->type }}</td>
                                     <td class="px-6 py-3.5">
-                                        <code class="px-2 py-1 bg-slate-100 rounded-none text-slate-700 font-mono border border-slate-200">
-                                            {{ $q->operator }} {{ $q->expected_value }}
-                                        </code>
+                                        @if($q->type === 'boolean')
+                                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-extrabold border border-emerald-200 uppercase tracking-wider rounded-none">
+                                                {{ $q->expected_value === 'true' ? 'Yes' : 'No' }}
+                                            </span>
+                                        @elseif($q->type === 'number')
+                                            <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold border border-blue-200 font-mono rounded-none">
+                                                {{ $q->expected_value }}
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-extrabold border border-slate-200 uppercase tracking-wider rounded-none">
+                                                {{ $q->expected_value }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-3.5 text-right">
                                         <div class="flex justify-end space-x-2">
@@ -126,20 +136,22 @@
                 </select>
             </div>
 
-            <div class="space-y-1.5">
-                <label for="operator" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Operator</label>
-                <select name="operator" id="operator" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
-                    <option value="==">equals (==)</option>
-                    <option value=">">greater than (&gt;)</option>
-                    <option value="<">less than (&lt;)</option>
-                    <option value=">=">greater than or equal (&gt;=)</option>
-                    <option value="<=">less than or equal (&lt;=)</option>
-                </select>
-            </div>
+            <input type="hidden" name="operator" id="operator_hidden" value="==">
 
             <div class="space-y-1.5">
-                <label for="expected_value" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expected Value to Pass</label>
-                <input type="text" name="expected_value" id="expected_value" placeholder="e.g. true or 15000" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>
+                <label class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Expected Value to Pass</label>
+                
+                <!-- Dropdown choice for Boolean type -->
+                <select id="expected_value_boolean" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+
+                <!-- Input for numeric/text types -->
+                <input type="text" id="expected_value_text" placeholder="e.g. 15000" class="hidden w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
+                
+                <!-- Real hidden input submitted -->
+                <input type="hidden" name="expected_value" id="expected_value" value="true">
             </div>
 
             <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white rounded-none font-extrabold text-[10px] uppercase tracking-widest transition-all">
@@ -152,26 +164,53 @@
 
 <script>
     function toggleInputs(type) {
-        const opSelect = document.getElementById('operator');
-        const valInput = document.getElementById('expected_value');
+        const opHidden = document.getElementById('operator_hidden');
+        const valReal = document.getElementById('expected_value');
+        const valBool = document.getElementById('expected_value_boolean');
+        const valText = document.getElementById('expected_value_text');
+        
         if (type === 'boolean') {
-            opSelect.value = '==';
-            valInput.value = 'true';
-            valInput.placeholder = 'true or false';
-            opSelect.disabled = false;
-            valInput.readOnly = false;
+            opHidden.value = '==';
+            valBool.classList.remove('hidden');
+            valText.classList.add('hidden');
+            valReal.value = valBool.value;
         } else if (type === 'number') {
-            opSelect.value = '<';
-            valInput.value = '';
-            valInput.placeholder = 'e.g. 15000';
-            opSelect.disabled = false;
-            valInput.readOnly = false;
+            opHidden.value = '<'; // Math behind the scene
+            valBool.classList.add('hidden');
+            valText.classList.remove('hidden');
+            valText.placeholder = 'e.g. 15000';
+            valText.readOnly = false;
+            valReal.value = valText.value;
         } else if (type === 'text') {
-            opSelect.value = '==';
-            valInput.value = 'N/A';
-            valInput.placeholder = 'Any answer accepted';
-            valInput.readOnly = true;
+            opHidden.value = '==';
+            valBool.classList.add('hidden');
+            valText.classList.remove('hidden');
+            valText.value = 'N/A';
+            valText.readOnly = true;
+            valReal.value = 'N/A';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const valBool = document.getElementById('expected_value_boolean');
+        const valText = document.getElementById('expected_value_text');
+        const valReal = document.getElementById('expected_value');
+        const typeSelect = document.getElementById('type');
+        
+        valBool.addEventListener('change', () => {
+            if (typeSelect.value === 'boolean') {
+                valReal.value = valBool.value;
+            }
+        });
+        
+        valText.addEventListener('input', () => {
+            if (typeSelect.value !== 'boolean') {
+                valReal.value = valText.value;
+            }
+        });
+
+        // Initialize state
+        toggleInputs(typeSelect.value);
+    });
 </script>
 @endsection

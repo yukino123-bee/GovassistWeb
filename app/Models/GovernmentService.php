@@ -33,6 +33,11 @@ class GovernmentService extends Model
         return $this->hasMany(EligibilityQuestion::class, 'service_id');
     }
 
+    public function checklists(): HasMany
+    {
+        return $this->hasMany(UserChecklist::class, 'service_id');
+    }
+
     public function getTranslation(?string $lang = null)
     {
         $lang = $lang ?: app()->getLocale();

@@ -43,7 +43,14 @@
                                 @endif
                             </td>
                             <td class="px-6 py-3.5 font-medium text-slate-700 max-w-xs truncate">
-                                {{ $inq->inquiry_text }}
+                                <div class="mb-1">
+                                    @if($inq->is_bot)
+                                        <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-[8px] font-extrabold border border-purple-200 uppercase tracking-wider rounded-none">GovBot Chat</span>
+                                    @else
+                                        <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[8px] font-extrabold border border-blue-200 uppercase tracking-wider rounded-none">Manual Helpdesk</span>
+                                    @endif
+                                </div>
+                                <span class="text-xs">{{ $inq->inquiry_text }}</span>
                             </td>
                             <td class="px-6 py-3.5">
                                 {{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}
@@ -94,30 +101,40 @@
                 <!-- Dynamically populated -->
             </div>
 
-            <!-- Reply form -->
-            <form id="reply-form" method="POST" class="space-y-3">
-                @csrf
-                <div class="space-y-1.5 relative">
-                    <div class="flex items-center justify-between">
-                        <label for="reply_message" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Your Reply</label>
-                        <button type="button" id="btn-ai-draft" onclick="generateAIDraft()" class="flex items-center text-[9px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-800 transition-colors bg-red-50 hover:bg-red-100 px-2 py-1 rounded-none border border-red-200">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            AI Draft
-                        </button>
+            <!-- Reply form container -->
+            <div id="reply-form-container">
+                <form id="reply-form" method="POST" class="space-y-3">
+                    @csrf
+                    <div class="space-y-1.5 relative">
+                        <div class="flex items-center justify-between">
+                            <label for="reply_message" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Your Reply</label>
+                            <button type="button" id="btn-ai-draft" onclick="generateAIDraft()" class="flex items-center text-[9px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-800 transition-colors bg-red-50 hover:bg-red-100 px-2 py-1 rounded-none border border-red-200">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                AI Draft
+                            </button>
+                        </div>
+                        <textarea name="message" id="reply_message" rows="4" placeholder="Type your response to the citizen..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required></textarea>
+                        <div id="ai-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm hidden flex items-center justify-center">
+                            <span class="text-[10px] font-extrabold text-red-700 uppercase tracking-widest animate-pulse">Generating Draft...</span>
+                        </div>
                     </div>
-                    <textarea name="message" id="reply_message" rows="4" placeholder="Type your response to the citizen..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required></textarea>
-                    <div id="ai-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm hidden flex items-center justify-center">
-                        <span class="text-[10px] font-extrabold text-red-700 uppercase tracking-widest animate-pulse">Generating Draft...</span>
-                    </div>
-                </div>
 
-                <div class="flex items-center justify-between">
-                    <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold rounded-none uppercase tracking-widest shadow-sm transition-all">
-                        Send Reply
-                    </button>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" id="inq-status-badge">Status</span>
-                </div>
-            </form>
+                    <div class="flex items-center justify-between">
+                        <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold rounded-none uppercase tracking-widest shadow-sm transition-all">
+                            Send Reply
+                        </button>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" id="inq-status-badge">Status</span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bot Inquiry Notice -->
+            <div id="bot-inquiry-notice" class="hidden p-4 bg-amber-50/50 border border-amber-200 text-amber-800 text-center text-xs font-semibold leading-relaxed">
+                <svg class="w-6 h-6 text-amber-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                This inquiry was handled by the GovBot chatbot. Manual replies are disabled for chatbot inquiries to prevent conflicts.
+            </div>
         </div>
     </div>
 
@@ -151,12 +168,12 @@
 
         if (inq.responses && inq.responses.length > 0) {
             inq.responses.forEach(resp => {
-                const isCitizen = resp.responder.role === 'citizen';
+                const isCitizen = resp.responder && resp.responder.role === 'citizen';
                 const div = document.createElement('div');
                 div.className = 'p-2.5 border-l-2 ' + (isCitizen ? 'border-red-700 bg-red-50/20' : 'border-slate-400 bg-slate-100/50');
                 div.innerHTML = `
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">${resp.responder.name}</span>
+                        <span class="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">${resp.responder ? resp.responder.name : 'System/Bot'}</span>
                         <span class="text-[8px] text-slate-400">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     </div>
                     <p class="text-xs text-slate-700">${resp.response_text || resp.requireent_text}</p>
@@ -167,8 +184,18 @@
             responsesContainer.innerHTML = '<p class="text-[10px] text-slate-400 italic text-center py-2">No replies yet.</p>';
         }
 
-        const replyForm = document.getElementById('reply-form');
-        replyForm.action = `/facilitator/inquiries/${inq.id}/reply`;
+        const replyFormContainer = document.getElementById('reply-form-container');
+        const botNotice = document.getElementById('bot-inquiry-notice');
+        
+        if (inq.is_bot) {
+            replyFormContainer.classList.add('hidden');
+            botNotice.classList.remove('hidden');
+        } else {
+            replyFormContainer.classList.remove('hidden');
+            botNotice.classList.add('hidden');
+            const replyForm = document.getElementById('reply-form');
+            replyForm.action = `/facilitator/inquiries/${inq.id}/reply`;
+        }
 
         const statusBadge = document.getElementById('inq-status-badge');
         statusBadge.innerText = 'Status: ' + inq.status.toUpperCase();

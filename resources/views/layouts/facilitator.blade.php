@@ -193,13 +193,46 @@
                 </div>
 
                 <!-- Notification Bell -->
-                <div class="px-4 flex items-center">
-                    <button class="relative p-1.5 text-slate-400 hover:text-red-700 transition-colors focus:outline-none">
+                <div class="px-4 flex items-center relative" id="notification-dropdown-container">
+                    <button id="notification-bell-btn" type="button" class="relative p-1.5 text-slate-400 hover:text-red-700 transition-colors focus:outline-none">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full border border-white"></span>
+                        @if(isset($adminNotifications) && $adminNotifications->count() > 0)
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full border border-white"></span>
+                        @endif
                     </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="notification-dropdown-menu" class="hidden absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 shadow-xl z-50 rounded-none overflow-hidden">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider font-sans">Notifications</span>
+                            @if(isset($adminNotifications) && $adminNotifications->count() > 0)
+                                <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[8px] font-bold tracking-wider uppercase">{{ $adminNotifications->count() }} new</span>
+                            @endif
+                        </div>
+                        <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                            @forelse($adminNotifications ?? [] as $notif)
+                                <a href="{{ $notif['link'] }}" class="block px-4 py-3 hover:bg-slate-50 transition-colors">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <span class="text-[10px] font-bold text-slate-800 uppercase tracking-wide">
+                                            @if($notif['type'] === 'application')
+                                                📁 {{ $notif['title'] }}
+                                            @elseif($notif['type'] === 'inquiry')
+                                                💬 {{ $notif['title'] }}
+                                            @else
+                                                🔄 {{ $notif['title'] }}
+                                            @endif
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-medium">{{ $notif['time']->diffForHumans() }}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 line-clamp-2 leading-snug">{{ $notif['message'] }}</p>
+                                </a>
+                            @empty
+                                <div class="px-4 py-6 text-center text-xs text-slate-400 italic">No new notifications</div>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Date -->
@@ -345,6 +378,21 @@
                 submitBtn.addEventListener('click', () => {
                     if (confirmCallback) confirmCallback();
                     hideConfirmModal();
+                });
+            }
+
+            // Notification dropdown toggle
+            const notifBtn = document.getElementById('notification-bell-btn');
+            const notifMenu = document.getElementById('notification-dropdown-menu');
+            if (notifBtn && notifMenu) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifMenu.classList.toggle('hidden');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
+                        notifMenu.classList.add('hidden');
+                    }
                 });
             }
         });

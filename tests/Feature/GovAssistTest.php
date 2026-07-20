@@ -1,5 +1,7 @@
 <?php
 
+use App\Mail\ApplicationApprovedEmail;
+use App\Models\AssessmentAnswer;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
@@ -8,8 +10,11 @@ use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
 use App\Models\ServiceTranslation;
 use App\Models\User;
+use App\Models\UserChecklist;
+use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -241,4 +246,136 @@ test('document templates verification matches keywords for PDF uploads', functio
         'requirement_id' => $requirement->id,
         'is_submitted' => true,
     ]);
+});
+
+test('facilitator layout loads notifications correctly', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    // Create pending checklist
+    UserChecklist::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('facilitator.dashboard'));
+    $response->assertStatus(200);
+    $response->assertViewHas('adminNotifications');
+
+    $notifs = $response->viewData('adminNotifications');
+    expect($notifs->count())->toBeGreaterThanOrEqual(1);
+    expect($notifs->first()['type'])->toBe('application');
+});
+
+test('manual inquiries can be replied to, while chatbot inquiries hide reply form', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    // Bot inquiry
+    $botInq = UserInquiry::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'inquiry_text' => 'Hello Bot',
+        'status' => 'pending',
+        'is_bot' => true,
+    ]);
+
+    // Manual inquiry
+    $manualInq = UserInquiry::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'inquiry_text' => 'Hello Admin',
+        'status' => 'pending',
+        'is_bot' => false,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('facilitator.inquiries'));
+    $response->assertStatus(200);
+
+    // Test manual reply endpoint works
+    $replyResponse = $this->actingAs($admin)->post(route('facilitator.inquiries.reply', $manualInq), [
+        'message' => 'Hello back',
+    ]);
+    $replyResponse->assertRedirect();
+    $this->assertDatabaseHas('inquiry_requirenses', [
+        'inquiry_id' => $manualInq->id,
+        'requireent_text' => 'Hello back',
+    ]);
+});
+
+test('approving application triggers email notification', function () {
+    Mail::fake();
+
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $checklist = UserChecklist::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'pending',
+    ]);
+
+    $response = $this->actingAs($admin)->post(route('facilitator.applications.update_status', $checklist), [
+        'status' => 'approved',
+        'remarks' => 'Looks great!',
+    ]);
+
+    $response->assertRedirect(route('facilitator.applications'));
+
+    Mail::assertSent(ApplicationApprovedEmail::class, function ($mail) use ($citizen) {
+        return $mail->hasTo($citizen->email);
+    });
+});
+
+test('assessment details route displays user answers', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $assess = EligibilityAssessment::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'eligible',
+    ]);
+
+    AssessmentAnswer::create([
+        'assessment_id' => $assess->id,
+        'question' => 'Are you indigent?',
+        'answer' => 'Yes',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('facilitator.assessments.show', $assess));
+    $response->assertStatus(200);
+    $response->assertSee('Calculation Overview');
+    $response->assertSee('Are you indigent?');
+    $response->assertSee('Yes');
 });

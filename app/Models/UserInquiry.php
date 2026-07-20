@@ -18,6 +18,7 @@ class UserInquiry extends Model
         'guest_email',
         'inquiry_text',
         'status',
+        'is_bot',
     ];
 
     public function user(): BelongsTo

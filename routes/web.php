@@ -103,10 +103,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
 
     // Assessments history & CRUD
     Route::get('/assessments', [FacilitatorController::class, 'assessments'])->name('facilitator.assessments');
-    Route::get('/assessments/create', [FacilitatorController::class, 'createAssessment'])->name('facilitator.assessments.create');
-    Route::post('/assessments', [FacilitatorController::class, 'storeAssessment'])->name('facilitator.assessments.store');
-    Route::get('/assessments/{assessment}/edit', [FacilitatorController::class, 'editAssessment'])->name('facilitator.assessments.edit');
-    Route::put('/assessments/{assessment}', [FacilitatorController::class, 'updateAssessment'])->name('facilitator.assessments.update');
+    Route::get('/assessments/{assessment}', [FacilitatorController::class, 'showAssessment'])->name('facilitator.assessments.show');
     Route::delete('/assessments/{assessment}', [FacilitatorController::class, 'destroyAssessment'])->name('facilitator.assessments.destroy');
 
     // Reassessments
