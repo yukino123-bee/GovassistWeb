@@ -309,3 +309,52 @@ test('citizen can submit inquiry and facilitator replies', function () {
     expect($inquiry->status)->toBe('resolved');
     expect($inquiry->responses->last()->response_text)->toBe('We can help you with this program.');
 });
+
+test('citizen can edit and resubmit application if not approved', function () {
+    Storage::fake('public');
+
+    $citizen = User::factory()->create([
+        'role' => 'citizen',
+        'dob' => '2000-01-01',
+        'address' => 'Test Address',
+        'civil_status' => 'Single',
+        'contact_number' => '09123456789',
+        'valid_id_path' => 'valid_ids/test.png',
+    ]);
+    $category = ServiceCategory::create(['category_name' => 'Education']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Education Assistance',
+        'description' => 'Desc',
+        'procedure' => 'Proc',
+        'icon' => 'academic-cap',
+    ]);
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => [
+            'en' => 'Student ID',
+        ],
+        'is_required' => true,
+    ]);
+
+    // Setup an initial rejected application
+    $checklist = UserChecklist::create([
+        'user_id' => $citizen->id,
+        'service_id' => $service->id,
+        'status' => 'rejected',
+    ]);
+    UserChecklistItem::create([
+        'checklist_id' => $checklist->id,
+        'requirement_id' => $requirement->id,
+        'file_path' => 'docs/id.pdf',
+        'is_submitted' => true,
+        'status' => 'pending',
+    ]);
+
+    // Try to unlock application
+    $response = $this->actingAs($citizen)->post(route('citizen.eligibility.checklist.edit', $service->id));
+    $response->assertRedirect();
+
+    $checklist->refresh();
+    expect($checklist->status)->toBe('draft');
+});

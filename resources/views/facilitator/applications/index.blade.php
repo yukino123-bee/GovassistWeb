@@ -23,11 +23,6 @@
                 @endforeach
             </select>
         </form>
-
-        <a href="{{ route('facilitator.applications.create') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none flex items-center w-fit">
-            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add Application
-        </a>
     </div>
 
     <div class="overflow-x-auto">
@@ -63,7 +58,6 @@
                             <a href="{{ route('facilitator.applications.show', $app->id) }}" class="px-3.5 py-1.5 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase rounded-none shadow-sm tracking-wider transition-all inline-block">
                                 Process →
                             </a>
-                            <a href="{{ route('facilitator.applications.edit', $app->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 hover:text-red-700 transition-colors inline-block ml-2">Edit</a>
                             <form action="{{ route('facilitator.applications.destroy', $app->id) }}" method="POST" class="inline ml-2" id="delete-app-{{ $app->id }}">
                                 @csrf
                                 @method('DELETE')

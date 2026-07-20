@@ -145,14 +145,47 @@
     <!-- Application Submit Action -->
     <div class="bg-slate-100 border border-slate-200 p-6 shadow-inner">
         @if($alreadyApplied)
-            <div class="text-center py-2">
-                <span class="inline-flex items-center px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-widest mb-3">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Application Status: {{ strtoupper($checklist->status ?? 'submitted') }}
-                </span>
-                <p class="text-xs text-slate-500">Your application has been received and is currently being processed by our facilitators.</p>
+            <div class="text-center py-2 space-y-3">
+                @if($checklist->status === 'approved')
+                    <span class="inline-flex items-center px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-widest">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Application Status: APPROVED
+                    </span>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                        Your application has been approved! You may now proceed or go to the San Miguel Sub Office for Signature and Submission of the paper and for other instructions.
+                    </p>
+                @elseif($checklist->status === 'rejected')
+                    <span class="inline-flex items-center px-4 py-2 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-widest">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Application Status: REJECTED
+                    </span>
+                    @if($checklist->remarks)
+                        <div class="p-3 bg-rose-50/50 border border-rose-100 text-rose-900 text-xs rounded-none text-left max-w-lg mx-auto">
+                            <strong class="font-bold">Feedback:</strong> {{ $checklist->remarks }}
+                        </div>
+                    @endif
+                    <p class="text-xs text-slate-500 font-medium">Please edit your documents/details and resubmit your application.</p>
+                    <form action="{{ route('citizen.eligibility.checklist.edit', $service->id) }}" method="POST" class="mt-2">
+                        @csrf
+                        <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors shadow-sm rounded-none">
+                            Edit Application & Resubmit
+                        </button>
+                    </form>
+                @else
+                    <span class="inline-flex items-center px-4 py-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-widest">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Application Status: PENDING REVIEW
+                    </span>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed">
+                        Your application is currently pending review by our facilitators.
+                    </p>
+                @endif
             </div>
         @else
             <form id="apply-form" action="{{ route('citizen.eligibility.apply', $service->id) }}" method="POST">

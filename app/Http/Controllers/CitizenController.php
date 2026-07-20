@@ -230,7 +230,7 @@ class CitizenController extends Controller
             }
         }
 
-        $alreadyApplied = $checklist && $checklist->status !== 'pending';
+        $alreadyApplied = $checklist && in_array($checklist->status, ['pending', 'approved', 'rejected']);
 
         return view('citizen.eligibility.checklist', compact('service', 'requirements', 'uploadedDocs', 'allMandatoryUploaded', 'alreadyApplied', 'checklist'));
     }
@@ -518,6 +518,21 @@ class CitizenController extends Controller
         }
 
         return back()->with('success', 'Avatar updated successfully.');
+    }
+
+    public function unlockChecklist(GovernmentService $service)
+    {
+        $checklist = UserChecklist::where('user_id', Auth::id())
+            ->where('service_id', $service->id)
+            ->first();
+
+        if ($checklist && $checklist->status === 'rejected') {
+            $checklist->update(['status' => 'draft']);
+
+            return back()->with('success', 'Application unlocked. You can now edit your documents and resubmit.');
+        }
+
+        return back()->with('error', 'Cannot edit this application.');
     }
 
     protected function getBotResponse($msg, $lang)
