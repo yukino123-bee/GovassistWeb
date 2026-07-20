@@ -1,6 +1,7 @@
 <?php
 
 use App\Mail\ApplicationApprovedEmail;
+use App\Mail\InquiryReplyEmail;
 use App\Models\AssessmentAnswer;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
@@ -276,6 +277,8 @@ test('facilitator layout loads notifications correctly', function () {
 });
 
 test('manual inquiries can be replied to, while chatbot inquiries hide reply form', function () {
+    Mail::fake();
+
     $admin = User::factory()->create(['role' => 'facilitator']);
     $citizen = User::factory()->create(['role' => 'citizen']);
 
@@ -317,6 +320,10 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
         'inquiry_id' => $manualInq->id,
         'requireent_text' => 'Hello back',
     ]);
+
+    Mail::assertSent(InquiryReplyEmail::class, function ($mail) use ($citizen) {
+        return $mail->hasTo($citizen->email);
+    });
 });
 
 test('approving application triggers email notification', function () {

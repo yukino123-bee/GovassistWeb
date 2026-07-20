@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ApplicationApprovedEmail;
+use App\Mail\InquiryReplyEmail;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
@@ -488,6 +489,16 @@ class FacilitatorController extends Controller
         ]);
 
         $inquiry->update(['status' => 'resolved']);
+
+        // Send email reply to citizen
+        $email = $inquiry->user ? $inquiry->user->email : $inquiry->guest_email;
+        if ($email) {
+            try {
+                Mail::to($email)->send(new InquiryReplyEmail($inquiry, $request->message));
+            } catch (\Exception $e) {
+                Log::error('Failed to send manual inquiry reply email: '.$e->getMessage());
+            }
+        }
 
         return back()->with('success', 'Reply sent successfully.');
     }
