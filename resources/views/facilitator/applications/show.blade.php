@@ -17,32 +17,85 @@
         </a>
     </div>
 
-    <!-- Applied Program Header Card -->
-    <div class="bg-white border border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-        <div>
-            <span class="text-[9px] font-extrabold text-red-700 uppercase tracking-widest block mb-1">Applied Assistance Program</span>
-            <h1 class="text-lg font-bold text-slate-800 tracking-tight">{{ $checklist->service->name_en ?? 'N/A' }}</h1>
-            <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ $checklist->service->name_ceb ?? '' }}</p>
+    <!-- Consolidated Application Card -->
+    <div class="bg-white border border-slate-200 shadow-sm rounded-none overflow-hidden max-w-5xl mx-auto">
+        <!-- 1. Header (Program Name) -->
+        <div class="bg-slate-50 border-b border-slate-200 px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="text-[9px] font-extrabold text-red-700 uppercase tracking-widest block mb-1">Applied Assistance Program</span>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">{{ $checklist->service->name_en ?? 'N/A' }}</h1>
+                <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ $checklist->service->name_ceb ?? '' }}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                @if($checklist->application_type)
+                    <div class="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-[10px] font-extrabold uppercase tracking-wider rounded-none">
+                        Type: <span class="text-red-700">{{ $checklist->application_type === 'renewal' ? 'Renewal' : 'New' }}</span>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
-            @if($checklist->application_type)
-                <div class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-extrabold uppercase tracking-wider rounded-none">
-                    Type: <span class="text-red-700">{{ $checklist->application_type === 'renewal' ? 'Renewal' : 'New' }}</span>
-                </div>
-            @endif
-        </div>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Checklist & Verification (2/3 width) -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Documents verification card -->
-            <div class="bg-white rounded-none border border-slate-200 p-6 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
-                    <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
-                        <svg class="w-5 h-5 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="p-8 space-y-8 divide-y divide-slate-200">
+            
+            <!-- 2. Profile Details -->
+            <div class="space-y-4">
+                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                    <svg class="w-4 h-4 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Citizen Profile Details
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-xs text-slate-600 bg-slate-50/50 border border-slate-100 p-6">
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Full Name</span>
+                        <span class="font-bold text-slate-800 text-sm block">{{ $checklist->user->name }}</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Email Address</span>
+                        <span class="font-mono block text-slate-800">{{ $checklist->user->email }}</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Contact Number</span>
+                        <span class="font-medium text-slate-800 block">{{ $checklist->user->contact_number ?? 'Not provided' }}</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Civil Status</span>
+                        <span class="font-medium text-slate-800 block capitalize">{{ $checklist->user->civil_status ?? 'Not provided' }}</span>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Complete Address</span>
+                        <span class="font-medium text-slate-800 block leading-relaxed">{{ $checklist->user->address ?? 'Not provided' }}</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Date of Birth</span>
+                        <span class="font-medium text-slate-800 block">{{ $checklist->user->dob ? \Carbon\Carbon::parse($checklist->user->dob)->format('F d, Y') : 'Not provided' }}</span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Government ID Verification</span>
+                        @if($checklist->user->valid_id_path)
+                            <a href="{{ asset('storage/' . $checklist->user->valid_id_path) }}" target="_blank" class="mt-1 px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-wider border border-red-200 rounded-none hover:bg-red-100 transition-colors inline-block">
+                                View valid ID image
+                            </a>
+                        @else
+                            <span class="text-rose-600 font-semibold block mt-1">No ID card uploaded yet</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Submitted Checklist Documents -->
+            <div class="pt-8 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                        <svg class="w-4 h-4 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Submitted Checklist Documents
                     </h3>
@@ -142,78 +195,22 @@
                     @endif
                 @endforeach
             </div>
-        </div>
 
-        <!-- Citizen Profile & Main Status Decision (1/3 width) -->
-        <div class="space-y-6">
-            <!-- Citizen Profile details -->
-            <div class="bg-white rounded-none border border-slate-200 p-6 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 border-b border-slate-200 pb-3 flex items-center">
-                    <svg class="w-5 h-5 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Citizen Profile Details
-                </h3>
-
-                <div class="space-y-3.5 text-xs text-slate-600">
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Full Name</span>
-                        <span class="font-bold text-slate-800 text-sm block">{{ $checklist->user->name }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Email Address</span>
-                        <span class="font-mono block text-slate-800">{{ $checklist->user->email }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Contact Number</span>
-                        <span class="font-medium text-slate-800 block">{{ $checklist->user->contact_number ?? 'Not provided' }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Civil Status</span>
-                        <span class="font-medium text-slate-800 block capitalize">{{ $checklist->user->civil_status ?? 'Not provided' }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Complete Address</span>
-                        <span class="font-medium text-slate-800 block leading-relaxed">{{ $checklist->user->address ?? 'Not provided' }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Date of Birth</span>
-                        <span class="font-medium text-slate-800 block">{{ $checklist->user->dob ? \Carbon\Carbon::parse($checklist->user->dob)->format('F d, Y') : 'Not provided' }}</span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Government ID Verification</span>
-                        @if($checklist->user->valid_id_path)
-                            <a href="{{ asset('storage/' . $checklist->user->valid_id_path) }}" target="_blank" class="mt-1 px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-wider border border-red-200 rounded-none hover:bg-red-100 transition-colors inline-block">
-                                View valid ID image
-                            </a>
-                        @else
-                            <span class="text-rose-600 font-semibold block mt-1">No ID card uploaded yet</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Application overall decision status -->
-            <div class="bg-white rounded-none border border-slate-200 p-6 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 border-b border-slate-200 pb-3 flex items-center">
-                    <svg class="w-5 h-5 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- 4. Application Status Decision -->
+            <div class="pt-8 space-y-4">
+                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+                    <svg class="w-4 h-4 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Application Status Decision
                 </h3>
 
-                <form action="{{ route('facilitator.applications.update_status', $checklist->id) }}" method="POST" class="space-y-4">
+                <form action="{{ route('facilitator.applications.update_status', $checklist->id) }}" method="POST" class="max-w-2xl bg-slate-50 border border-slate-200 p-6 space-y-4">
                     @csrf
 
                     <div class="space-y-1.5">
                         <label for="status" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Final Approval Decision</label>
-                        <select name="status" id="status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800 font-bold cursor-pointer">
+                        <select name="status" id="status" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800 font-bold cursor-pointer">
                             <option value="pending" {{ $checklist->status === 'pending' ? 'selected' : '' }}>Pending (Under Review)</option>
                             <option value="approved" {{ $checklist->status === 'approved' ? 'selected' : '' }}>Approved (Eligible / Completed)</option>
                             <option value="rejected" {{ $checklist->status === 'rejected' ? 'selected' : '' }}>Rejected / Denied</option>
@@ -222,17 +219,15 @@
 
                     <div class="space-y-1.5">
                         <label for="remarks" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Remarks / Feedback</label>
-                        <textarea name="remarks" id="remarks" rows="3" placeholder="Enter reason for rejection or instructions..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800">{{ old('remarks', $checklist->remarks) }}</textarea>
+                        <textarea name="remarks" id="remarks" rows="3" placeholder="Enter reason for rejection or instructions..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800">{{ old('remarks', $checklist->remarks) }}</textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white rounded-none font-bold text-xs tracking-wider shadow-md shadow-red-950/20 transition-all active:scale-[0.98] border border-red-800">
+                    <button type="submit" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white rounded-none font-bold text-xs tracking-wider shadow-md shadow-red-950/20 transition-all active:scale-[0.98] border border-red-800 uppercase">
                         Submit Final Status Decision
                     </button>
                 </form>
             </div>
         </div>
-
     </div>
-
 </div>
 @endsection
