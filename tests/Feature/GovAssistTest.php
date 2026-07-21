@@ -468,3 +468,19 @@ test('facilitator can download all documents zipped', function () {
     $response->assertStatus(200);
     $response->assertHeader('content-type', 'application/zip');
 });
+
+test('facilitator dashboard displays "none" instead of "0 apps" when there are no applications for a service', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $category = ServiceCategory::create(['category_name' => 'Cat']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Service',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('facilitator.dashboard'));
+    $response->assertStatus(200);
+    $response->assertSee('none');
+    $response->assertDontSee('0 apps');
+});

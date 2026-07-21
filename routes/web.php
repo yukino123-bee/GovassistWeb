@@ -78,6 +78,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/services', [FacilitatorController::class, 'services'])->name('facilitator.services');
     Route::get('/services/create', [FacilitatorController::class, 'createService'])->name('facilitator.services.create');
     Route::post('/services', [FacilitatorController::class, 'storeService'])->name('facilitator.services.store');
+    Route::post('/services/translate', [FacilitatorController::class, 'translateService'])->name('facilitator.services.translate');
     Route::get('/services/{service}/edit', [FacilitatorController::class, 'editService'])->name('facilitator.services.edit');
     Route::put('/services/{service}', [FacilitatorController::class, 'updateService'])->name('facilitator.services.update');
     Route::delete('/services/{service}', [FacilitatorController::class, 'destroyService'])->name('facilitator.services.destroy');
@@ -136,6 +137,14 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/templates', [FacilitatorController::class, 'templates'])->name('facilitator.templates');
     Route::post('/templates', [FacilitatorController::class, 'storeTemplate'])->name('facilitator.templates.store');
     Route::delete('/templates/{template}', [FacilitatorController::class, 'destroyTemplate'])->name('facilitator.templates.destroy');
+
+    // Reports & Data Export Center
+    Route::get('/reports', [FacilitatorController::class, 'reports'])->name('facilitator.reports');
+    Route::get('/reports/export/applications', [FacilitatorController::class, 'exportApplications'])->name('facilitator.reports.export.applications');
+    Route::get('/reports/export/citizens', [FacilitatorController::class, 'exportCitizens'])->name('facilitator.reports.export.citizens');
+    Route::get('/reports/export/assessments', [FacilitatorController::class, 'exportAssessments'])->name('facilitator.reports.export.assessments');
+    Route::get('/reports/export/inquiries', [FacilitatorController::class, 'exportInquiries'])->name('facilitator.reports.export.inquiries');
+    Route::get('/reports/export/all', [FacilitatorController::class, 'exportAllMasterReport'])->name('facilitator.reports.export.all');
 });
 
 Route::get('/run-migrations', function () {

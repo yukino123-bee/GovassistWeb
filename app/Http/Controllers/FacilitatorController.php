@@ -83,21 +83,92 @@ class FacilitatorController extends Controller
         return view('facilitator.services.create', compact('categories'));
     }
 
+    public function translateService(Request $request)
+    {
+        $type = $request->input('type', 'name'); // name, description, procedure
+        $text = $request->input('text', '');
+
+        $ceb = $this->autoTranslateText($text, 'ceb');
+        $fil = $this->autoTranslateText($text, 'fil');
+
+        return response()->json([
+            'success' => true,
+            'ceb' => $ceb,
+            'fil' => $fil,
+        ]);
+    }
+
+    private function autoTranslateText(string $text, string $targetLang): string
+    {
+        if (empty(trim($text))) {
+            return '';
+        }
+
+        $dictionary = [
+            'ceb' => [
+                'Educational Assistance' => 'Tabang sa Edukasyon',
+                'Medical Assistance' => 'Tabang sa Medikal',
+                'Burial Assistance' => 'Tabang sa Paglubong',
+                'Transportation Assistance' => 'Tabang sa Transportasyon',
+                'Employment Assistance' => 'Tabang sa Trabaho',
+            ],
+            'fil' => [
+                'Educational Assistance' => 'Tulong sa Edukasyon',
+                'Medical Assistance' => 'Tulong Medikal',
+                'Burial Assistance' => 'Tulong sa Libing',
+                'Transportation Assistance' => 'Tulong sa Transportasyon',
+                'Employment Assistance' => 'Tulong sa Trabaho',
+            ],
+        ];
+
+        if (isset($dictionary[$targetLang][$text])) {
+            return $dictionary[$targetLang][$text];
+        }
+
+        if ($targetLang === 'ceb') {
+            return str_ireplace(
+                ['Educational Assistance', 'Medical Assistance', 'Burial Assistance', 'Transportation Assistance', 'Employment Assistance', 'Submit required documents', 'Complete the Eligibility Assessment', 'Wait for validation', 'Claim financial assistance'],
+                ['Tabang sa Edukasyon', 'Tabang sa Medikal', 'Tabang sa Paglubong', 'Tabang sa Transportasyon', 'Tabang sa Trabaho', 'Isumite ang gikinahanglan nga mga dokumento', 'Kampletoha ang Eligibility Assessment', 'Paghulat sa pag-validate ug pag-apruba', 'Kuhaa ang pinansyal nga tabang'],
+                $text
+            );
+        }
+
+        if ($targetLang === 'fil') {
+            return str_ireplace(
+                ['Educational Assistance', 'Medical Assistance', 'Burial Assistance', 'Transportation Assistance', 'Employment Assistance', 'Submit required documents', 'Complete the Eligibility Assessment', 'Wait for validation', 'Claim financial assistance'],
+                ['Tulong sa Edukasyon', 'Tulong Medikal', 'Tulong sa Libing', 'Tulong sa Transportasyon', 'Tulong sa Trabaho', 'Isumite ang mga kinakailangang dokumento', 'Kumpletuhin ang Eligibility Assessment', 'Maghintay para sa pag-apruba', 'Kuning ang tulong na pinansyal'],
+                $text
+            );
+        }
+
+        return $text;
+    }
+
     public function storeService(Request $request)
     {
         $request->validate([
             'name_en' => ['required', 'string', 'max:255'],
-            'name_ceb' => ['required', 'string', 'max:255'],
+            'name_ceb' => ['nullable', 'string', 'max:255'],
             'name_fil' => ['nullable', 'string', 'max:255'],
+            'name_sub' => ['nullable', 'string', 'max:255'],
             'description_en' => ['required', 'string'],
-            'description_ceb' => ['required', 'string'],
+            'description_ceb' => ['nullable', 'string'],
             'description_fil' => ['nullable', 'string'],
+            'description_sub' => ['nullable', 'string'],
             'procedure_en' => ['required', 'string'],
-            'procedure_ceb' => ['required', 'string'],
+            'procedure_ceb' => ['nullable', 'string'],
             'procedure_fil' => ['nullable', 'string'],
+            'procedure_sub' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $nameCeb = $request->name_ceb ?: $this->autoTranslateText($request->name_en, 'ceb');
+        $nameFil = $request->name_fil ?: $this->autoTranslateText($request->name_en, 'fil');
+        $descCeb = $request->description_ceb ?: $this->autoTranslateText($request->description_en, 'ceb');
+        $descFil = $request->description_fil ?: $this->autoTranslateText($request->description_en, 'fil');
+        $procCeb = $request->procedure_ceb ?: $this->autoTranslateText($request->procedure_en, 'ceb');
+        $procFil = $request->procedure_fil ?: $this->autoTranslateText($request->procedure_en, 'fil');
 
         $service = GovernmentService::create([
             'category_id' => $request->category_id,
@@ -116,23 +187,34 @@ class FacilitatorController extends Controller
             'procedure' => $request->procedure_en,
         ]);
 
-        // Save Translations: Cebuano
+        // Save Translations: Cebuano (Auto-translated if left empty)
         ServiceTranslation::create([
             'service_id' => $service->id,
             'language_code' => 'ceb',
-            'service_name' => $request->name_ceb,
-            'description' => $request->description_ceb,
-            'procedure' => $request->procedure_ceb,
+            'service_name' => $nameCeb,
+            'description' => $descCeb,
+            'procedure' => $procCeb,
         ]);
 
-        // Save Translations: Filipino
+        // Save Translations: Filipino (Auto-translated if left empty)
         ServiceTranslation::create([
             'service_id' => $service->id,
             'language_code' => 'fil',
-            'service_name' => $request->name_fil ?: $request->name_en,
-            'description' => $request->description_fil ?: $request->description_en,
-            'procedure' => $request->procedure_fil ?: $request->procedure_en,
+            'service_name' => $nameFil,
+            'description' => $descFil,
+            'procedure' => $procFil,
         ]);
+
+        // Save Translations: Subanen (Manual Entry Only - Not Automated)
+        if ($request->filled('name_sub') || $request->filled('description_sub') || $request->filled('procedure_sub')) {
+            ServiceTranslation::create([
+                'service_id' => $service->id,
+                'language_code' => 'sub',
+                'service_name' => $request->name_sub ?: '',
+                'description' => $request->description_sub ?: '',
+                'procedure' => $request->procedure_sub ?: '',
+            ]);
+        }
 
         Cache::forget('services_all');
         Cache::forget('categories_all');
@@ -151,17 +233,27 @@ class FacilitatorController extends Controller
     {
         $request->validate([
             'name_en' => ['required', 'string', 'max:255'],
-            'name_ceb' => ['required', 'string', 'max:255'],
+            'name_ceb' => ['nullable', 'string', 'max:255'],
             'name_fil' => ['nullable', 'string', 'max:255'],
+            'name_sub' => ['nullable', 'string', 'max:255'],
             'description_en' => ['required', 'string'],
-            'description_ceb' => ['required', 'string'],
+            'description_ceb' => ['nullable', 'string'],
             'description_fil' => ['nullable', 'string'],
+            'description_sub' => ['nullable', 'string'],
             'procedure_en' => ['required', 'string'],
-            'procedure_ceb' => ['required', 'string'],
+            'procedure_ceb' => ['nullable', 'string'],
             'procedure_fil' => ['nullable', 'string'],
+            'procedure_sub' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $nameCeb = $request->name_ceb ?: $this->autoTranslateText($request->name_en, 'ceb');
+        $nameFil = $request->name_fil ?: $this->autoTranslateText($request->name_en, 'fil');
+        $descCeb = $request->description_ceb ?: $this->autoTranslateText($request->description_en, 'ceb');
+        $descFil = $request->description_fil ?: $this->autoTranslateText($request->description_en, 'fil');
+        $procCeb = $request->procedure_ceb ?: $this->autoTranslateText($request->procedure_en, 'ceb');
+        $procFil = $request->procedure_fil ?: $this->autoTranslateText($request->procedure_en, 'fil');
 
         $service->update([
             'category_id' => $request->category_id,
@@ -186,9 +278,9 @@ class FacilitatorController extends Controller
             'service_id' => $service->id,
             'language_code' => 'ceb',
         ], [
-            'service_name' => $request->name_ceb,
-            'description' => $request->description_ceb,
-            'procedure' => $request->procedure_ceb,
+            'service_name' => $nameCeb,
+            'description' => $descCeb,
+            'procedure' => $procCeb,
         ]);
 
         // Update/create Filipino translation
@@ -196,10 +288,22 @@ class FacilitatorController extends Controller
             'service_id' => $service->id,
             'language_code' => 'fil',
         ], [
-            'service_name' => $request->name_fil ?: $request->name_en,
-            'description' => $request->description_fil ?: $request->description_en,
-            'procedure' => $request->procedure_fil ?: $request->procedure_en,
+            'service_name' => $nameFil,
+            'description' => $descFil,
+            'procedure' => $procFil,
         ]);
+
+        // Update/create Subanen translation (Manual Entry Only - Not Automated)
+        if ($request->filled('name_sub') || $request->filled('description_sub') || $request->filled('procedure_sub')) {
+            ServiceTranslation::updateOrCreate([
+                'service_id' => $service->id,
+                'language_code' => 'sub',
+            ], [
+                'service_name' => $request->name_sub ?: '',
+                'description' => $request->description_sub ?: '',
+                'procedure' => $request->procedure_sub ?: '',
+            ]);
+        }
 
         Cache::forget('services_all');
         Cache::forget('categories_all');
@@ -520,7 +624,7 @@ class FacilitatorController extends Controller
     // --- Inquiries Management ---
     public function inquiries()
     {
-        $inquiries = UserInquiry::with(['user', 'service', 'responses.responder'])
+        $inquiries = UserInquiry::with(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder'])
             ->where('is_bot', false)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -802,5 +906,253 @@ class FacilitatorController extends Controller
         $template->delete();
 
         return redirect()->route('facilitator.templates')->with('success', 'Document template deleted successfully.');
+    }
+
+    // --- Reports & Exports Management ---
+    public function reports()
+    {
+        $totalApplications = UserChecklist::count();
+        $approvedApplications = UserChecklist::where('status', 'approved')->count();
+        $pendingApplications = UserChecklist::where('status', 'pending')->count();
+        $rejectedApplications = UserChecklist::where('status', 'rejected')->count();
+
+        $totalCitizens = User::where('role', 'citizen')->count();
+        $verifiedCitizens = User::where('role', 'citizen')->whereNotNull('valid_id_path')->count();
+
+        $totalAssessments = EligibilityAssessment::count();
+        $eligibleAssessments = EligibilityAssessment::where('status', 'eligible')->count();
+
+        $totalInquiries = UserInquiry::count();
+        $pendingInquiries = UserInquiry::where('status', 'pending')->count();
+
+        $services = GovernmentService::all();
+
+        return view('facilitator.reports.index', compact(
+            'totalApplications',
+            'approvedApplications',
+            'pendingApplications',
+            'rejectedApplications',
+            'totalCitizens',
+            'verifiedCitizens',
+            'totalAssessments',
+            'eligibleAssessments',
+            'totalInquiries',
+            'pendingInquiries',
+            'services'
+        ));
+    }
+
+    public function exportApplications(Request $request)
+    {
+        $query = UserChecklist::with(['user', 'service']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        $applications = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'govassist_applications_report_'.now()->format('Y-m-d').'.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        $callback = function () use ($applications) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Application ID', 'Citizen Name', 'Email', 'Assistance Program', 'Application Type', 'Status', 'Submitted Date', 'Remarks'], "\t");
+
+            foreach ($applications as $app) {
+                fputcsv($file, [
+                    $app->id,
+                    $app->user ? $app->user->name : 'N/A',
+                    $app->user ? $app->user->email : 'N/A',
+                    $app->service ? $app->service->name_en : 'N/A',
+                    strtoupper($app->application_type ?? 'new'),
+                    strtoupper($app->status),
+                    $app->created_at ? $app->created_at->format('Y-m-d H:i:s') : '',
+                    $app->remarks ?? '',
+                ], "\t");
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportCitizens(Request $request)
+    {
+        $query = User::where('role', 'citizen');
+
+        if ($request->filled('verified')) {
+            if ($request->verified === 'yes') {
+                $query->whereNotNull('valid_id_path');
+            } elseif ($request->verified === 'no') {
+                $query->whereNull('valid_id_path');
+            }
+        }
+
+        $citizens = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'govassist_citizens_registry_'.now()->format('Y-m-d').'.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        $callback = function () use ($citizens) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['User ID', 'Citizen Name', 'Email', 'Contact Number', 'Civil Status', 'Date of Birth', 'Complete Address', 'Valid ID Status', 'Registered Date'], "\t");
+
+            foreach ($citizens as $c) {
+                fputcsv($file, [
+                    $c->id,
+                    $c->name,
+                    $c->email,
+                    $c->contact_number ?? 'N/A',
+                    $c->civil_status ?? 'N/A',
+                    $c->dob ? $c->dob->format('Y-m-d') : 'N/A',
+                    $c->address ?? 'N/A',
+                    $c->valid_id_path ? 'VERIFIED / UPLOADED' : 'PENDING UPLOAD',
+                    $c->created_at ? $c->created_at->format('Y-m-d H:i:s') : '',
+                ], "\t");
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportAssessments(Request $request)
+    {
+        $query = EligibilityAssessment::with(['user', 'service']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $assessments = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'govassist_eligibility_assessments_'.now()->format('Y-m-d').'.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        $callback = function () use ($assessments) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Assessment ID', 'Citizen Name', 'Email', 'Assistance Program', 'Assessment Status', 'Calculated At'], "\t");
+
+            foreach ($assessments as $a) {
+                fputcsv($file, [
+                    $a->id,
+                    $a->user ? $a->user->name : 'N/A',
+                    $a->user ? $a->user->email : 'N/A',
+                    $a->service ? $a->service->name_en : 'N/A',
+                    strtoupper($a->status),
+                    $a->created_at ? $a->created_at->format('Y-m-d H:i:s') : '',
+                ], "\t");
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportInquiries(Request $request)
+    {
+        $query = UserInquiry::with(['user', 'service']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $inquiries = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'govassist_inquiries_helpdesk_'.now()->format('Y-m-d').'.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        $callback = function () use ($inquiries) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Inquiry ID', 'Sender Name', 'Email', 'Source Channel', 'Assistance Program', 'Inquiry Message', 'Status', 'Date Submitted'], "\t");
+
+            foreach ($inquiries as $inq) {
+                fputcsv($file, [
+                    $inq->id,
+                    $inq->user ? $inq->user->name : ($inq->guest_name ?? 'Guest Citizen'),
+                    $inq->user ? $inq->user->email : ($inq->guest_email ?? 'N/A'),
+                    $inq->is_bot ? 'GovBot AI Chatbot' : 'Manual Helpdesk',
+                    $inq->service ? $inq->service->name_en : 'General Inquiry',
+                    $inq->inquiry_text,
+                    strtoupper($inq->status),
+                    $inq->created_at ? $inq->created_at->format('Y-m-d H:i:s') : '',
+                ], "\t");
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportAllMasterReport(Request $request)
+    {
+        $filename = 'govassist_master_reports_summary_'.now()->format('Y-m-d').'.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+
+            // Header Section
+            fputcsv($file, ['GOVASSIST SSFO MASTER SYSTEM REPORT SUMMARY'], "\t");
+            fputcsv($file, ['Generated At:', now()->format('Y-m-d H:i:s')], "\t");
+            fputcsv($file, [], "\t");
+
+            // Summary Stats
+            fputcsv($file, ['METRIC SUMMARY', 'TOTAL RECORD COUNT'], "\t");
+            fputcsv($file, ['Total Registered Citizens', User::where('role', 'citizen')->count()], "\t");
+            fputcsv($file, ['Total Applications Submitted', UserChecklist::count()], "\t");
+            fputcsv($file, ['Approved Applications', UserChecklist::where('status', 'approved')->count()], "\t");
+            fputcsv($file, ['Pending Review Applications', UserChecklist::where('status', 'pending')->count()], "\t");
+            fputcsv($file, ['Rejected Applications', UserChecklist::where('status', 'rejected')->count()], "\t");
+            fputcsv($file, ['Total Eligibility Assessments', EligibilityAssessment::count()], "\t");
+            fputcsv($file, [], "\t");
+
+            // Applications Data
+            fputcsv($file, ['RECENT APPLICATIONS LIST'], "\t");
+            fputcsv($file, ['App ID', 'Citizen Name', 'Email', 'Program', 'Status', 'Submitted Date'], "\t");
+            $apps = UserChecklist::with(['user', 'service'])->orderBy('created_at', 'desc')->take(100)->get();
+            foreach ($apps as $a) {
+                fputcsv($file, [$a->id, $a->user?->name ?? 'N/A', $a->user?->email ?? 'N/A', $a->service?->name_en ?? 'N/A', strtoupper($a->status), $a->created_at?->format('Y-m-d H:i:s') ?? ''], "\t");
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

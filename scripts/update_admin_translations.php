@@ -1,6 +1,6 @@
 <?php
 
-$basePath = __DIR__ . '/../lang/';
+$basePath = __DIR__.'/../lang/';
 $languages = ['en', 'ceb', 'fil', 'sub'];
 
 $keys = [
@@ -8,7 +8,7 @@ $keys = [
     'admin_main_menu' => ['en' => 'Main Menu', 'ceb' => 'Pangunang Menu', 'fil' => 'Pangunahing Menu', 'sub' => 'Pangunang Menu'],
     'admin_dashboard' => ['en' => 'Dashboard', 'ceb' => 'Dashboard', 'fil' => 'Dashboard', 'sub' => 'Dashboard'],
     'admin_services' => ['en' => 'Services', 'ceb' => 'Mga Serbisyo', 'fil' => 'Mga Serbisyo', 'sub' => 'Mga Serbisyo'],
-    'admin_requirements' => ['en' => 'Requirements', 'ceb' => 'Mga Rekisitos', 'fil' => 'Mga Rekisitos', 'sub' => 'Mga Rekisitos'],
+    'admin_requirements' => ['en' => 'Requirements', 'ceb' => 'Mga Requirements', 'fil' => 'Mga Requirements', 'sub' => 'Mga Requirements'],
     'admin_eligibility' => ['en' => 'Eligibility Questions', 'ceb' => 'Mga Pangutana sa Kwalipikasyon', 'fil' => 'Mga Tanong sa Kwalipikasyon', 'sub' => 'Mga Pangutana sa Kwalipikasyon'],
     'admin_reassessments' => ['en' => 'Reassessment Requests', 'ceb' => 'Mga Hangyo sa Reassessment', 'fil' => 'Mga Hiling sa Reassessment', 'sub' => 'Mga Hangyo sa Reassessment'],
     'admin_applications_menu' => ['en' => 'Applications', 'ceb' => 'Mga Aplikasyon', 'fil' => 'Mga Aplikasyon', 'sub' => 'Mga Aplikasyon'],
@@ -16,12 +16,12 @@ $keys = [
     'admin_reports' => ['en' => 'Reports', 'ceb' => 'Mga Report', 'fil' => 'Mga Ulat', 'sub' => 'Mga Report'],
     'admin_citizens' => ['en' => 'Citizens Registry', 'ceb' => 'Rehistro sa mga Lungsoranon', 'fil' => 'Rehistro ng mga Mamamayan', 'sub' => 'Rehistro sa mga Lungsoranon'],
     'admin_assessments' => ['en' => 'Assessments', 'ceb' => 'Mga Pagsusi', 'fil' => 'Mga Pagsusuri', 'sub' => 'Mga Pagsusi'],
-    'admin_log_out' => ['en' => 'Log Out', 'ceb' => 'Gawas', 'fil' => 'Mag-Log Out', 'sub' => 'Gawas'],
+    'admin_log_out' => ['en' => 'Log Out', 'ceb' => 'Mag-logout', 'fil' => 'Mag-logout', 'sub' => 'Mag-logout'],
 
     // Topbar
     'admin_today' => ['en' => 'Today', 'ceb' => 'Karon', 'fil' => 'Ngayon', 'sub' => 'Karon'],
     'admin_facilitator' => ['en' => 'Facilitator', 'ceb' => 'Facilitator', 'fil' => 'Tagapangasiwa', 'sub' => 'Facilitator'],
-    
+
     // Dashboard
     'admin_welcome_back' => ['en' => 'Welcome back,', 'ceb' => 'Maayong pagbalik,', 'fil' => 'Maligayang pagbabalik,', 'sub' => 'Maayong pagbalik,'],
     'admin_overview' => ['en' => 'Here\'s an overview of GovAssist activity.', 'ceb' => 'Kini ang usa ka kinatibuk-ang pagtan-aw sa kalihokan sa GovAssist.', 'fil' => 'Narito ang isang pangkalahatang-ideya ng aktibidad sa GovAssist.', 'sub' => 'Kini ang usa ka kinatibuk-ang pagtan-aw sa kalihokan sa GovAssist.'],
@@ -39,14 +39,14 @@ $keys = [
 ];
 
 foreach ($languages as $lang) {
-    $filePath = $basePath . $lang . '/messages.php';
+    $filePath = $basePath.$lang.'/messages.php';
     if (file_exists($filePath)) {
         $existing = require $filePath;
         foreach ($keys as $keyName => $translations) {
             $existing[$keyName] = $translations[$lang];
         }
-        
-        $content = "<?php\n\nreturn " . var_export($existing, true) . ";\n";
+
+        $content = "<?php\n\nreturn ".var_export($existing, true).";\n";
         file_put_contents($filePath, $content);
         echo "Updated $lang\n";
     }

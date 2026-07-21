@@ -113,4 +113,19 @@ class GovernmentService extends Model
     {
         return $this->translations()->where('language_code', 'fil')->value('procedure') ?? '';
     }
+
+    public function getNameSubAttribute()
+    {
+        return $this->translations()->where('language_code', 'sub')->value('service_name') ?? '';
+    }
+
+    public function getDescriptionSubAttribute()
+    {
+        return $this->translations()->where('language_code', 'sub')->value('description') ?? '';
+    }
+
+    public function getProcedureSubAttribute()
+    {
+        return $this->translations()->where('language_code', 'sub')->value('procedure') ?? '';
+    }
 }

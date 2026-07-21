@@ -5,7 +5,7 @@
 @section('page_title', 'Document Templates Manager')
 
 @section('content')
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
             <h3 class="text-base font-extrabold text-slate-800 flex items-center">
@@ -20,19 +20,19 @@
 
     <!-- Alert status -->
     @if(session('success'))
-        <div class="mb-6 p-4 bg-emerald-50 border-l-2 border-emerald-500 text-emerald-800 text-xs font-semibold shadow-sm">
+        <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-xl text-emerald-850 text-xs font-semibold shadow-xs">
             {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div class="mb-6 p-4 bg-rose-50 border-l-2 border-rose-500 text-rose-800 text-xs font-semibold shadow-sm">
+        <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl text-rose-850 text-xs font-semibold shadow-xs">
             {{ session('error') }}
         </div>
     @endif
 
     <!-- Program Tabs Navigation -->
     <div class="border-b border-slate-200 mb-6">
-        <nav class="-mb-px flex space-x-1 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
+        <nav class="-mb-px flex space-x-1 sm:space-x-8 overflow-x-auto no-scrollbar" aria-label="Tabs">
             @foreach($services as $index => $service)
                 @php
                     $icon = 'academic-cap';
@@ -67,90 +67,92 @@
     <!-- Tab Contents -->
     @foreach($services as $index => $service)
         <div id="tab-content-{{ $service->id }}" class="tab-content {{ $index === 0 ? '' : 'hidden' }}">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead>
-                        <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            <th class="pb-3">Checklist Requirement</th>
-                            <th class="pb-3">Configured Template</th>
-                            <th class="pb-3">Type</th>
-                            <th class="pb-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse($service->requirements as $req)
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="py-4 pr-4">
-                                    <span class="font-bold text-slate-800 block text-xs">{{ $req->text }}</span>
-                                    <span class="text-[9px] font-medium text-slate-400 uppercase tracking-wider mt-0.5 inline-block px-1.5 py-0.5 rounded {{ $req->is_required ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-500 border border-slate-200' }}">
-                                        {{ $req->is_required ? 'Mandatory' : 'Optional' }}
-                                    </span>
-                                </td>
-                                <td class="py-4 pr-4">
-                                    @if($req->template)
-                                        <div class="flex items-start space-x-2">
-                                            <div class="p-1 bg-red-50 rounded text-red-700 mt-0.5">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                            </div>
-                                            <div>
-                                                <span class="font-extrabold text-slate-800 block text-xs">Keywords:</span>
-                                                <span class="text-[10px] text-slate-500 block mt-0.5 font-medium">{{ $req->template->name_en }}</span>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-100 px-2 py-1 rounded">No Template Set</span>
-                                    @endif
-                                </td>
-                                <td class="py-4">
-                                    @if($req->template)
-                                        <span class="text-[10px] font-mono text-slate-500 uppercase">
-                                            {{ pathinfo($req->template->file_path, PATHINFO_EXTENSION) }}
+            <div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-2xs mt-3">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
+                                <th class="px-6 py-3.5">Checklist Requirement</th>
+                                <th class="px-6 py-3.5">Configured Template</th>
+                                <th class="px-6 py-3.5">Type</th>
+                                <th class="px-6 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($service->requirements as $req)
+                                <tr class="hover:bg-slate-50/70 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <span class="font-bold text-slate-800 block text-xs">{{ $req->text }}</span>
+                                        <span class="text-xs font-extrabold uppercase tracking-wider mt-1.5 inline-block px-2 py-0.5 rounded-xl {{ $req->is_required ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-550 border border-slate-200' }}">
+                                            {{ $req->is_required ? 'Mandatory' : 'Optional' }}
                                         </span>
-                                    @else
-                                        <span class="text-slate-400">-</span>
-                                    @endif
-                                </td>
-                                <td class="py-4 text-right">
-                                    <div class="flex items-center justify-end space-x-2">
+                                    </td>
+                                    <td class="px-6 py-4">
                                         @if($req->template)
-                                            <!-- View / Download -->
-                                            <a href="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($req->template->file_path) }}" target="_blank" title="View Current Template" class="p-1.5 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-100 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                            </a>
-
-                                            <!-- Edit/Change -->
-                                            <button type="button" 
-                                                onclick="openUploadModal({{ $service->id }}, '{{ addslashes($service->service_name) }}', {{ $req->id }}, '{{ addslashes($req->text) }}', {{ json_encode($req->template) }})"
-                                                title="Change Template File" class="p-1.5 text-slate-400 hover:text-red-700 rounded hover:bg-slate-100 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                            </button>
-
-                                            <!-- Delete -->
-                                            <form action="{{ route('facilitator.templates.destroy', $req->template->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this document template? Computerized image matching will be disabled for this requirement.')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" title="Remove Template" class="text-rose-600 hover:text-rose-700 focus:outline-none p-1.5 rounded hover:bg-rose-50 transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
-                                            </form>
+                                            <div class="flex items-start space-x-2">
+                                                <div class="p-1 bg-red-50 rounded text-red-700 mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                                </div>
+                                                <div>
+                                                    <span class="font-extrabold text-slate-805 block text-xs">Keywords:</span>
+                                                    <span class="text-xs text-slate-500 block mt-0.5 font-medium">{{ $req->template->name_en }}</span>
+                                                </div>
+                                            </div>
                                         @else
-                                            <!-- Set Template -->
-                                            <button type="button" 
-                                                onclick="openUploadModal({{ $service->id }}, '{{ addslashes($service->service_name) }}', {{ $req->id }}, '{{ addslashes($req->text) }}')"
-                                                class="px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white font-bold text-[10px] uppercase tracking-wider rounded transition-colors shadow-sm">
-                                                Set Template
-                                            </button>
+                                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200/50">No Template Set</span>
                                         @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="py-8 text-center text-slate-400 font-medium">No requirements defined for this service program.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if($req->template)
+                                            <span class="text-xs font-mono text-slate-500 uppercase">
+                                                {{ pathinfo($req->template->file_path, PATHINFO_EXTENSION) }}
+                                            </span>
+                                        @else
+                                            <span class="text-slate-400">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            @if($req->template)
+                                                <!-- View / Download -->
+                                                <a href="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($req->template->file_path) }}" target="_blank" title="View Current Template" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                </a>
+
+                                                <!-- Edit/Change -->
+                                                <button type="button" 
+                                                    onclick="openUploadModal({{ $service->id }}, '{{ addslashes($service->service_name) }}', {{ $req->id }}, '{{ addslashes($req->text) }}', {{ json_encode($req->template) }})"
+                                                    title="Change Template File" class="p-1.5 text-slate-400 hover:text-red-700 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+
+                                                <!-- Delete -->
+                                                <form action="{{ route('facilitator.templates.destroy', $req->template->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this document template? Computerized image matching will be disabled for this requirement.')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" title="Remove Template" class="text-rose-600 hover:text-rose-700 focus:outline-none p-1.5 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <!-- Set Template -->
+                                                <button type="button" 
+                                                    onclick="openUploadModal({{ $service->id }}, '{{ addslashes($service->service_name) }}', {{ $req->id }}, '{{ addslashes($req->text) }}')"
+                                                    class="px-3.5 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs">
+                                                    Set Template
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-slate-400 font-semibold italic">No requirements defined for this service program.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     @endforeach
@@ -185,37 +187,35 @@
 
                     <!-- Program Read-Only Display -->
                     <div class="space-y-1">
-                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Service Program</label>
-                        <input type="text" id="modal_service_display" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500 font-bold outline-none cursor-not-allowed" disabled>
+                        <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">Service Program</label>
+                        <input type="text" id="modal_service_display" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold outline-none cursor-not-allowed" disabled>
                     </div>
 
                     <!-- Requirement Read-Only Display -->
                     <div class="space-y-1">
-                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Requirement Name</label>
-                        <input type="text" id="modal_requirement_display" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500 font-bold outline-none cursor-not-allowed" disabled>
+                        <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">Requirement Name</label>
+                        <input type="text" id="modal_requirement_display" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold outline-none cursor-not-allowed" disabled>
                     </div>
 
-                    <!-- Template Name English -->
-                    <div class="space-y-1">
                     <!-- Keywords -->
                     <div class="space-y-1">
-                        <label for="keywords" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Keywords for Verification</label>
-                        <input type="text" name="keywords" id="keywords" placeholder="e.g. Barangay, Indigency, Certificate" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800 font-medium" required>
-                        <p class="text-[9px] text-slate-400 mt-1">Enter key words or phrases (comma-separated) that MUST be present in the uploaded document to pass automated verification.</p>
+                        <label for="keywords" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Keywords for Verification</label>
+                        <input type="text" name="keywords" id="keywords" placeholder="e.g. Barangay, Indigency, Certificate" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition-all text-xs text-slate-800 font-medium" required>
+                        <p class="text-xs text-slate-400 mt-1">Enter key words or phrases (comma-separated) that MUST be present in the uploaded document to pass automated verification.</p>
                     </div>
 
                     <!-- File input -->
                     <div class="space-y-1 pt-1">
-                        <label for="template_file" id="file_input_label" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Select Document File</label>
-                        <input type="file" name="template_file" id="template_file" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-extrabold file:uppercase file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" required>
-                        <p class="text-[9px] text-slate-400 mt-1">Accepted formats: PDF, JPG, PNG, JPEG. Max size: 5MB.</p>
+                        <label for="template_file" id="file_input_label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select Document File</label>
+                        <input type="file" name="template_file" id="template_file" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:uppercase file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer" required>
+                        <p class="text-xs text-slate-400 mt-1">Accepted formats: PDF, JPG, PNG, JPEG. Max size: 5MB.</p>
                     </div>
 
                     <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-100 mt-6">
-                        <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 font-extrabold text-[10px] uppercase tracking-wider rounded-lg transition-colors">
+                        <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border border-slate-200 text-slate-500 hover:bg-slate-50 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg shadow-sm transition-colors">
+                        <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-colors">
                             Save Template
                         </button>
                     </div>

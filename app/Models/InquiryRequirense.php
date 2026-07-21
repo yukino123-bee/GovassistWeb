@@ -14,6 +14,8 @@ class InquiryRequirense extends Model
 
     protected $fillable = ['inquiry_id', 'requireent_text', 'responded_by'];
 
+    protected $appends = ['response_text'];
+
     public function inquiry(): BelongsTo
     {
         return $this->belongsTo(UserInquiry::class, 'inquiry_id');

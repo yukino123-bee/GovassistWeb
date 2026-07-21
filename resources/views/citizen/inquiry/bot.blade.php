@@ -57,6 +57,46 @@
             </div>
         </form>
     </div>
+
+    @if(isset($inquiries) && $inquiries->count() > 0)
+        <div class="mt-6 bg-white border border-slate-200 shadow-sm p-6 space-y-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-800 flex items-center">
+                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
+                My Submitted Inquiries & Admin Responses
+            </h3>
+            
+            <div class="space-y-4">
+                @foreach($inquiries as $inq)
+                    <div class="border border-slate-200 p-4 space-y-3 bg-slate-50/50">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800">{{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}</span>
+                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 border {{ $inq->status === 'resolved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200' }}">
+                                {{ $inq->status }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 bg-white p-3 border border-slate-200 italic font-medium">"{{ $inq->inquiry_text }}"</p>
+                        
+                        @if($inq->responses && $inq->responses->count() > 0)
+                            <div class="pl-4 border-l-2 border-red-700 space-y-2 pt-1">
+                                <span class="text-[10px] font-black uppercase text-red-700">Admin Responses:</span>
+                                @foreach($inq->responses as $resp)
+                                    <div class="bg-white p-3 border border-slate-200 text-xs text-slate-800">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-extrabold text-slate-700">{{ $resp->responder ? $resp->responder->name : 'GovAssist Admin' }}</span>
+                                            <span class="text-[9px] text-slate-400">{{ $resp->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="leading-relaxed">{{ $resp->response_text }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-[10px] text-slate-400 italic">No admin response yet. You will receive an email notification when a facilitator replies.</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Admin Contact Modal -->
