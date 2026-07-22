@@ -46,22 +46,4 @@ jobs:
         sed -i 's/DB_PASSWORD=/DB_PASSWORD=3fShnkJ56HCYn3E/' .env
         php artisan key:generate
 
-    - name: Sync files to FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /htdocs/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/tests/**
-          **/storage/app/public/**
-          **/storage/framework/sessions/**
-          **/storage/framework/cache/**
-          **/storage/framework/views/**
-          **/storage/logs/**
-          .env.example
-          README.md
+

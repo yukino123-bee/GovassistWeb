@@ -475,24 +475,24 @@
             });
         })();
 
-        // Scroll to Top functionality for the main container (Placed in Top Right)
+        // Scroll to Top functionality for the main container (Placed in Bottom Right)
         const mainContent = document.getElementById('main-content-area');
         if (mainContent) {
             mainContent.addEventListener('scroll', function() {
                 const btn = document.getElementById('scrollToTopBtn');
                 if (btn) {
                     if (mainContent.scrollTop > 100) {
-                        btn.style.top = '5rem';
+                        btn.style.bottom = '2rem';
                     } else {
-                        btn.style.top = '-5rem';
+                        btn.style.bottom = '-5rem';
                     }
                 }
             });
         }
     </script>
 
-    <!-- Scroll to Top Button (Top Right Position) -->
-    <button id="scrollToTopBtn" onclick="document.getElementById('main-content-area').scrollTo({top: 0, behavior: 'smooth'})" class="fixed right-8 bg-red-700 hover:bg-red-800 text-white p-3 shadow-md transition-all duration-300 z-[9999] flex items-center justify-center rounded-xl" style="top: -5rem;" aria-label="Scroll to top">
+    <!-- Scroll to Top Button (Bottom Right Position) -->
+    <button id="scrollToTopBtn" onclick="document.getElementById('main-content-area').scrollTo({top: 0, behavior: 'smooth'})" class="fixed right-8 bg-red-700 hover:bg-red-800 text-white p-3 shadow-md transition-all duration-300 z-[9999] flex items-center justify-center rounded-xl" style="bottom: -5rem;" aria-label="Scroll to top">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>

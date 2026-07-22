@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssessmentAnswer;
+use App\Models\CommonQuestion;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
 use App\Models\GovernmentService;
@@ -10,7 +11,6 @@ use App\Models\InquiryRequirense;
 use App\Models\ReassessmentRequest;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
-use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
@@ -380,55 +380,29 @@ class CitizenController extends Controller
         return redirect()->route('citizen.home')->with('success', 'Application submitted successfully!');
     }
 
-    public function inquiry()
+    public function inquiry(Request $request)
     {
-        $inquiries = Auth::check()
-            ? UserInquiry::with(['service', 'responses.responder'])
+        $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+
+        if (Auth::check()) {
+            $inquiries = UserInquiry::with(['service', 'responses.responder'])
                 ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc')
-                ->get()
-            : collect();
-
-        $services = GovernmentService::all();
-        $templates = collect();
-
-        return view('citizen.inquiry.bot', compact('inquiries', 'services', 'templates'));
-    }
-
-    public function inquiryChat(Request $request)
-    {
-        $message = $request->input('message');
-        $serviceId = $request->input('service_id');
-
-        // Default to english if guest
-        $lang = Auth::check() && Auth::user()->language ? Auth::user()->language : 'en';
-
-        $response = $this->getBotResponse($message, $lang);
-
-        // Only save the inquiry to the database if the user is authenticated
-        if (Auth::check()) {
-            $inquiry = UserInquiry::create([
-                'user_id' => Auth::id(),
-                'service_id' => $serviceId ?: null,
-                'inquiry_text' => $message,
-                'status' => 'pending',
-                'is_bot' => true,
-            ]);
-
-            $facilitator = User::where('role', 'facilitator')->first();
-            $responderId = $facilitator ? $facilitator->id : Auth::id();
-
-            InquiryRequirense::create([
-                'inquiry_id' => $inquiry->id,
-                'requireent_text' => $response,
-                'responded_by' => $responderId,
-            ]);
+                ->get();
+        } elseif ($guestEmail) {
+            $inquiries = UserInquiry::with(['service', 'responses.responder'])
+                ->where('guest_email', $guestEmail)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $inquiries = collect();
         }
 
-        return response()->json([
-            'reply' => $response,
-            'time' => now()->format('h:i A'),
-        ]);
+        $services = GovernmentService::all();
+        $commonQuestions = CommonQuestion::all();
+        $templates = collect();
+
+        return view('citizen.inquiry.bot', compact('inquiries', 'services', 'commonQuestions', 'templates'));
     }
 
     public function submitManualInquiry(Request $request)
@@ -445,16 +419,72 @@ class CitizenController extends Controller
 
         $request->validate($rules);
 
-        UserInquiry::create([
-            'user_id' => Auth::check() ? Auth::id() : null,
-            'guest_name' => $request->input('guest_name'),
-            'guest_email' => $request->input('guest_email'),
-            'service_id' => $request->input('service_id'),
-            'inquiry_text' => $request->input('inquiry_text'),
-            'status' => 'pending',
-        ]);
+        $inquiry = null;
+        if (Auth::check()) {
+            $inquiry = UserInquiry::where('user_id', Auth::id())->first();
+        } else {
+            $inquiry = UserInquiry::where('guest_email', $request->input('guest_email'))->first();
+        }
 
-        return back()->with('success', 'Your inquiry has been sent to the administrators.');
+        if ($inquiry) {
+            if ($request->input('service_id')) {
+                $inquiry->update([
+                    'service_id' => $request->input('service_id'),
+                ]);
+            }
+
+            InquiryRequirense::create([
+                'inquiry_id' => $inquiry->id,
+                'requireent_text' => $request->input('inquiry_text'),
+                'responded_by' => Auth::check() ? Auth::id() : null,
+            ]);
+
+            $inquiry->update(['status' => 'pending']);
+        } else {
+            $inquiry = UserInquiry::create([
+                'user_id' => Auth::check() ? Auth::id() : null,
+                'guest_name' => $request->input('guest_name'),
+                'guest_email' => $request->input('guest_email'),
+                'service_id' => $request->input('service_id'),
+                'inquiry_text' => $request->input('inquiry_text'),
+                'status' => 'pending',
+            ]);
+
+            InquiryRequirense::create([
+                'inquiry_id' => $inquiry->id,
+                'requireent_text' => $request->input('inquiry_text'),
+                'responded_by' => Auth::check() ? Auth::id() : null,
+            ]);
+        }
+
+        if (! Auth::check()) {
+            session([
+                'guest_email' => $request->input('guest_email'),
+                'guest_name' => $request->input('guest_name'),
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            $response = response()->json([
+                'success' => true,
+                'inquiry' => $inquiry->load(['service', 'responses.responder']),
+            ]);
+
+            if (! Auth::check()) {
+                $response->cookie('guest_email', $request->input('guest_email'), 43200);
+                $response->cookie('guest_name', $request->input('guest_name'), 43200);
+            }
+
+            return $response;
+        }
+
+        $redirect = back()->with('success', 'Your inquiry has been sent to the administrators.');
+        if (! Auth::check()) {
+            $redirect->cookie('guest_email', $request->input('guest_email'), 43200);
+            $redirect->cookie('guest_name', $request->input('guest_name'), 43200);
+        }
+
+        return $redirect;
     }
 
     public function profile()
@@ -535,25 +565,72 @@ class CitizenController extends Controller
         return back()->with('error', 'Cannot edit this application.');
     }
 
-    protected function getBotResponse($msg, $lang)
+    public function replyInquiry(Request $request, UserInquiry $inquiry)
     {
-        $scriptPath = base_path('scripts/govbot_ai.py');
-        $command = 'python3 '.escapeshellarg($scriptPath).' --message '.escapeshellarg($msg).' --lang '.escapeshellarg($lang);
-        $output = shell_exec($command);
-
-        if ($output) {
-            $result = json_decode($output, true);
-            if (isset($result['response'])) {
-                return $result['response'];
+        if (Auth::check()) {
+            if ($inquiry->user_id !== Auth::id()) {
+                abort(403);
+            }
+        } else {
+            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+                abort(403);
             }
         }
 
-        if ($lang === 'ceb') {
-            return 'Pasayloa, wala ko kasabot sa imong pangutana. Mahimo ka mangutana bahin sa mga programa sa: **Edukasyon, Medikal, Pagpalubong, Transportasyon, o Trabaho**, ug ang ilang mga kinahanglanon.';
-        } elseif ($lang === 'sub') {
-            return 'Pasensya, daa nako nasabtan inyo pangutana. Pwede niyo pangutan-on ang mga programa sa: **Edukasyon, Medikal, Palubong, Pamasahe, o Trabaho**.';
+        $request->validate([
+            'message' => ['required', 'string'],
+        ]);
+
+        $reply = InquiryRequirense::create([
+            'inquiry_id' => $inquiry->id,
+            'requireent_text' => $request->message,
+            'responded_by' => Auth::check() ? Auth::id() : null,
+        ]);
+
+        $inquiry->update(['status' => 'pending']);
+
+        return response()->json([
+            'success' => true,
+            'reply' => $reply->requireent_text,
+            'time' => now()->format('h:i A'),
+        ]);
+    }
+
+    public function deleteInquiry(Request $request, UserInquiry $inquiry)
+    {
+        if (Auth::check()) {
+            if ($inquiry->user_id !== Auth::id()) {
+                abort(403);
+            }
+        } else {
+            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+                abort(403);
+            }
         }
 
-        return "I'm sorry, I didn't quite understand your query. You can ask about our programs: **Educational, Medical, Burial, Transportation, or Employment** assistance, and their required documents.";
+        $inquiry->responses()->delete();
+        $inquiry->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteReply(Request $request, InquiryRequirense $response)
+    {
+        if (Auth::check()) {
+            if ($response->responded_by !== Auth::id()) {
+                abort(403);
+            }
+        } else {
+            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            if (! $guestEmail || ! $response->inquiry || $response->inquiry->guest_email !== $guestEmail) {
+                abort(403);
+            }
+        }
+
+        $response->delete();
+
+        return response()->json(['success' => true]);
     }
 }

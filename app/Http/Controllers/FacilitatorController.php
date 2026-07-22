@@ -625,7 +625,6 @@ class FacilitatorController extends Controller
     public function inquiries()
     {
         $inquiries = UserInquiry::with(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder'])
-            ->where('is_bot', false)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -668,6 +667,14 @@ class FacilitatorController extends Controller
         $inquiry->update(['status' => $request->status]);
 
         return back()->with('success', 'Inquiry status updated successfully.');
+    }
+
+    public function deleteInquiry(UserInquiry $inquiry)
+    {
+        $inquiry->responses()->delete();
+        $inquiry->delete();
+
+        return redirect()->route('facilitator.inquiries')->with('success', 'Inquiry conversation deleted successfully.');
     }
 
     // --- Profile Settings ---
@@ -826,25 +833,6 @@ class FacilitatorController extends Controller
         $checklist->delete();
 
         return redirect()->route('facilitator.applications')->with('success', 'Application deleted successfully.');
-    }
-
-    // --- Inquiries AI Extension ---
-    public function generateAIDraft(Request $request, UserInquiry $inquiry)
-    {
-        $scriptPath = base_path('scripts/govbot_ai.py');
-        // We pass the inquiry text to the script
-        $command = 'python3 '.escapeshellarg($scriptPath).' --message '.escapeshellarg($inquiry->subject.' '.$inquiry->message).' --lang en';
-        $output = shell_exec($command);
-
-        $response = 'I am unable to generate a draft right now.';
-        if ($output) {
-            $result = json_decode($output, true);
-            if (isset($result['response'])) {
-                $response = $result['response'];
-            }
-        }
-
-        return response()->json(['draft' => "AI Suggested Draft:\n".$response]);
     }
 
     // --- Document Templates Management ---
@@ -1099,7 +1087,7 @@ class FacilitatorController extends Controller
                     $inq->id,
                     $inq->user ? $inq->user->name : ($inq->guest_name ?? 'Guest Citizen'),
                     $inq->user ? $inq->user->email : ($inq->guest_email ?? 'N/A'),
-                    $inq->is_bot ? 'GovBot AI Chatbot' : 'Manual Helpdesk',
+                    'Manual Helpdesk',
                     $inq->service ? $inq->service->name_en : 'General Inquiry',
                     $inq->inquiry_text,
                     strtoupper($inq->status),

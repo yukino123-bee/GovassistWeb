@@ -54,11 +54,7 @@
                             </span>
                         </div>
                         <div class="flex items-center space-x-2 mt-1.5 flex-wrap gap-y-1">
-                            @if($inq->is_bot)
-                                <span class="px-2 py-0.5 bg-purple-50 text-purple-750 text-xs font-black border border-purple-100 rounded-lg">GovBot</span>
-                            @else
-                                <span class="px-2 py-0.5 bg-blue-50 text-blue-750 text-xs font-black border border-blue-100 rounded-lg">Helpdesk</span>
-                            @endif
+                            <span class="px-2 py-0.5 bg-blue-50 text-blue-750 text-xs font-black border border-blue-100 rounded-lg">Helpdesk</span>
                             <span class="text-xs text-slate-500 font-semibold truncate max-w-[140px]">
                                 {{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}
                             </span>
@@ -101,10 +97,22 @@
                             <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest block group-hover:text-red-700 transition-colors" id="inq-sender">Citizen</h3>
                             <span class="text-[9px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold border border-red-100 group-hover:bg-red-700 group-hover:text-white transition-all">View Profile ↗</span>
                         </div>
-                        <p class="text-xs text-slate-400 font-medium" id="inq-sub-text">Inquiry Thread</p>
                     </div>
                 </div>
-                <span class="text-xs font-black text-slate-450 uppercase tracking-widest" id="inq-status-badge">Status</span>
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-black text-slate-450 uppercase tracking-widest" id="inq-status-badge">Status</span>
+                    
+                    <!-- Delete Chat Form/Button -->
+                    <form id="delete-chat-form" method="POST" class="inline-flex items-center">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" onclick="openDeleteConfirmModal()" class="p-1.5 bg-red-50 hover:bg-red-700 text-red-700 hover:text-white border border-red-200 hover:border-red-700 transition-all rounded-lg cursor-pointer" title="Delete Conversation">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Scrollable Message Bubble Area -->
@@ -142,14 +150,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <!-- Bot Inquiry Notice -->
-                <div id="bot-inquiry-notice" class="hidden p-4 bg-amber-50/50 border border-amber-200 text-amber-800 text-center text-xs font-semibold leading-relaxed rounded-xl shadow-3xs">
-                    <svg class="w-6 h-6 text-amber-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    This inquiry was handled by the GovBot chatbot. Manual replies are disabled for chatbot inquiries to prevent conflicts.
                 </div>
             </div>
         </div>
@@ -260,6 +260,29 @@
     </div>
 </div>
 
+<!-- Custom Delete Confirmation Modal -->
+<div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl shadow-2xl p-6 relative">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-2 flex items-center">
+            <svg class="w-5 h-5 text-red-650 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Confirm Deletion
+        </h3>
+        <p class="text-xs text-slate-500 leading-relaxed font-medium mb-5">
+            Are you sure you want to delete this chat conversation? This action is permanent and cannot be undone.
+        </p>
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
+                Cancel
+            </button>
+            <button type="button" onclick="executeChatDeletion()" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer shadow-sm">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     let activeInquiryData = null;
 
@@ -286,6 +309,12 @@
         const senderEmail = inq.user ? inq.user.email : (inq.guest_email || 'No email provided');
         const initial = senderName.substring(0, 1).toUpperCase();
         
+        // Update delete action URL dynamically
+        const deleteForm = document.getElementById('delete-chat-form');
+        if (deleteForm) {
+            deleteForm.action = `/facilitator/inquiries/${inq.id}`;
+        }
+
         // Update header & avatar
         document.getElementById('inq-sender').innerText = senderName;
         document.getElementById('inq-sub-text').innerText = senderEmail;
@@ -298,44 +327,63 @@
         const responsesContainer = document.getElementById('inq-responses');
         responsesContainer.innerHTML = '';
 
+        let isFirstResponse = true;
         if (inq.responses && inq.responses.length > 0) {
             inq.responses.forEach(resp => {
-                const isCitizen = resp.responder && resp.responder.role === 'citizen';
-                const isSystemBot = !resp.responder || (inq.is_bot && !isCitizen);
-                const nameToShow = isSystemBot ? 'GovBot' : (resp.responder ? resp.responder.name : 'Facilitator');
-                const respInitial = nameToShow.substring(0, 1).toUpperCase();
-                
-                const messageDiv = document.createElement('div');
                 const respContent = resp.response_text || resp.requireent_text || resp.requirement_text || '';
-                
-                if (isCitizen) {
-                    // Citizen bubble aligns to the left (same as original question)
+
+                // Skip the first reply if it is just a mirror of the original inquiry text
+                if (isFirstResponse && respContent === inq.inquiry_text) {
+                    const isByGuest = resp.responded_by === null;
+                    const isByCitizen = resp.responder && resp.responder.role === 'citizen';
+                    if (isByGuest || isByCitizen) {
+                        isFirstResponse = false;
+                        return;
+                    }
+                }
+                isFirstResponse = false;
+
+                // Determine if this is a citizen/guest message OR a facilitator/admin reply
+                // A message is FROM the citizen/guest if:
+                //   - responded_by is null (guest sent it), OR
+                //   - responder has role 'citizen' (logged-in citizen)
+                const isCitizenOrGuest = !resp.responded_by || (resp.responder && resp.responder.role === 'citizen');
+                const isFacilitator = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
+
+                const messageDiv = document.createElement('div');
+
+                if (isCitizenOrGuest && !isFacilitator) {
+                    // Citizen/Guest message — left-aligned bubble
+                    const citizenName = inq.user ? inq.user.name : (inq.guest_name || 'Citizen');
+                    const citizenInitial = citizenName.substring(0, 1).toUpperCase();
                     messageDiv.className = 'flex items-start space-x-3 max-w-[85%]';
                     messageDiv.innerHTML = `
                         <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs cursor-pointer hover:bg-red-100 transition-colors" onclick="openActiveUserProfile()">
-                            ${respInitial}
+                            ${citizenInitial}
                         </div>
                         <div class="bg-white border border-slate-200 text-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-3xs">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">${nameToShow}</span>
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">${citizenName}</span>
                                 <span class="text-[8px] text-slate-400 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             </div>
                             <p class="text-xs leading-relaxed font-medium">${respContent}</p>
                         </div>
                     `;
                 } else {
-                    // Facilitator / Agent reply aligns to the right (shaded color bubble)
+                    // Facilitator / Admin reply — right-aligned bubble
+                    const adminName = resp.responder ? resp.responder.name : 'GovAssist Admin';
+                    const adminInitial = adminName.substring(0, 1).toUpperCase();
                     messageDiv.className = 'flex items-start justify-end space-x-3 max-w-[85%] ml-auto';
                     messageDiv.innerHTML = `
                         <div class="bg-red-700 text-white p-3.5 rounded-2xl rounded-tr-none shadow-3xs">
                             <div class="flex items-center justify-between mb-1 opacity-80">
-                                <span class="text-[9px] font-black text-red-200 uppercase tracking-wider">${nameToShow}</span>
+                                <span class="text-[9px] font-black text-red-200 uppercase tracking-wider">${adminName}</span>
                                 <span class="text-[8px] text-red-200 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             </div>
                             <p class="text-xs leading-relaxed font-medium">${respContent}</p>
                         </div>
                         <div class="w-8 h-8 rounded-full bg-red-50 text-red-700 border border-red-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs">
-                            ${respInitial}
+                            ${adminInitial}
                         </div>
                     `;
                 }
@@ -343,17 +391,14 @@
             });
         }
 
+
         const replyFormContainer = document.getElementById('reply-form-container');
-        const botNotice = document.getElementById('bot-inquiry-notice');
-        
-        if (inq.is_bot) {
-            replyFormContainer.classList.add('hidden');
-            botNotice.classList.remove('hidden');
-        } else {
+        if (replyFormContainer) {
             replyFormContainer.classList.remove('hidden');
-            botNotice.classList.add('hidden');
             const replyForm = document.getElementById('reply-form');
-            replyForm.action = `/facilitator/inquiries/${inq.id}/reply`;
+            if (replyForm) {
+                replyForm.action = `/facilitator/inquiries/${inq.id}/reply`;
+            }
         }
 
         const statusBadge = document.getElementById('inq-status-badge');
@@ -435,6 +480,29 @@
         if (modal) {
             modal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    function openDeleteConfirmModal() {
+        const modal = document.getElementById('delete-confirm-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeDeleteConfirmModal() {
+        const modal = document.getElementById('delete-confirm-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    function executeChatDeletion() {
+        const form = document.getElementById('delete-chat-form');
+        if (form) {
+            form.submit();
         }
     }
 </script>

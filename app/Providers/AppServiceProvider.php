@@ -39,7 +39,6 @@ class AppServiceProvider extends ServiceProvider
             // Fetch pending manual inquiries
             $pendingInquiries = UserInquiry::with(['user', 'service'])
                 ->where('status', 'pending')
-                ->where('is_bot', false)
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get()

@@ -132,7 +132,7 @@
                                 @endforeach
 
                                 <!-- Chart Baseline -->
-                                <line x1="28" y1="130" x2="385" y2="150" stroke="currentColor" class="text-slate-300" stroke-width="1.5" />
+                                <line x1="28" y1="130" x2="385" y2="130" stroke="currentColor" class="text-slate-300" stroke-width="1.5" />
 
                                 <!-- Graphical Bars -->
                                 @foreach($servicesBreakdown as $index => $svc)
@@ -209,12 +209,6 @@
                     <div>
                         <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider block leading-tight">Total Citizens</span>
                         <span class="text-2xl font-black text-slate-850 block mt-1 transition-colors duration-300 group-hover:text-blue-700 leading-none">{{ $totalUsers }}</span>
-                        <div class="flex items-center space-x-1 mt-2 text-blue-600 text-xs font-bold leading-none">
-                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <span>12.5%</span>
-                        </div>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-blue-200/40 transition-all duration-350 group-hover:rotate-6">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,14 +220,8 @@
                 <!-- Pending Applications (Light Amber Theme) -->
                 <div class="group bg-amber-50/70 border border-amber-200 p-3.5 rounded-xl flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-amber-300">
                     <div>
-                        <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider block leading-tight">Pending Apps</span>
+                        <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider block leading-tight">Pending Applications</span>
                         <span class="text-2xl font-black text-slate-850 block mt-1 transition-colors duration-300 group-hover:text-amber-700 leading-none">{{ $pendingApplications }}</span>
-                        <div class="flex items-center space-x-1 mt-2 text-amber-600 text-xs font-bold leading-none">
-                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <span>8.3%</span>
-                        </div>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-200/40 transition-all duration-350 group-hover:rotate-6">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,14 +233,8 @@
                 <!-- Approved Applications (Light Emerald Theme) -->
                 <div class="group bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-xl flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-emerald-300">
                     <div>
-                        <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block leading-tight">Approved Apps</span>
+                        <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block leading-tight">Approved Applications</span>
                         <span class="text-2xl font-black text-slate-850 block mt-1 transition-colors duration-300 group-hover:text-emerald-700 leading-none">{{ $approvedApplications }}</span>
-                        <div class="flex items-center space-x-1 mt-2 text-emerald-600 text-xs font-bold leading-none">
-                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <span>15.7%</span>
-                        </div>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-200/40 transition-all duration-350 group-hover:rotate-6">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,14 +246,8 @@
                 <!-- Rejected Applications (Light Rose Theme) -->
                 <div class="group bg-rose-50/70 border border-rose-200 p-3.5 rounded-xl flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-rose-300">
                     <div>
-                        <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider block leading-tight">Rejected Apps</span>
+                        <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider block leading-tight">Rejected Applications</span>
                         <span class="text-2xl font-black text-slate-850 block mt-1 transition-colors duration-300 group-hover:text-rose-700 leading-none">{{ $rejectedApplications }}</span>
-                        <div class="flex items-center space-x-1 mt-2 text-rose-600 text-xs font-bold leading-none">
-                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <span>5.1%</span>
-                        </div>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-rose-200/40 transition-all duration-350 group-hover:rotate-6">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

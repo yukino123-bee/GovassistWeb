@@ -11,7 +11,9 @@
     <div class="bg-red-700 text-white p-6 border-l-4 border-red-300 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
             <span class="text-xs uppercase tracking-widest text-red-200 font-bold">{{ Auth::check() ? __('messages.welcome_back') : 'Welcome to GovAssist' }}</span>
-            <h2 class="text-2xl font-bold mt-1 tracking-tight text-white">{{ Auth::check() ? Auth::user()->name : 'Guest User' }}</h2>
+            @auth
+                <h2 class="text-2xl font-bold mt-1 tracking-tight text-white">{{ Auth::user()->name }}</h2>
+            @endauth
             <p class="text-xs text-red-100 mt-1 max-w-xl">
                 Welcome to your GovAssist Portal. Manage applications, verify eligibility, and submit requirements checklists.
             </p>
@@ -170,11 +172,11 @@
                     Need Assistance?
                 </h4>
                 <p class="text-xs text-red-800/80 leading-relaxed">
-                    Ask GovBot about application procedures, requirements guidelines, and validation updates.
+                    Message our Inquiry Helpdesk about application procedures, requirements guidelines, and validation updates.
                 </p>
                 <div class="mt-4">
                     <a href="{{ route('citizen.inquiry') }}" class="inline-block w-full text-center px-4 py-2 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
-                        Open GovBot Assistant
+                        Open Inquiry Helpdesk
                     </a>
                 </div>
             </div>

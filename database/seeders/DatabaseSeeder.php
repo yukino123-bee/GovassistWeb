@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\AssessmentAnswer;
+use App\Models\CommonQuestion;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
@@ -697,7 +698,6 @@ class DatabaseSeeder extends Seeder
             'service_id' => $emp->id,
             'inquiry_text' => 'Hello, I uploaded my resume but I would like to ask if there are any specific local trainings happening this month for San Miguel residents?',
             'status' => 'in_progress',
-            'is_bot' => false,
             'created_at' => Carbon::now()->subDays(1),
         ]);
 
@@ -707,6 +707,44 @@ class DatabaseSeeder extends Seeder
             'responded_by' => $facilitator->id,
             'created_at' => Carbon::now()->subHours(6),
         ]);
+
+        // 9. Seed Common Questions
+        $faqSubQuestions = [
+            $edu->id => [
+                'What are the requirements for Educational Assistance?',
+                'How do I apply for Educational Assistance?',
+                'Who is eligible for Educational Assistance?',
+            ],
+            $med->id => [
+                'What are the requirements for Medical Assistance?',
+                'How do I apply for Medical Assistance?',
+                'Who is eligible for Medical Assistance?',
+            ],
+            $burial->id => [
+                'What are the requirements for Burial Assistance?',
+                'How do I apply for Burial Assistance?',
+                'Who is eligible for Burial Assistance?',
+            ],
+            $trans->id => [
+                'What are the requirements for Transportation Assistance?',
+                'How do I apply for Transportation Assistance?',
+                'Who is eligible for Transportation Assistance?',
+            ],
+            $emp->id => [
+                'What are the requirements for Employment and Livelihood Assistance?',
+                'How do I apply for Employment and Livelihood Assistance?',
+                'Who is eligible for Employment and Livelihood Assistance?',
+            ],
+        ];
+
+        foreach ($faqSubQuestions as $serviceId => $questions) {
+            foreach ($questions as $q) {
+                CommonQuestion::create([
+                    'service_id' => $serviceId,
+                    'question_text' => $q,
+                ]);
+            }
+        }
 
         // Legacy data seeder disabled as per user request
         // $this->call(LegacyDataSeeder::class);

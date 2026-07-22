@@ -5,182 +5,530 @@
 @section('header_title', __('messages.bot_title'))
 
 @section('content')
-<!-- Main Container (Full-width bot view) -->
-<div class="max-w-4xl mx-auto h-[calc(100vh-9rem)] flex flex-col">
+<!-- Main Container (ChatGPT style side-by-side view) -->
+<div class="max-w-6xl mx-auto h-[calc(100vh-9rem)] flex flex-col md:flex-row gap-6 relative">
 
-    <!-- Header of the Chat Assistant -->
-    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
-        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
-            <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-            Inquiry Assistance (GovBot)
-        </h3>
+    <!-- Sidebar Backdrop for Mobile -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden md:hidden"></div>
 
-        <!-- Button/Icon to trigger the Admin contact form modal -->
-        <button type="button" onclick="openAdminContactModal()" class="flex items-center space-x-2 bg-red-700 hover:bg-red-800 text-white px-3.5 py-2 transition-all text-[10px] font-extrabold uppercase tracking-wider focus:outline-none shadow-sm cursor-pointer" title="{{ __('messages.contact_admin') }}">
-            <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span>Contact Admin</span>
-        </button>
+    <!-- Sidebar: Inquiry History & Responses -->
+    <div id="inquiry-sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:w-80 md:h-full flex flex-col shrink-0">
+        <!-- Sidebar Header -->
+        <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center">
+                <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                Inquiry History
+            </span>
+            <!-- Close Button for Mobile -->
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 focus:outline-none">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="flex-grow overflow-y-auto p-3 space-y-2 bg-slate-50/20">
+            @if(!Auth::check())
+                <div id="guest-info-display" class="hidden p-2.5 mb-2 bg-slate-100 border border-slate-200 text-[10px] text-slate-650 flex items-center justify-between">
+                    <div class="truncate mr-2">
+                        <span class="font-extrabold text-slate-800 uppercase block tracking-wider text-[8px]">Guest Account</span>
+                        <span id="guest-display-detail" class="truncate font-semibold block"></span>
+                    </div>
+                    <button type="button" onclick="openGuestModal(null)" class="text-red-700 hover:text-red-900 font-extrabold uppercase tracking-wider shrink-0 cursor-pointer focus:outline-none">
+                        Edit
+                    </button>
+                </div>
+            @endif
+
+            <!-- Contact Admin / New Inquiry Action Card -->
+            <button type="button" onclick="resetToBotChat()" class="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-3 transition-all text-xs font-extrabold uppercase tracking-wider focus:outline-none shadow-sm cursor-pointer mb-3">
+                <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>New Inquiry</span>
+            </button>
+
+            <div id="inquiries-list" class="space-y-2">
+                @if(isset($inquiries) && $inquiries->count() > 0)
+                    @foreach($inquiries as $inq)
+                        <!-- Single Inquiry Item -->
+                        <div class="border border-slate-200 p-3 bg-white hover:border-red-700 transition-all cursor-pointer group rounded-none" onclick="selectInquiryById({{ $inq->id }})">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-slate-800 truncate max-w-[120px]">{{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}</span>
+                                <span class="text-[8px] font-extrabold uppercase px-1.5 py-0.5 border bg-amber-50 text-amber-700 border-amber-200">
+                                    {{ $inq->status }}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 line-clamp-1 italic">"{{ $inq->inquiry_text }}"</p>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="h-48 flex flex-col items-center justify-center text-center p-4">
+                        <svg class="w-8 h-8 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">No Inquiries</span>
+                        <p class="text-[10px] text-slate-400 mt-1 max-w-[160px]">Contact Admin to submit a request.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
-    <!-- Chat Assistant Body -->
-    <div class="flex-grow flex flex-col bg-white border border-slate-200 shadow-sm mt-3 overflow-hidden">
-        <!-- Messages view -->
+    <!-- Main Chat Window -->
+    <div class="flex-grow flex flex-col bg-white border border-slate-200 shadow-sm overflow-hidden h-full">
+        <!-- Header of the Chat Assistant -->
+        <div class="border-b border-slate-200 p-4 flex items-center justify-between bg-slate-50/50">
+            <h3 id="chat-header-title" class="text-xs font-bold uppercase tracking-widest text-slate-800 flex items-center">
+                <!-- Hamburger Button for Mobile Sidebar Toggle -->
+                <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
+                Inquiry Helpdesk
+            </h3>
+        </div>
+
+        <!-- Chat Assistant Body -->
         <div id="chat-window" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col bg-slate-50/50">
-            <!-- Bot Initial Message -->
+            <!-- Initial Greeting Message -->
             <div class="flex items-start space-x-3 max-w-[85%]">
-                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[10px] font-bold">
-                    GB
+                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
+                    HD
                 </div>
                 <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
-                    {{ __('messages.bot_greeting') }}
+                    Hello! Select an inquiry from the history sidebar, or click "New Inquiry" to message our administrators.
                 </div>
             </div>
         </div>
 
         <!-- Input area -->
         <form id="chat-form" class="border-t border-slate-200 p-4 flex items-center gap-2 bg-white">
-            <!-- Voice button -->
-            <button type="button" id="voice-btn" class="p-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 flex-shrink-0 transition-colors flex items-center justify-center">
-                <svg id="mic-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                <div id="mic-pulse" class="w-2.5 h-2.5 bg-red-700 rounded-full animate-ping hidden"></div>
-            </button>
-
             <div class="relative flex-grow flex">
-                <input type="text" id="chat-input" placeholder="{{ __('messages.bot_placeholder') }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-                <button type="submit" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
+                <input type="text" id="chat-input" placeholder="Type your message to start a new inquiry with admin..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+                <button type="submit" id="chat-submit-btn" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
                     Send
                 </button>
             </div>
         </form>
     </div>
-
-    @if(isset($inquiries) && $inquiries->count() > 0)
-        <div class="mt-6 bg-white border border-slate-200 shadow-sm p-6 space-y-4">
-            <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-800 flex items-center">
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                My Submitted Inquiries & Admin Responses
-            </h3>
-            
-            <div class="space-y-4">
-                @foreach($inquiries as $inq)
-                    <div class="border border-slate-200 p-4 space-y-3 bg-slate-50/50">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-800">{{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}</span>
-                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 border {{ $inq->status === 'resolved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200' }}">
-                                {{ $inq->status }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-600 bg-white p-3 border border-slate-200 italic font-medium">"{{ $inq->inquiry_text }}"</p>
-                        
-                        @if($inq->responses && $inq->responses->count() > 0)
-                            <div class="pl-4 border-l-2 border-red-700 space-y-2 pt-1">
-                                <span class="text-[10px] font-black uppercase text-red-700">Admin Responses:</span>
-                                @foreach($inq->responses as $resp)
-                                    <div class="bg-white p-3 border border-slate-200 text-xs text-slate-800">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <span class="font-extrabold text-slate-700">{{ $resp->responder ? $resp->responder->name : 'GovAssist Admin' }}</span>
-                                            <span class="text-[9px] text-slate-400">{{ $resp->created_at->diffForHumans() }}</span>
-                                        </div>
-                                        <p class="leading-relaxed">{{ $resp->response_text }}</p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-[10px] text-slate-400 italic">No admin response yet. You will receive an email notification when a facilitator replies.</p>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
 </div>
-
-<!-- Admin Contact Modal -->
-<div id="admin-contact-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-    <div class="bg-white border-l-4 border-red-700 max-w-md w-full p-6 shadow-xl space-y-4 rounded-none transform transition-all relative">
-        
-        <!-- Close Button -->
-        <button type="button" onclick="closeAdminContactModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 focus:outline-none">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12" />
+<!-- Custom Unsend Confirmation Modal -->
+<div id="unsend-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl shadow-2xl p-6 relative">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-2 flex items-center">
+            <svg class="w-5 h-5 text-red-600 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-        </button>
-        
-        <div class="border-b border-slate-200 pb-2">
-            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-800 flex items-center">
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                {{ __('messages.contact_admin') }}
-            </h3>
-        </div>
-        
-        <p class="text-[11px] text-slate-500 leading-relaxed">
-            {{ __('messages.contact_admin_desc') }}
+            Unsend Message
+        </h3>
+        <p class="text-xs text-slate-500 leading-relaxed font-medium mb-5">
+            Are you sure you want to unsend this message? This action is permanent and cannot be undone.
         </p>
-        
-        <form action="{{ route('citizen.inquiry.manual') }}" method="POST" class="space-y-4">
-            @csrf
-            
-            @guest
-                <div class="space-y-1.5">
-                    <label for="guest_name" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_name') }}</label>
-                    <input type="text" name="guest_name" id="guest_name" placeholder="Juan Dela Cruz" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
-                </div>
-                <div class="space-y-1.5">
-                    <label for="guest_email" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_email') }}</label>
-                    <input type="email" name="guest_email" id="guest_email" placeholder="juan@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required>
-                </div>
-            @endguest
-
-            <div class="space-y-1.5">
-                <label for="service_id" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.related_program') }}</label>
-                <select name="service_id" id="service_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800">
-                    <option value="">{{ __('messages.general_inquiry') }}</option>
-                    @foreach($services as $svc)
-                        @php
-                            $svcName = app()->getLocale() === 'ceb' ? $svc->name_ceb : (app()->getLocale() === 'fil' ? ($svc->name_fil ?? $svc->name_en) : $svc->name_en);
-                        @endphp
-                        <option value="{{ $svc->id }}">{{ $svcName ?: $svc->service_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="inquiry_text" class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.your_message') }}</label>
-                <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-red-500/20 focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
-            </div>
-
-            <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] shadow-sm transition-all active:scale-[0.98]">
-                {{ __('messages.send_inquiry') }}
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="closeUnsendModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
+                Cancel
             </button>
-        </form>
+            <button type="button" id="confirm-unsend-btn" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer shadow-sm">
+                Unsend
+            </button>
+        </div>
     </div>
 </div>
 
+<!-- Guest Info Modal -->
+<div id="guest-info-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl shadow-2xl p-6 relative">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-2 flex items-center">
+            <svg class="w-5 h-5 text-red-700 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            Guest Information
+        </h3>
+        <p class="text-[11px] text-slate-500 leading-relaxed font-medium mb-4">
+            Please enter your name and email to send your inquiry directly to our administrators.
+        </p>
+        <div class="space-y-3 mb-5">
+            <div>
+                <label class="text-[9px] font-extrabold uppercase text-slate-400 block mb-1">Name</label>
+                <input type="text" id="guest-name-input" placeholder="Your Name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+            </div>
+            <div>
+                <label class="text-[9px] font-extrabold uppercase text-slate-400 block mb-1">Email Address</label>
+                <input type="email" id="guest-email-input" placeholder="yourname@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="closeGuestModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
+                Cancel
+            </button>
+            <button type="button" onclick="submitGuestInfo()" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer shadow-sm">
+                Submit & Send
+            </button>
+        </div>
+    </div>
+</div>
 <script>
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatWindow = document.getElementById('chat-window');
-    const voiceBtn = document.getElementById('voice-btn');
-    const micIcon = document.getElementById('mic-icon');
-    const micPulse = document.getElementById('mic-pulse');
+    const chatSubmitBtn = document.getElementById('chat-submit-btn');
 
-    function openAdminContactModal() {
-        const modal = document.getElementById('admin-contact-modal');
+    // Always read CSRF from meta tag — never use inline Blade token which can go stale
+    const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    const currentUserId = {{ Auth::id() ?: 'null' }};
+    let activeInquiryId = null;
+
+    const inquiriesMap = {};
+    @if(isset($inquiries))
+        @foreach($inquiries as $inq)
+            inquiriesMap[{{ $inq->id }}] = {!! json_encode($inq->load(['service', 'responses.responder'])) !!};
+        @endforeach
+    @endif
+
+    function selectInquiryById(id) {
+        const inq = inquiriesMap[id];
+        if (inq) selectInquiry(inq);
+    }
+
+    const defaultChatTitleHTML = `
+        <!-- Hamburger Button for Mobile Sidebar Toggle -->
+        <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
+            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
+        Inquiry Helpdesk
+    `;
+    const defaultChatWindowHTML = chatWindow.innerHTML;
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('inquiry-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && backdrop) {
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+    }
+
+    function resetToBotChat() {
+        activeInquiryId = null;
+        const titleEl = document.getElementById('chat-header-title');
+        if (titleEl) {
+            titleEl.innerHTML = defaultChatTitleHTML;
+        }
+        chatWindow.innerHTML = defaultChatWindowHTML;
+        scrollToBottom();
+
+        if (chatInput) {
+            chatInput.disabled = false;
+            chatInput.placeholder = "Type your message to start a new inquiry with admin...";
+        }
+        if (chatSubmitBtn) chatSubmitBtn.disabled = false;
+
+        const sidebar = document.getElementById('inquiry-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+            toggleSidebar();
+        }
+    }
+
+    function selectInquiry(inq) {
+        activeInquiryId = inq.id;
+
+        const titleEl = document.getElementById('chat-header-title');
+        if (titleEl) {
+            const programName = inq.service ? inq.service.name_en : 'General Inquiry';
+            titleEl.innerHTML = `
+                <!-- Hamburger Button for Mobile Sidebar Toggle -->
+                <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
+                Inquiry #${inq.id} - ${programName}
+            `;
+        }
+
+        chatWindow.innerHTML = '';
+        appendMessage('user', inq.inquiry_text, '', '', inq.id, 'inquiry');
+
+        let isFirstResponse = true;
+        if (inq.responses && inq.responses.length > 0) {
+            inq.responses.forEach(resp => {
+                const respText = resp.response_text || resp.requireent_text || '';
+
+                // Skip the first reply if it mirrors the original inquiry text
+                if (isFirstResponse && respText === inq.inquiry_text) {
+                    const isByGuest = resp.responded_by === null;
+                    const isByCitizen = resp.responder && resp.responder.role === 'citizen';
+                    if (isByGuest || isByCitizen) {
+                        isFirstResponse = false;
+                        return;
+                    }
+                }
+                isFirstResponse = false;
+
+                // A message is FROM the current user/guest if:
+                //   - responded_by is null (guest sent it), OR
+                //   - responded_by matches the logged-in user, OR
+                //   - responder has role 'citizen'
+                const isByMe = resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'citizen');
+                const isByAdmin = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
+
+                if (isByMe && !isByAdmin) {
+                    appendMessage('user', respText, '', '', resp.id, 'reply');
+                } else {
+                    const responderName = resp.responder ? resp.responder.name : 'GovAssist Admin';
+                    appendMessage('admin', respText, '', responderName);
+                }
+            });
+        }
+
+        scrollToBottom();
+
+        if (chatInput) {
+            chatInput.placeholder = "Type your reply...";
+        }
+
+        const sidebar = document.getElementById('inquiry-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+            toggleSidebar();
+        }
+    }
+
+    function prependInquiryToSidebar(inq) {
+        // Save the updated/created inquiry in inquiriesMap
+        inquiriesMap[inq.id] = inq;
+
+        const list = document.getElementById('inquiries-list');
+        if (!list) return;
+
+        // Find and remove any existing list item for this inquiry to keep history clean and avoid duplicate cards
+        const existingItem = list.querySelector('[onclick*="selectInquiryById(' + inq.id + ')"]');
+        if (existingItem) {
+            existingItem.remove();
+        }
+
+        const noInquiriesEl = list.querySelector('.h-48');
+        if (noInquiriesEl) {
+            list.innerHTML = '';
+        }
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = "border border-slate-200 p-3 bg-white hover:border-red-700 transition-all cursor-pointer group rounded-none";
+        itemDiv.setAttribute('onclick', 'selectInquiryById(' + inq.id + ')');
+
+        const serviceName = inq.service ? (inq.service.service_name || inq.service.name_en) : 'General Inquiry';
+        itemDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] font-bold text-slate-800 truncate max-w-[120px]">${serviceName}</span>
+                <span class="text-[8px] font-extrabold uppercase px-1.5 py-0.5 border bg-amber-50 text-amber-700 border-amber-200">
+                    ${inq.status}
+                </span>
+            </div>
+            <p class="text-[11px] text-slate-500 line-clamp-1 italic">"${inq.inquiry_text}"</p>
+        `;
+        
+        list.insertBefore(itemDiv, list.firstChild);
+    }
+
+    let pendingMsg = '';
+
+    function closeGuestModal() {
+        const modal = document.getElementById('guest-info-modal');
         if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    function openGuestModal(msg = null) {
+        if (msg) {
+            pendingMsg = msg;
+        } else {
+            pendingMsg = '';
+        }
+        const modal = document.getElementById('guest-info-modal');
+        if (modal) {
+            // Pre-fill from localStorage if exists
+            const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
+            const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
+            if (savedName) document.getElementById('guest-name-input').value = savedName;
+            if (savedEmail) document.getElementById('guest-email-input').value = savedEmail;
+
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
         }
     }
 
-    function closeAdminContactModal() {
-        const modal = document.getElementById('admin-contact-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
+    function submitGuestInfo() {
+        const name = document.getElementById('guest-name-input').value.trim();
+        const email = document.getElementById('guest-email-input').value.trim();
+
+        if (!name || !email) {
+            alert('Please fill in both fields.');
+            return;
+        }
+
+        if (!email.includes('@')) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        localStorage.setItem('guest_name', name);
+        localStorage.setItem('guest_email', email);
+        
+        // Also set cookies to keep it in sync with Laravel
+        setCookie('guest_name', name, 30);
+        setCookie('guest_email', email, 30);
+
+        closeGuestModal();
+        updateGuestInfoDisplay();
+
+        if (pendingMsg) {
+            appendMessage('user', pendingMsg);
+            chatInput.value = '';
+            scrollToBottom();
+            sendManualInquiry(pendingMsg, name, email);
+            pendingMsg = '';
+        } else {
+            // Editing guest info — reload so the server can load this guest's history
+            window.location.reload();
+        }
+    }
+
+    function updateGuestInfoDisplay() {
+        const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
+        const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
+        const displayEl = document.getElementById('guest-info-display');
+        const detailEl = document.getElementById('guest-display-detail');
+
+        if (displayEl && detailEl) {
+            if (savedName && savedEmail) {
+                detailEl.innerText = `${savedName} (${savedEmail})`;
+                displayEl.classList.remove('hidden');
+            } else {
+                displayEl.classList.add('hidden');
+            }
+        }
+    }
+
+    // Helper functions for cookies
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    function sendManualInquiry(msg, guestName = null, guestEmail = null) {
+        if (activeInquiryId) {
+            // Replying to an existing inquiry thread
+            const url = `/citizen/inquiry/${activeInquiryId}/reply`;
+            const bodyData = { message: msg };
+
+            // Always include guest credentials for guest users
+            const name = guestName || localStorage.getItem('guest_name') || getCookie('guest_name');
+            const email = guestEmail || localStorage.getItem('guest_email') || getCookie('guest_email');
+            if (currentUserId === null && name && email) {
+                bodyData.guest_name = name;
+                bodyData.guest_email = email;
+            }
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken(),
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(t => { throw new Error('Reply failed: ' + res.status + ' ' + t); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error("Reply error:", data);
+                    appendMessage('admin', "Failed to send reply. Please try again.");
+                    scrollToBottom();
+                }
+            })
+            .catch(err => {
+                console.error("Chat error:", err);
+                appendMessage('admin', "Connection error. Please try again.");
+                scrollToBottom();
+            });
+        } else {
+            // Creating a new inquiry thread
+            const bodyData = { inquiry_text: msg };
+            const name = guestName || localStorage.getItem('guest_name') || getCookie('guest_name');
+            const email = guestEmail || localStorage.getItem('guest_email') || getCookie('guest_email');
+
+            if (name && email) {
+                bodyData.guest_name = name;
+                bodyData.guest_email = email;
+            }
+
+            fetch("{{ route('citizen.inquiry.manual') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken(),
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(t => { throw new Error('Submit failed: ' + res.status + ' ' + t); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    activeInquiryId = data.inquiry.id;
+                    inquiriesMap[data.inquiry.id] = data.inquiry;
+                    prependInquiryToSidebar(data.inquiry);
+                    // Don't call selectInquiry — we already appended the message above
+                } else {
+                    console.error("Inquiry error:", data);
+                    appendMessage('admin', "Failed to send inquiry. Please try again.");
+                    scrollToBottom();
+                }
+            })
+            .catch(err => {
+                console.error("Error creating manual inquiry:", err);
+                appendMessage('admin', "Connection error. Please try again.");
+                scrollToBottom();
+            });
         }
     }
 
@@ -190,52 +538,113 @@
             const msg = chatInput.value.trim();
             if(!msg) return;
 
-            // Append User message
-            appendMessage('user', msg);
-            chatInput.value = '';
-            scrollToBottom();
-
-            // Send to controller
-            fetch("{{ route('citizen.inquiry.chat') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({ message: msg })
-            })
-            .then(res => res.json())
-            .then(data => {
-                appendMessage('bot', data.reply, data.time);
+            if (currentUserId === null) {
+                const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
+                const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
+                if (!savedName || !savedEmail) {
+                    openGuestModal(msg);
+                    return;
+                } else {
+                    appendMessage('user', msg);
+                    chatInput.value = '';
+                    scrollToBottom();
+                    sendManualInquiry(msg, savedName, savedEmail);
+                }
+            } else {
+                appendMessage('user', msg);
+                chatInput.value = '';
                 scrollToBottom();
-            })
-            .catch(err => {
-                console.error("Chat error:", err);
-                appendMessage('bot', "Connection error. Please try again.");
-                scrollToBottom();
-            });
+                sendManualInquiry(msg);
+            }
         });
     }
 
-    function appendMessage(sender, text, time = '') {
+    let deleteTarget = null;
+
+    function confirmUnsend(id, type) {
+        deleteTarget = { id, type };
+        const modal = document.getElementById('unsend-confirm-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeUnsendModal() {
+        const modal = document.getElementById('unsend-confirm-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    // Bind event for custom unsend confirmation button
+    const confirmUnsendBtn = document.getElementById('confirm-unsend-btn');
+    if (confirmUnsendBtn) {
+        confirmUnsendBtn.onclick = () => {
+            if (!deleteTarget) return;
+
+            const url = deleteTarget.type === 'inquiry'
+                ? `/citizen/inquiry/${deleteTarget.id}`
+                : `/citizen/inquiry/replies/${deleteTarget.id}`;
+
+            fetch(url, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken(),
+                    "Accept": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    closeUnsendModal();
+                    window.location.reload();
+                }
+            })
+            .catch(err => console.error("Error unsending:", err));
+        };
+    }
+
+    function appendMessage(sender, text, time = '', name = '', targetId = null, targetType = null) {
         const messageDiv = document.createElement('div');
         if (sender === 'user') {
-            messageDiv.className = "flex items-start justify-end space-x-3 max-w-[85%] self-end";
+            messageDiv.className = "flex items-start justify-end space-x-3 max-w-[85%] self-end group/msg relative";
             messageDiv.innerHTML = `
-                <div class="bg-red-700 text-white p-4 text-xs leading-relaxed font-semibold shadow-sm">
-                    ${text}
+                <div class="flex flex-col items-end">
+                    <div class="bg-red-700 text-white p-4 text-xs leading-relaxed font-semibold shadow-sm">
+                        ${text}
+                    </div>
+                    ${(targetId && targetType) ? `
+                        <button type="button" onclick="confirmUnsend(${targetId}, '${targetType}')" class="text-[9px] text-red-500 hover:text-red-700 font-bold uppercase tracking-wider mt-1 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer">
+                            Unsend
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="w-7 h-7 bg-red-100 text-red-900 border border-red-200 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
                     ME
+                </div>
+            `;
+        } else if (sender === 'admin') {
+            messageDiv.className = "flex items-start space-x-3 max-w-[85%]";
+            messageDiv.innerHTML = `
+                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
+                    AD
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
+                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-wider mb-1">${name || 'GovAssist Admin'}</span>
+                    ${text}
+                    ${time ? `<span class="block text-[8px] text-slate-400 mt-2 text-right uppercase tracking-wider">${time}</span>` : ''}
                 </div>
             `;
         } else {
             messageDiv.className = "flex items-start space-x-3 max-w-[85%]";
             messageDiv.innerHTML = `
                 <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
-                    GB
+                    HD
                 </div>
                 <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
+                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-wider mb-1">Inquiry Helpdesk</span>
                     ${text}
                     ${time ? `<span class="block text-[8px] text-slate-400 mt-2 text-right uppercase tracking-wider">${time}</span>` : ''}
                 </div>
@@ -248,49 +657,8 @@
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    // Voice recognition (Web Speech API)
-    if (voiceBtn) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = "{{ app()->getLocale() === 'ceb' ? 'fil-PH' : 'en-US' }}"; // Approximate ceb/fil
-
-            recognition.onstart = () => {
-                micIcon.classList.add('hidden');
-                micPulse.classList.remove('hidden');
-                chatInput.placeholder = "{{ __('messages.voice_listen') }}";
-            };
-
-            recognition.onspeechend = () => {
-                recognition.stop();
-            };
-
-            recognition.onend = () => {
-                micIcon.classList.remove('hidden');
-                micPulse.classList.add('hidden');
-                chatInput.placeholder = "{{ __('messages.bot_placeholder') }}";
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                chatInput.value = transcript;
-                chatForm.dispatchEvent(new Event('submit'));
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                alert("{{ __('messages.voice_error') }}");
-            };
-
-            voiceBtn.addEventListener('click', () => {
-                recognition.start();
-            });
-        } else {
-            voiceBtn.title = "Voice recognition not supported in this browser.";
-            voiceBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            voiceBtn.disabled = true;
-        }
-    }
+    // Initialize default state & guest displays
+    updateGuestInfoDisplay();
+    resetToBotChat();
 </script>
 @endsection

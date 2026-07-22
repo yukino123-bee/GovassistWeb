@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             LanguageMiddleware::class,
         ]);
+        $middleware->encryptCookies(except: [
+            'guest_email',
+            'guest_name',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

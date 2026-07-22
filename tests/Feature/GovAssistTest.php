@@ -297,7 +297,6 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
         'service_id' => $service->id,
         'inquiry_text' => 'Hello Bot',
         'status' => 'pending',
-        'is_bot' => true,
     ]);
 
     // Manual inquiry
@@ -306,7 +305,6 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
         'service_id' => $service->id,
         'inquiry_text' => 'Hello Admin',
         'status' => 'pending',
-        'is_bot' => false,
     ]);
 
     $response = $this->actingAs($admin)->get(route('facilitator.inquiries'));

@@ -3,6 +3,7 @@
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
+use App\Models\InquiryRequirense;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
 use App\Models\ServiceTranslation;
@@ -284,12 +285,12 @@ test('citizen can submit inquiry and facilitator replies', function () {
         'icon' => 'academic-cap',
     ]);
 
-    // 1. Submit bot inquiry
-    $inquiryResponse = $this->actingAs($citizen)->post(route('citizen.inquiry.chat'), [
-        'message' => 'Help with Education Assistance',
+    // 1. Submit manual inquiry
+    $inquiryResponse = $this->actingAs($citizen)->post(route('citizen.inquiry.manual'), [
+        'inquiry_text' => 'Help with Education Assistance',
         'service_id' => $service->id,
     ]);
-    $inquiryResponse->assertStatus(200);
+    $inquiryResponse->assertRedirect();
 
     $inquiry = UserInquiry::first();
     expect($inquiry->inquiry_text)->toBe('Help with Education Assistance');
@@ -308,6 +309,62 @@ test('citizen can submit inquiry and facilitator replies', function () {
     $inquiry->refresh();
     expect($inquiry->status)->toBe('resolved');
     expect($inquiry->responses->last()->response_text)->toBe('We can help you with this program.');
+
+    // 4. Submit secondary manual inquiry (should append to existing)
+    $secondResponse = $this->actingAs($citizen)->post(route('citizen.inquiry.manual'), [
+        'inquiry_text' => 'What are the requirements for Education Assistance?',
+        'service_id' => $service->id,
+    ]);
+    $secondResponse->assertRedirect();
+});
+
+test('facilitator can delete inquiry thread', function () {
+    $citizen = User::factory()->create(['role' => 'citizen']);
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+
+    $inquiry = UserInquiry::create([
+        'user_id' => $citizen->id,
+        'inquiry_text' => 'Some inquiry content',
+        'status' => 'pending',
+    ]);
+
+    InquiryRequirense::create([
+        'inquiry_id' => $inquiry->id,
+        'requireent_text' => 'Some response',
+        'responded_by' => $facilitator->id,
+    ]);
+
+    $deleteResponse = $this->actingAs($facilitator)->delete(route('facilitator.inquiries.delete', $inquiry->id));
+    $deleteResponse->assertRedirect(route('facilitator.inquiries'));
+
+    $this->assertDatabaseMissing('user_inquiries', ['id' => $inquiry->id]);
+    $this->assertDatabaseMissing('inquiry_requirenses', ['inquiry_id' => $inquiry->id]);
+});
+
+test('citizen can unsend their reply message or delete inquiry', function () {
+    $citizen = User::factory()->create(['role' => 'citizen']);
+
+    $inquiry = UserInquiry::create([
+        'user_id' => $citizen->id,
+        'inquiry_text' => 'First message of inquiry',
+        'status' => 'pending',
+    ]);
+
+    $reply = InquiryRequirense::create([
+        'inquiry_id' => $inquiry->id,
+        'requireent_text' => 'Citizen response message',
+        'responded_by' => $citizen->id,
+    ]);
+
+    // 1. Delete reply (unsend message)
+    $response1 = $this->actingAs($citizen)->delete(route('citizen.inquiry.delete_reply', $reply->id));
+    $response1->assertJson(['success' => true]);
+    $this->assertDatabaseMissing('inquiry_requirenses', ['id' => $reply->id]);
+
+    // 2. Delete parent inquiry thread
+    $response2 = $this->actingAs($citizen)->delete(route('citizen.inquiry.delete_inquiry', $inquiry->id));
+    $response2->assertJson(['success' => true]);
+    $this->assertDatabaseMissing('user_inquiries', ['id' => $inquiry->id]);
 });
 
 test('citizen can edit and resubmit application if not approved', function () {

@@ -40,8 +40,12 @@ Route::prefix('citizen')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->
     Route::get('/home', [CitizenController::class, 'home'])->name('citizen.home');
     Route::get('/eligibility', [CitizenController::class, 'eligibility'])->name('citizen.eligibility');
     Route::get('/inquiry', [CitizenController::class, 'inquiry'])->name('citizen.inquiry');
-    Route::post('/inquiry/chat', [CitizenController::class, 'inquiryChat'])->name('citizen.inquiry.chat');
     Route::post('/inquiry/manual', [CitizenController::class, 'submitManualInquiry'])->name('citizen.inquiry.manual');
+
+    // Inquiries Reply & Unsend (Moved for Guest Access)
+    Route::post('/inquiry/{inquiry}/reply', [CitizenController::class, 'replyInquiry'])->name('citizen.inquiry.reply');
+    Route::delete('/inquiry/{inquiry}', [CitizenController::class, 'deleteInquiry'])->name('citizen.inquiry.delete_inquiry');
+    Route::delete('/inquiry/replies/{response}', [CitizenController::class, 'deleteReply'])->name('citizen.inquiry.delete_reply');
 });
 
 // Citizen Protected Routes
@@ -130,8 +134,8 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     // Inquiries Management
     Route::get('/inquiries', [FacilitatorController::class, 'inquiries'])->name('facilitator.inquiries');
     Route::post('/inquiries/{inquiry}/reply', [FacilitatorController::class, 'replyInquiry'])->name('facilitator.inquiries.reply');
-    Route::post('/inquiries/{inquiry}/ai-draft', [FacilitatorController::class, 'generateAIDraft'])->name('facilitator.inquiries.ai_draft');
     Route::post('/inquiries/{inquiry}/status', [FacilitatorController::class, 'updateInquiryStatus'])->name('facilitator.inquiries.update_status');
+    Route::delete('/inquiries/{inquiry}', [FacilitatorController::class, 'deleteInquiry'])->name('facilitator.inquiries.delete');
 
     // Document Templates Management
     Route::get('/templates', [FacilitatorController::class, 'templates'])->name('facilitator.templates');
