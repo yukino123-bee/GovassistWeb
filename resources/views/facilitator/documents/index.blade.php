@@ -2,7 +2,7 @@
 
 @section('title', 'Checklist Documents Log - GovAssist')
 
-@section('page_title', 'Citizen Uploaded Documents')
+@section('page_title', 'Resident Uploaded Documents')
 
 @section('content')
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -10,14 +10,14 @@
         <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
         </svg>
-        All Uploaded Citizen Documents
+        All Uploaded Resident Documents
     </h3>
 
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
             <thead>
                 <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    <th class="pb-3">Citizen</th>
+                    <th class="pb-3">Resident</th>
                     <th class="pb-3">Checklist Requirement</th>
                     <th class="pb-3">Validation Status</th>
                     <th class="pb-3 text-right">Actions</th>

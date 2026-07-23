@@ -27,7 +27,7 @@ class FacilitatorController extends Controller
 {
     public function dashboard()
     {
-        $totalUsers = User::where('role', 'citizen')->count();
+        $totalUsers = User::where('role', 'resident')->count();
         $totalServices = GovernmentService::count();
         $totalAssessments = EligibilityAssessment::count();
         $totalInquiries = UserInquiry::count();
@@ -462,10 +462,10 @@ class FacilitatorController extends Controller
         return back()->with('success', 'Question deleted successfully.');
     }
 
-    // --- Citizens list ---
+    // --- Residents list ---
     public function users()
     {
-        $users = User::where('role', 'citizen')->orderBy('name', 'asc')->get();
+        $users = User::where('role', 'resident')->orderBy('name', 'asc')->get();
 
         return view('facilitator.users.index', compact('users'));
     }
@@ -631,13 +631,21 @@ class FacilitatorController extends Controller
         return view('facilitator.inquiries.index', compact('inquiries'));
     }
 
+    public function getMessages(UserInquiry $inquiry)
+    {
+        return response()->json([
+            'success' => true,
+            'inquiry' => $inquiry->load(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder']),
+        ]);
+    }
+
     public function replyInquiry(Request $request, UserInquiry $inquiry)
     {
         $request->validate([
             'message' => ['required', 'string'],
         ]);
 
-        InquiryRequirense::create([
+        $reply = InquiryRequirense::create([
             'inquiry_id' => $inquiry->id,
             'requireent_text' => $request->message,
             'responded_by' => auth()->id(),
@@ -645,7 +653,7 @@ class FacilitatorController extends Controller
 
         $inquiry->update(['status' => 'resolved']);
 
-        // Send email reply to citizen
+        // Send email reply to resident
         $email = $inquiry->user ? $inquiry->user->email : $inquiry->guest_email;
         if ($email) {
             try {
@@ -653,6 +661,14 @@ class FacilitatorController extends Controller
             } catch (\Exception $e) {
                 Log::error('Failed to send manual inquiry reply email: '.$e->getMessage());
             }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'reply' => $reply->load('responder'),
+                'inquiry' => $inquiry->fresh(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder']),
+            ]);
         }
 
         return back()->with('success', 'Reply sent successfully.');
@@ -731,7 +747,7 @@ class FacilitatorController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'citizen',
+            'role' => 'resident',
             'contact_number' => $request->contact_number,
             'dob' => $request->dob,
         ]);
@@ -790,7 +806,7 @@ class FacilitatorController extends Controller
     // --- Applications CRUD extensions ---
     public function createApplication()
     {
-        $users = User::where('role', 'citizen')->get();
+        $users = User::where('role', 'resident')->get();
         $services = GovernmentService::all();
 
         return view('facilitator.applications.create', compact('users', 'services'));
@@ -810,7 +826,7 @@ class FacilitatorController extends Controller
 
     public function editApplication(UserChecklist $checklist)
     {
-        $users = User::where('role', 'citizen')->get();
+        $users = User::where('role', 'resident')->get();
         $services = GovernmentService::all();
 
         return view('facilitator.applications.edit', compact('checklist', 'users', 'services'));
@@ -904,8 +920,8 @@ class FacilitatorController extends Controller
         $pendingApplications = UserChecklist::where('status', 'pending')->count();
         $rejectedApplications = UserChecklist::where('status', 'rejected')->count();
 
-        $totalCitizens = User::where('role', 'citizen')->count();
-        $verifiedCitizens = User::where('role', 'citizen')->whereNotNull('valid_id_path')->count();
+        $totalResidents = User::where('role', 'resident')->count();
+        $verifiedResidents = User::where('role', 'resident')->whereNotNull('valid_id_path')->count();
 
         $totalAssessments = EligibilityAssessment::count();
         $eligibleAssessments = EligibilityAssessment::where('status', 'eligible')->count();
@@ -920,8 +936,8 @@ class FacilitatorController extends Controller
             'approvedApplications',
             'pendingApplications',
             'rejectedApplications',
-            'totalCitizens',
-            'verifiedCitizens',
+            'totalResidents',
+            'verifiedResidents',
             'totalAssessments',
             'eligibleAssessments',
             'totalInquiries',
@@ -954,7 +970,7 @@ class FacilitatorController extends Controller
         $callback = function () use ($applications) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['Application ID', 'Citizen Name', 'Email', 'Assistance Program', 'Application Type', 'Status', 'Submitted Date', 'Remarks'], "\t");
+            fputcsv($file, ['Application ID', 'Resident Name', 'Email', 'Assistance Program', 'Application Type', 'Status', 'Submitted Date', 'Remarks'], "\t");
 
             foreach ($applications as $app) {
                 fputcsv($file, [
@@ -975,9 +991,9 @@ class FacilitatorController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function exportCitizens(Request $request)
+    public function exportResidents(Request $request)
     {
-        $query = User::where('role', 'citizen');
+        $query = User::where('role', 'resident');
 
         if ($request->filled('verified')) {
             if ($request->verified === 'yes') {
@@ -987,8 +1003,8 @@ class FacilitatorController extends Controller
             }
         }
 
-        $citizens = $query->orderBy('created_at', 'desc')->get();
-        $filename = 'govassist_citizens_registry_'.now()->format('Y-m-d').'.xls';
+        $residents = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'govassist_residents_registry_'.now()->format('Y-m-d').'.xls';
 
         $headers = [
             'Content-Type' => 'application/vnd.ms-excel',
@@ -996,12 +1012,12 @@ class FacilitatorController extends Controller
             'Cache-Control' => 'max-age=0',
         ];
 
-        $callback = function () use ($citizens) {
+        $callback = function () use ($residents) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['User ID', 'Citizen Name', 'Email', 'Contact Number', 'Civil Status', 'Date of Birth', 'Complete Address', 'Valid ID Status', 'Registered Date'], "\t");
+            fputcsv($file, ['User ID', 'Resident Name', 'Email', 'Contact Number', 'Civil Status', 'Date of Birth', 'Complete Address', 'Valid ID Status', 'Registered Date'], "\t");
 
-            foreach ($citizens as $c) {
+            foreach ($residents as $c) {
                 fputcsv($file, [
                     $c->id,
                     $c->name,
@@ -1041,7 +1057,7 @@ class FacilitatorController extends Controller
         $callback = function () use ($assessments) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['Assessment ID', 'Citizen Name', 'Email', 'Assistance Program', 'Assessment Status', 'Calculated At'], "\t");
+            fputcsv($file, ['Assessment ID', 'Resident Name', 'Email', 'Assistance Program', 'Assessment Status', 'Calculated At'], "\t");
 
             foreach ($assessments as $a) {
                 fputcsv($file, [
@@ -1085,7 +1101,7 @@ class FacilitatorController extends Controller
             foreach ($inquiries as $inq) {
                 fputcsv($file, [
                     $inq->id,
-                    $inq->user ? $inq->user->name : ($inq->guest_name ?? 'Guest Citizen'),
+                    $inq->user ? $inq->user->name : ($inq->guest_name ?? 'Guest Resident'),
                     $inq->user ? $inq->user->email : ($inq->guest_email ?? 'N/A'),
                     'Manual Helpdesk',
                     $inq->service ? $inq->service->name_en : 'General Inquiry',
@@ -1122,7 +1138,7 @@ class FacilitatorController extends Controller
 
             // Summary Stats
             fputcsv($file, ['METRIC SUMMARY', 'TOTAL RECORD COUNT'], "\t");
-            fputcsv($file, ['Total Registered Citizens', User::where('role', 'citizen')->count()], "\t");
+            fputcsv($file, ['Total Registered Residents', User::where('role', 'resident')->count()], "\t");
             fputcsv($file, ['Total Applications Submitted', UserChecklist::count()], "\t");
             fputcsv($file, ['Approved Applications', UserChecklist::where('status', 'approved')->count()], "\t");
             fputcsv($file, ['Pending Review Applications', UserChecklist::where('status', 'pending')->count()], "\t");
@@ -1132,7 +1148,7 @@ class FacilitatorController extends Controller
 
             // Applications Data
             fputcsv($file, ['RECENT APPLICATIONS LIST'], "\t");
-            fputcsv($file, ['App ID', 'Citizen Name', 'Email', 'Program', 'Status', 'Submitted Date'], "\t");
+            fputcsv($file, ['App ID', 'Resident Name', 'Email', 'Program', 'Status', 'Submitted Date'], "\t");
             $apps = UserChecklist::with(['user', 'service'])->orderBy('created_at', 'desc')->take(100)->get();
             foreach ($apps as $a) {
                 fputcsv($file, [$a->id, $a->user?->name ?? 'N/A', $a->user?->email ?? 'N/A', $a->service?->name_en ?? 'N/A', strtoupper($a->status), $a->created_at?->format('Y-m-d H:i:s') ?? ''], "\t");

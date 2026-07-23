@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @section('title', __('messages.eligibility_title'))
 
@@ -39,7 +39,7 @@
                         </div>
                         
                         <div>
-                            <a href="{{ route('citizen.eligibility.assess', $service->id) }}" class="inline-block w-full text-center px-4 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-extrabold uppercase tracking-widest">
+                            <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="inline-block w-full text-center px-4 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-extrabold uppercase tracking-widest">
                                 {{ __('messages.start_assessment') }}
                             </a>
                         </div>
@@ -102,7 +102,7 @@
                                 @endif
 
                                 @if($assess->status === 'eligible')
-                                    <a href="{{ route('citizen.eligibility.checklist', $assess->service->id) }}" class="text-[10px] font-bold uppercase tracking-wider text-red-700 hover:text-red-900 flex items-center space-x-1">
+                                    <a href="{{ route('resident.eligibility.checklist', $assess->service->id) }}" class="text-[10px] font-bold uppercase tracking-wider text-red-700 hover:text-red-900 flex items-center space-x-1">
                                         <span>{{ __('messages.checklist_btn') }}</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -151,7 +151,7 @@
 <script>
     function openReassessmentModal(serviceId, serviceName) {
         document.getElementById('reassessmentServiceName').innerText = serviceName;
-        document.getElementById('reassessmentForm').action = `/citizen/eligibility/reassess/${serviceId}`;
+        document.getElementById('reassessmentForm').action = `/resident/eligibility/reassess/${serviceId}`;
         
         const modal = document.getElementById('reassessmentModal');
         const modalContent = document.getElementById('reassessmentModalContent');

@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @php
     $serviceTrans = $service->translations->where('language_code', app()->getLocale())->first();
@@ -10,7 +10,7 @@
 @section('header_title', 'Assess Service')
 
 @section('back_button')
-<a href="{{ route('citizen.eligibility') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
+<a href="{{ route('resident.eligibility') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
     </svg>
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Questions Form -->
-    <form id="assess-form" action="{{ route('citizen.eligibility.assess.submit', $service->id) }}" method="POST" class="space-y-4">
+    <form id="assess-form" action="{{ route('resident.eligibility.assess.submit', $service->id) }}" method="POST" class="space-y-4">
         @csrf
 
         @foreach($questions as $q)

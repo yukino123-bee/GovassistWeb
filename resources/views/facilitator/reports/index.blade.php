@@ -28,7 +28,7 @@
                     Official System Reports & Analytics Center
                 </h2>
                 <p class="text-xs text-red-100/90 leading-relaxed font-medium">
-                    Generate and download comprehensive Excel spreadsheets for citizens registry data, financial assistance applications, and eligibility assessment logs.
+                    Generate and download comprehensive Excel spreadsheets for residents registry data, financial assistance applications, and eligibility assessment logs.
                 </p>
             </div>
 
@@ -62,12 +62,12 @@
             </div>
         </div>
 
-        <!-- 2. Citizens -->
+        <!-- 2. Residents -->
         <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-3xs hover:border-blue-200 transition-all flex items-center justify-between">
             <div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Citizens Directory</span>
-                <span class="text-xl font-black text-slate-800 block mt-0.5">{{ number_format($totalCitizens) }}</span>
-                <span class="text-[9px] text-emerald-600 font-extrabold block mt-1">✓ {{ $verifiedCitizens }} ID Verified</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Residents Directory</span>
+                <span class="text-xl font-black text-slate-800 block mt-0.5">{{ number_format($totalResidents) }}</span>
+                <span class="text-[9px] text-emerald-600 font-extrabold block mt-1">✓ {{ $verifiedResidents }} ID Verified</span>
             </div>
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +146,7 @@
             </form>
         </div>
 
-        <!-- Module 2: Citizens Registry Directory -->
+        <!-- Module 2: Residents Registry Directory -->
         <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-5 flex flex-col justify-between hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
             <div class="space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -157,21 +157,21 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Citizens Registry</h3>
-                            <p class="text-[10px] text-slate-400 font-extrabold">{{ number_format($totalCitizens) }} Registered Citizens</p>
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Residents Registry</h3>
+                            <p class="text-[10px] text-slate-400 font-extrabold">{{ number_format($totalResidents) }} Registered Residents</p>
                         </div>
                     </div>
                 </div>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
-                    Exports complete citizen demographic database including full legal name, email, mobile contact, complete residential address, civil status, birthdate, and ID status.
+                    Exports complete resident demographic database including full legal name, email, mobile contact, complete residential address, civil status, birthdate, and ID status.
                 </p>
             </div>
 
-            <form action="{{ route('facilitator.reports.export.citizens') }}" method="GET" class="space-y-4 pt-2">
+            <form action="{{ route('facilitator.reports.export.residents') }}" method="GET" class="space-y-4 pt-2">
                 <div class="space-y-1">
                     <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Valid ID Verification Status</label>
                     <select name="verified" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs font-semibold text-slate-700">
-                        <option value="">All Registered Citizens</option>
+                        <option value="">All Registered Residents</option>
                         <option value="yes">ID Uploaded & Verified Only</option>
                         <option value="no">Pending ID Verification Only</option>
                     </select>
@@ -181,7 +181,7 @@
                     <svg class="w-4.5 h-4.5 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    <span>Download Citizens Excel (.xls)</span>
+                    <span>Download Residents Excel (.xls)</span>
                 </button>
             </form>
         </div>
@@ -212,8 +212,8 @@
                     <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Evaluation Outcome Filter</label>
                     <select name="status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs font-semibold text-slate-700">
                         <option value="">All Assessment Outcomes</option>
-                        <option value="eligible">Eligible Citizens Only</option>
-                        <option value="ineligible">Ineligible Citizens Only</option>
+                        <option value="eligible">Eligible Residents Only</option>
+                        <option value="ineligible">Ineligible Residents Only</option>
                     </select>
                 </div>
 

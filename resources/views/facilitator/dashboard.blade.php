@@ -204,10 +204,10 @@
             </div>
             
             <div class="grid grid-cols-2 gap-3">
-                <!-- Total Citizens (Light Blue Theme) -->
+                <!-- Total Residents (Light Blue Theme) -->
                 <div class="group bg-blue-50/70 border border-blue-200 p-3.5 rounded-xl flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-blue-300">
                     <div>
-                        <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider block leading-tight">Total Citizens</span>
+                        <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider block leading-tight">Total Residents</span>
                         <span class="text-2xl font-black text-slate-850 block mt-1 transition-colors duration-300 group-hover:text-blue-700 leading-none">{{ $totalUsers }}</span>
                     </div>
                     <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-blue-200/40 transition-all duration-350 group-hover:rotate-6">
@@ -357,7 +357,7 @@
                 <table class="w-full text-left text-xs text-slate-650">
                     <thead>
                         <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
-                            <th class="px-5 py-3">Citizen Name</th>
+                            <th class="px-5 py-3">Resident Name</th>
                             <th class="px-5 py-3">Assistance Service</th>
                             <th class="px-5 py-3">Submitted At</th>
                             <th class="px-5 py-3">Status</th>
@@ -367,7 +367,7 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($recentApplications as $app)
                             <tr class="hover:bg-slate-50/40 transition-colors">
-                                <td class="px-5 py-3 font-bold text-slate-850">{{ $app->user?->name ?? 'Citizen' }}</td>
+                                <td class="px-5 py-3 font-bold text-slate-850">{{ $app->user?->name ?? 'Resident' }}</td>
                                 <td class="px-5 py-3 text-slate-700">{{ $app->service?->name_en ?? 'Service' }}</td>
                                 <td class="px-5 py-3 text-slate-450">{{ $app->created_at->format('M d, Y h:i A') }}</td>
                                 <td class="px-5 py-3">

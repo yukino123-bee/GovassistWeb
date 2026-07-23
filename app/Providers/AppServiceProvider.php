@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
                     return [
                         'type' => 'application',
                         'title' => 'New Application',
-                        'message' => ($app->user?->name ?? 'Citizen').' applied for '.($app->service?->name_en ?? 'Service'),
+                        'message' => ($app->user?->name ?? 'Resident').' applied for '.($app->service?->name_en ?? 'Service'),
                         'time' => $app->created_at,
                         'link' => route('facilitator.applications.show', $app->id),
                     ];
@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
                     return [
                         'type' => 'reassessment',
                         'title' => 'Reassessment Request',
-                        'message' => ($reassess->user?->name ?? 'Citizen').' requested reassessment for '.($reassess->service?->name_en ?? 'Service'),
+                        'message' => ($reassess->user?->name ?? 'Resident').' requested reassessment for '.($reassess->service?->name_en ?? 'Service'),
                         'time' => $reassess->created_at,
                         'link' => route('facilitator.reassessments'),
                     ];

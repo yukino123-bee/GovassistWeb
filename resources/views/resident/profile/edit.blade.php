@@ -1,11 +1,11 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @section('title', __('messages.edit_profile'))
 
 @section('header_title', __('messages.edit_profile'))
 
 @section('back_button')
-<a href="{{ route('citizen.profile') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
+<a href="{{ route('resident.profile') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
     </svg>
@@ -23,21 +23,21 @@
             </div>
             <img id="avatar-preview" src="{{ Auth::user()->avatar ? Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) : '' }}" alt="Avatar" class="w-full h-full object-cover {{ Auth::user()->avatar ? '' : 'hidden' }}">
             
-            <form action="{{ route('citizen.profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form-edit" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+            <form action="{{ route('resident.profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form-edit" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                 @csrf
                 <label class="w-full h-full flex flex-col items-center justify-center text-white cursor-pointer">
                     <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Change</span>
-                    <input type="file" name="avatar" class="hidden" accept="image/*" onchange="previewCitizenImage(event); document.getElementById('avatar-form-edit').submit();">
+                    <input type="file" name="avatar" class="hidden" accept="image/*" onchange="previewResidentImage(event); document.getElementById('avatar-form-edit').submit();">
                 </label>
             </form>
         </div>
     </div>
 
     <!-- Edit Form -->
-    <form action="{{ route('citizen.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form action="{{ route('resident.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         @if($errors->any())
@@ -149,7 +149,7 @@
 </div>
 
 <script>
-    function previewCitizenImage(event) {
+    function previewResidentImage(event) {
         const input = event.target;
         if (input.files && input.files[0]) {
             const reader = new FileReader();

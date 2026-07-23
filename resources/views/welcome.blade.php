@@ -31,7 +31,7 @@
         
         <div class="flex items-center space-x-2">
             @auth
-                <a href="{{ Auth::user()->isFacilitator() ? route('facilitator.dashboard') : route('citizen.home') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider transition-colors">
+                <a href="{{ Auth::user()->isFacilitator() ? route('facilitator.dashboard') : route('resident.home') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider transition-colors">
                     Go to Portal
                 </a>
             @else
@@ -62,7 +62,7 @@
                 </p>
                 <div class="pt-2 flex flex-col sm:flex-row gap-4">
                     @auth
-                        <a href="{{ Auth::user()->isFacilitator() ? route('facilitator.dashboard') : route('citizen.home') }}" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-widest text-center transition-colors">
+                        <a href="{{ Auth::user()->isFacilitator() ? route('facilitator.dashboard') : route('resident.home') }}" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-widest text-center transition-colors">
                             Enter Your Dashboard
                         </a>
                     @else
@@ -78,7 +78,7 @@
 
             <!-- Visual Cards / Portals -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
-                <!-- Citizen Portal Card -->
+                <!-- Resident Portal Card -->
                 <div class="bg-white border border-slate-200 shadow-sm p-6 hover:border-slate-400 transition-colors">
                     <div class="flex items-center space-x-4 mb-4">
                         <div class="p-2.5 border border-red-200 text-red-700 bg-red-50/50">
@@ -87,7 +87,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Citizen Portal</h3>
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Resident Portal</h3>
                             <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Residents & Applicants</p>
                         </div>
                     </div>

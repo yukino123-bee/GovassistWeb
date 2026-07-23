@@ -2,7 +2,7 @@
 
 @section('title', 'Manage Applications - GovAssist')
 
-@section('page_title', 'Citizen Applications')
+@section('page_title', 'Resident Applications')
 
 @section('content')
 <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
@@ -29,7 +29,7 @@
         <table class="w-full text-left text-xs text-slate-600">
             <thead>
                 <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
-                    <th class="px-6 py-3.5">Citizen</th>
+                    <th class="px-6 py-3.5">Resident</th>
                     <th class="px-6 py-3.5">Service Program</th>
                     <th class="px-6 py-3.5">Date Applied</th>
                     <th class="px-6 py-3.5">Status</th>

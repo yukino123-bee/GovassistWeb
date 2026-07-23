@@ -21,34 +21,34 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('root redirects guest to citizen home', function () {
+test('root redirects guest to resident home', function () {
     $response = $this->get('/');
-    $response->assertRedirect('/citizen/home');
+    $response->assertRedirect('/resident/home');
 });
 
-test('guest can access citizen home', function () {
-    $response = $this->get('/citizen/home');
+test('guest can access resident home', function () {
+    $response = $this->get('/resident/home');
     $response->assertStatus(200);
 });
 
-test('guest cannot access citizen profile', function () {
-    $response = $this->get('/citizen/profile');
+test('guest cannot access resident profile', function () {
+    $response = $this->get('/resident/profile');
     $response->assertRedirect('/login');
 });
 
-test('citizen can register, login, and access citizen home', function () {
+test('resident can register, login, and access resident home', function () {
     // 1. Register
     $registerResponse = $this->post('/register', [
         'name' => 'Mark Cagatin',
-        'email' => 'mark@citizen.com',
+        'email' => 'mark@resident.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
 
-    $registerResponse->assertRedirect('/citizen/home');
+    $registerResponse->assertRedirect('/resident/home');
     $this->assertDatabaseHas('users', [
-        'email' => 'mark@citizen.com',
-        'role' => 'citizen',
+        'email' => 'mark@resident.com',
+        'role' => 'resident',
     ]);
 
     // Logout
@@ -56,17 +56,17 @@ test('citizen can register, login, and access citizen home', function () {
 
     // 2. Login
     $loginResponse = $this->post('/login', [
-        'email' => 'mark@citizen.com',
+        'email' => 'mark@resident.com',
         'password' => 'password123',
     ]);
 
-    $loginResponse->assertRedirect('/citizen/home');
+    $loginResponse->assertRedirect('/resident/home');
 });
 
-test('citizen cannot access facilitator dashboard', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+test('resident cannot access facilitator dashboard', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
 
-    $response = $this->actingAs($citizen)->get('/facilitator/dashboard');
+    $response = $this->actingAs($resident)->get('/facilitator/dashboard');
     $response->assertStatus(403);
 });
 
@@ -77,7 +77,7 @@ test('language toggle changes session language', function () {
 });
 
 test('eligibility assessment logic works correctly', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
 
     // Create a category
     $category = ServiceCategory::create([
@@ -121,40 +121,40 @@ test('eligibility assessment logic works correctly', function () {
         'expected_value' => '15000',
     ]);
 
-    // Rule 2: Are you a senior citizen? Must be true (boolean check)
+    // Rule 2: Are you a senior resident? Must be true (boolean check)
     $q2 = EligibilityQuestion::create([
         'service_id' => $service->id,
-        'question_text_en' => 'Are you a senior citizen?',
-        'question_text_ceb' => 'Senior citizen ba ikaw?',
-        'question_text_fil' => 'Ikaw ba ay senior citizen?',
+        'question_text_en' => 'Are you a senior resident?',
+        'question_text_ceb' => 'Senior resident ba ikaw?',
+        'question_text_fil' => 'Ikaw ba ay senior resident?',
         'type' => 'boolean',
         'operator' => '==',
         'expected_value' => 'true',
     ]);
 
     // 1. Submit passing inputs (income = 12000, senior = true)
-    $passResponse = $this->actingAs($citizen)->post(route('citizen.eligibility.assess.submit', $service->id), [
+    $passResponse = $this->actingAs($resident)->post(route('resident.eligibility.assess.submit', $service->id), [
         "question_{$q1->id}" => '12000',
         "question_{$q2->id}" => 'true',
     ]);
 
     // Assert that the assessment created is eligible
-    $assessment = EligibilityAssessment::where('user_id', $citizen->id)->where('service_id', $service->id)->first();
+    $assessment = EligibilityAssessment::where('user_id', $resident->id)->where('service_id', $service->id)->first();
     expect($assessment)->not->toBeNull();
     expect($assessment->status)->toBe('eligible');
-    $passResponse->assertRedirect(route('citizen.eligibility.result', $assessment->id));
+    $passResponse->assertRedirect(route('resident.eligibility.result', $assessment->id));
 
     // 2. Submit failing inputs (income = 16000, senior = true) -> should calculate as ineligible
-    $citizen2 = User::factory()->create(['role' => 'citizen']);
-    $failResponse = $this->actingAs($citizen2)->post(route('citizen.eligibility.assess.submit', $service->id), [
+    $resident2 = User::factory()->create(['role' => 'resident']);
+    $failResponse = $this->actingAs($resident2)->post(route('resident.eligibility.assess.submit', $service->id), [
         "question_{$q1->id}" => '16000',
         "question_{$q2->id}" => 'true',
     ]);
 
-    $failAssessment = EligibilityAssessment::where('user_id', $citizen2->id)->where('service_id', $service->id)->first();
+    $failAssessment = EligibilityAssessment::where('user_id', $resident2->id)->where('service_id', $service->id)->first();
     expect($failAssessment)->not->toBeNull();
     expect($failAssessment->status)->toBe('ineligible');
-    $failResponse->assertRedirect(route('citizen.eligibility.result', $failAssessment->id));
+    $failResponse->assertRedirect(route('resident.eligibility.result', $failAssessment->id));
 });
 
 test('facilitator can manage document templates by program', function () {
@@ -210,7 +210,7 @@ test('facilitator can manage document templates by program', function () {
 });
 
 test('document templates verification matches keywords for PDF uploads', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
 
     $category = ServiceCategory::create(['category_name' => 'Category']);
     $service = GovernmentService::create([
@@ -239,7 +239,7 @@ test('document templates verification matches keywords for PDF uploads', functio
     Storage::fake('public');
     $file = UploadedFile::fake()->create('document.pdf', 10);
 
-    $response = $this->actingAs($citizen)->post(route('citizen.eligibility.upload', [$service->id, $requirement->id]), [
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => $file,
     ]);
 
@@ -252,7 +252,7 @@ test('document templates verification matches keywords for PDF uploads', functio
 
 test('facilitator layout loads notifications correctly', function () {
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -263,7 +263,7 @@ test('facilitator layout loads notifications correctly', function () {
 
     // Create pending checklist
     UserChecklist::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'pending',
     ]);
@@ -281,7 +281,7 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
     Mail::fake();
 
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
 
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
@@ -293,7 +293,7 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
 
     // Bot inquiry
     $botInq = UserInquiry::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'inquiry_text' => 'Hello Bot',
         'status' => 'pending',
@@ -301,7 +301,7 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
 
     // Manual inquiry
     $manualInq = UserInquiry::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'inquiry_text' => 'Hello Admin',
         'status' => 'pending',
@@ -320,8 +320,8 @@ test('manual inquiries can be replied to, while chatbot inquiries hide reply for
         'requireent_text' => 'Hello back',
     ]);
 
-    Mail::assertSent(InquiryReplyEmail::class, function ($mail) use ($citizen) {
-        return $mail->hasTo($citizen->email);
+    Mail::assertSent(InquiryReplyEmail::class, function ($mail) use ($resident) {
+        return $mail->hasTo($resident->email);
     });
 });
 
@@ -329,7 +329,7 @@ test('approving application triggers email notification', function () {
     Mail::fake();
 
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -339,7 +339,7 @@ test('approving application triggers email notification', function () {
     ]);
 
     $checklist = UserChecklist::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'pending',
     ]);
@@ -351,14 +351,14 @@ test('approving application triggers email notification', function () {
 
     $response->assertRedirect(route('facilitator.applications'));
 
-    Mail::assertSent(ApplicationApprovedEmail::class, function ($mail) use ($citizen) {
-        return $mail->hasTo($citizen->email);
+    Mail::assertSent(ApplicationApprovedEmail::class, function ($mail) use ($resident) {
+        return $mail->hasTo($resident->email);
     });
 });
 
 test('assessment details route displays user answers', function () {
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -368,7 +368,7 @@ test('assessment details route displays user answers', function () {
     ]);
 
     $assess = EligibilityAssessment::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'eligible',
     ]);
@@ -388,7 +388,7 @@ test('assessment details route displays user answers', function () {
 
 test('facilitator can batch update document statuses', function () {
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -398,7 +398,7 @@ test('facilitator can batch update document statuses', function () {
     ]);
 
     $checklist = UserChecklist::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'pending',
     ]);
@@ -430,7 +430,7 @@ test('facilitator can batch update document statuses', function () {
 
 test('facilitator can download all documents zipped', function () {
     $admin = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create(['role' => 'citizen']);
+    $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Cat']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -440,7 +440,7 @@ test('facilitator can download all documents zipped', function () {
     ]);
 
     $checklist = UserChecklist::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'pending',
     ]);

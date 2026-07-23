@@ -18,7 +18,7 @@
             <thead>
                 <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
                     <th class="px-6 py-3.5">Date Requested</th>
-                    <th class="px-6 py-3.5">Citizen</th>
+                    <th class="px-6 py-3.5">Resident</th>
                     <th class="px-6 py-3.5">Service Program</th>
                     <th class="px-6 py-3.5 w-1/3">Reason</th>
                     <th class="px-6 py-3.5">Status</th>
@@ -57,7 +57,7 @@
                                     <form action="{{ route('facilitator.reassessments.update_status', $req->id) }}" method="POST" class="inline" id="approve-req-{{ $req->id }}">
                                         @csrf
                                         <input type="hidden" name="status" value="approved">
-                                        <button type="button" onclick="showConfirmModal('Are you sure you want to approve this reassessment? The citizen\'s previous assessment will be deleted so they can retake it.', () => document.getElementById('approve-req-{{ $req->id }}').submit(), 'Approve Request')" class="text-xs font-extrabold uppercase tracking-widest text-emerald-700 hover:text-emerald-900 px-3 py-1.5 hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-200 rounded-xl">
+                                        <button type="button" onclick="showConfirmModal('Are you sure you want to approve this reassessment? The resident\'s previous assessment will be deleted so they can retake it.', () => document.getElementById('approve-req-{{ $req->id }}').submit(), 'Approve Request')" class="text-xs font-extrabold uppercase tracking-widest text-emerald-700 hover:text-emerald-900 px-3 py-1.5 hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-200 rounded-xl">
                                             Approve
                                         </button>
                                     </form>

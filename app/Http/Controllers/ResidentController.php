@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
-class CitizenController extends Controller
+class ResidentController extends Controller
 {
     public function home(Request $request)
     {
@@ -43,7 +43,7 @@ class CitizenController extends Controller
                 ->get()
             : collect();
 
-        return view('citizen.home', compact('categories', 'applications', 'search'));
+        return view('resident.home', compact('categories', 'applications', 'search'));
     }
 
     public function eligibility()
@@ -64,7 +64,7 @@ class CitizenController extends Controller
                 ->keyBy('service_id')
             : collect();
 
-        return view('citizen.eligibility.index', compact('services', 'assessments', 'reassessmentRequests'));
+        return view('resident.eligibility.index', compact('services', 'assessments', 'reassessmentRequests'));
     }
 
     public function showAssessForm(GovernmentService $service)
@@ -74,12 +74,12 @@ class CitizenController extends Controller
             ->first();
 
         if ($existingAssessment) {
-            return redirect()->route('citizen.eligibility')->with('error', 'You have already taken the assessment for this program. You can request a reassessment if necessary.');
+            return redirect()->route('resident.eligibility')->with('error', 'You have already taken the assessment for this program. You can request a reassessment if necessary.');
         }
 
         $questions = $service->eligibilityQuestions;
 
-        return view('citizen.eligibility.assess', compact('service', 'questions'));
+        return view('resident.eligibility.assess', compact('service', 'questions'));
     }
 
     public function processAssessForm(Request $request, GovernmentService $service)
@@ -87,7 +87,7 @@ class CitizenController extends Controller
         $user = Auth::user();
 
         if (EligibilityAssessment::where('user_id', $user->id)->where('service_id', $service->id)->exists()) {
-            return redirect()->route('citizen.eligibility')->with('error', 'You have already taken the assessment for this program.');
+            return redirect()->route('resident.eligibility')->with('error', 'You have already taken the assessment for this program.');
         }
 
         $questions = $service->eligibilityQuestions;
@@ -142,7 +142,7 @@ class CitizenController extends Controller
             ]);
         }
 
-        return redirect()->route('citizen.eligibility.result', ['refNo' => $assessment->id]);
+        return redirect()->route('resident.eligibility.result', ['refNo' => $assessment->id]);
     }
 
     public function showAssessResult($refNo)
@@ -152,7 +152,7 @@ class CitizenController extends Controller
             ->where('id', $refNo)
             ->firstOrFail();
 
-        return view('citizen.eligibility.result', compact('assessment'));
+        return view('resident.eligibility.result', compact('assessment'));
     }
 
     public function requestReassessment(Request $request, GovernmentService $service)
@@ -188,7 +188,7 @@ class CitizenController extends Controller
             ->exists();
 
         if (! $eligible) {
-            return redirect()->route('citizen.eligibility')->with('error', 'You must first qualify through the Eligibility Assessment.');
+            return redirect()->route('resident.eligibility')->with('error', 'You must first qualify through the Eligibility Assessment.');
         }
 
         $checklist = UserChecklist::where('user_id', Auth::id())
@@ -232,7 +232,7 @@ class CitizenController extends Controller
 
         $alreadyApplied = $checklist && in_array($checklist->status, ['pending', 'approved', 'rejected']);
 
-        return view('citizen.eligibility.checklist', compact('service', 'requirements', 'uploadedDocs', 'allMandatoryUploaded', 'alreadyApplied', 'checklist'));
+        return view('resident.eligibility.checklist', compact('service', 'requirements', 'uploadedDocs', 'allMandatoryUploaded', 'alreadyApplied', 'checklist'));
     }
 
     public function setApplicationType(Request $request, GovernmentService $service)
@@ -377,21 +377,14 @@ class CitizenController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('citizen.home')->with('success', 'Application submitted successfully!');
+        return redirect()->route('resident.home')->with('success', 'Application submitted successfully!');
     }
 
     public function inquiry(Request $request)
     {
-        $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
-
         if (Auth::check()) {
             $inquiries = UserInquiry::with(['service', 'responses.responder'])
                 ->where('user_id', Auth::id())
-                ->orderBy('created_at', 'desc')
-                ->get();
-        } elseif ($guestEmail) {
-            $inquiries = UserInquiry::with(['service', 'responses.responder'])
-                ->where('guest_email', $guestEmail)
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
@@ -402,7 +395,7 @@ class CitizenController extends Controller
         $commonQuestions = CommonQuestion::all();
         $templates = collect();
 
-        return view('citizen.inquiry.bot', compact('inquiries', 'services', 'commonQuestions', 'templates'));
+        return view('resident.inquiry.bot', compact('inquiries', 'services', 'commonQuestions', 'templates'));
     }
 
     public function submitManualInquiry(Request $request)
@@ -410,6 +403,7 @@ class CitizenController extends Controller
         $rules = [
             'inquiry_text' => ['required', 'string'],
             'service_id' => ['nullable', 'exists:government_services,id'],
+            'inquiry_id' => ['nullable', 'exists:user_inquiries,id'],
         ];
 
         if (! Auth::check()) {
@@ -420,10 +414,17 @@ class CitizenController extends Controller
         $request->validate($rules);
 
         $inquiry = null;
-        if (Auth::check()) {
-            $inquiry = UserInquiry::where('user_id', Auth::id())->first();
-        } else {
-            $inquiry = UserInquiry::where('guest_email', $request->input('guest_email'))->first();
+
+        if ($request->filled('inquiry_id')) {
+            if (Auth::check()) {
+                $inquiry = UserInquiry::where('id', $request->input('inquiry_id'))
+                    ->where('user_id', Auth::id())
+                    ->first();
+            } else {
+                $inquiry = UserInquiry::where('id', $request->input('inquiry_id'))
+                    ->where('guest_email', $request->input('guest_email'))
+                    ->first();
+            }
         }
 
         if ($inquiry) {
@@ -457,44 +458,47 @@ class CitizenController extends Controller
             ]);
         }
 
-        if (! Auth::check()) {
-            session([
-                'guest_email' => $request->input('guest_email'),
-                'guest_name' => $request->input('guest_name'),
-            ]);
-        }
-
         if ($request->wantsJson() || $request->ajax()) {
             $response = response()->json([
                 'success' => true,
                 'inquiry' => $inquiry->load(['service', 'responses.responder']),
             ]);
 
-            if (! Auth::check()) {
-                $response->cookie('guest_email', $request->input('guest_email'), 43200);
-                $response->cookie('guest_name', $request->input('guest_name'), 43200);
-            }
-
             return $response;
         }
 
         $redirect = back()->with('success', 'Your inquiry has been sent to the administrators.');
-        if (! Auth::check()) {
-            $redirect->cookie('guest_email', $request->input('guest_email'), 43200);
-            $redirect->cookie('guest_name', $request->input('guest_name'), 43200);
-        }
 
         return $redirect;
     }
 
+    public function getMessages(Request $request, UserInquiry $inquiry)
+    {
+        if (Auth::check()) {
+            if ($inquiry->user_id !== Auth::id()) {
+                abort(403);
+            }
+        } else {
+            $guestEmail = $request->input('guest_email');
+            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+                abort(403);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'inquiry' => $inquiry->load(['service', 'responses.responder']),
+        ]);
+    }
+
     public function profile()
     {
-        return view('citizen.profile.show');
+        return view('resident.profile.show');
     }
 
     public function editProfile()
     {
-        return view('citizen.profile.edit');
+        return view('resident.profile.edit');
     }
 
     public function updateProfile(Request $request)
@@ -530,7 +534,7 @@ class CitizenController extends Controller
 
         $user->save();
 
-        return redirect()->route('citizen.profile')->with('success', 'Profile updated successfully.');
+        return redirect()->route('resident.profile')->with('success', 'Profile updated successfully.');
     }
 
     public function updateAvatar(Request $request)
@@ -572,7 +576,7 @@ class CitizenController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            $guestEmail = $request->input('guest_email');
             if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
                 abort(403);
             }
@@ -604,7 +608,7 @@ class CitizenController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            $guestEmail = $request->input('guest_email');
             if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
                 abort(403);
             }
@@ -623,7 +627,7 @@ class CitizenController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->cookie('guest_email') ?? session('guest_email') ?? $request->input('guest_email');
+            $guestEmail = $request->input('guest_email');
             if (! $guestEmail || ! $response->inquiry || $response->inquiry->guest_email !== $guestEmail) {
                 abort(403);
             }

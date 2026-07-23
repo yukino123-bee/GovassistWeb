@@ -2,7 +2,7 @@
 
 @section('title', 'Manage Inquiries - GovAssist')
 
-@section('page_title', 'Citizen Inquiries & Helpdesk')
+@section('page_title', 'Resident Inquiries & Helpdesk')
 
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -12,7 +12,7 @@
         <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 sticky top-0 z-10 mb-3">
             <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2 block animate-pulse"></span>
-                Citizen Inbox
+                Resident Inbox
             </h3>
         </div>
 
@@ -92,12 +92,13 @@
                     <div class="w-10 h-10 rounded-full bg-red-700 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:bg-red-800 transition-colors" id="thread-avatar">
                         C
                     </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest block group-hover:text-red-700 transition-colors" id="inq-sender">Citizen</h3>
-                            <span class="text-[9px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold border border-red-100 group-hover:bg-red-700 group-hover:text-white transition-all">View Profile ↗</span>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest block group-hover:text-red-700 transition-colors" id="inq-sender">Resident</h3>
+                                <span class="text-[9px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold border border-red-100 group-hover:bg-red-700 group-hover:text-white transition-all">View Profile ↗</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-semibold truncate" id="inq-sub-text">resident@example.com</p>
                         </div>
-                    </div>
                 </div>
                 <div class="flex items-center space-x-3">
                     <span class="text-xs font-black text-slate-450 uppercase tracking-widest" id="inq-status-badge">Status</span>
@@ -160,7 +161,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
             <h4 class="text-xs font-extrabold text-slate-700 uppercase tracking-widest mb-1">No Inquiry Selected</h4>
-            <p class="text-xs max-w-xs leading-relaxed">Select a citizen inquiry from the inbox on the left to view the thread, view user details, and send a reply.</p>
+            <p class="text-xs max-w-xs leading-relaxed">Select a resident inquiry from the inbox on the left to view the thread, view user details, and send a reply.</p>
         </div>
 
     </div>
@@ -168,7 +169,7 @@
 </div>
 
 <!-- User Profile Inspection Modal -->
-<div id="citizen-profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div id="resident-profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white border border-slate-200 max-w-lg w-full rounded-2xl shadow-2xl overflow-hidden transform transition-all relative">
         
         <!-- Header banner -->
@@ -178,11 +179,11 @@
                     C
                 </div>
                 <div>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wide leading-tight text-white" id="modal-user-name">Citizen Profile</h3>
+                    <h3 class="text-sm font-extrabold uppercase tracking-wide leading-tight text-white" id="modal-user-name">Resident Profile</h3>
                     <p class="text-xs text-red-200 font-semibold" id="modal-user-email">email@example.com</p>
                 </div>
             </div>
-            <button type="button" onclick="closeCitizenProfileModal()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors focus:outline-none">
+            <button type="button" onclick="closeResidentProfileModal()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors focus:outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -196,7 +197,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
                     <span class="text-[10px] font-black uppercase text-slate-400 block tracking-wider mb-0.5">Account Role</span>
-                    <span class="text-xs font-bold text-slate-800 uppercase tracking-wide" id="modal-user-role">Registered Citizen</span>
+                    <span class="text-xs font-bold text-slate-800 uppercase tracking-wide" id="modal-user-role">Registered Resident</span>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
                     <span class="text-[10px] font-black uppercase text-slate-400 block tracking-wider mb-0.5">Valid ID Verification</span>
@@ -252,7 +253,7 @@
         </div>
 
         <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-end">
-            <button type="button" onclick="closeCitizenProfileModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors">
+            <button type="button" onclick="closeResidentProfileModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors">
                 Close Profile
             </button>
         </div>
@@ -285,27 +286,66 @@
 
 <script>
     let activeInquiryData = null;
+    let adminPollInterval = null;
+    let lastAdminResponseCount = -1;
 
-    function selectInquiry(cardElement, inq) {
+    function startAdminMessagePolling() {
+        stopAdminMessagePolling();
+        adminPollInterval = setInterval(fetchLatestAdminMessages, 3000);
+    }
+
+    function stopAdminMessagePolling() {
+        if (adminPollInterval) {
+            clearInterval(adminPollInterval);
+            adminPollInterval = null;
+        }
+    }
+
+    function fetchLatestAdminMessages() {
+        if (!activeInquiryData) return;
+
+        fetch(`/facilitator/inquiries/${activeInquiryData.id}/messages`, {
+            headers: {
+                "Accept": "application/json"
+            }
+        })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && data.success && data.inquiry) {
+                activeInquiryData = data.inquiry;
+                selectInquiry(null, data.inquiry);
+            }
+        })
+        .catch(err => console.error("Admin poll error:", err));
+    }
+
+    function selectInquiry(cardElement, inq, force = false) {
         activeInquiryData = inq;
+        startAdminMessagePolling();
+
+        const respCount = (inq.responses || []).length;
+        const isNewMessage = force || lastAdminResponseCount !== respCount;
+        lastAdminResponseCount = respCount;
         
         // Remove active styling from all inbox cards
-        document.querySelectorAll('.inquiry-card').forEach(el => {
-            el.classList.remove('bg-red-50/30', 'border-red-300/80', 'ring-2', 'ring-red-500/5');
-            el.classList.add('bg-white', 'border-slate-200');
-        });
-        
-        // Add active styling to selected inbox card
         if (cardElement) {
+            document.querySelectorAll('.inquiry-card').forEach(el => {
+                el.classList.remove('bg-red-50/30', 'border-red-300/80', 'ring-2', 'ring-red-500/5');
+                el.classList.add('bg-white', 'border-slate-200');
+            });
+            
+            // Add active styling to selected inbox card
             cardElement.classList.remove('bg-white', 'border-slate-200');
             cardElement.classList.add('bg-red-50/30', 'border-red-300/80', 'ring-2', 'ring-red-500/5');
         }
 
-        document.getElementById('placeholder-pane').classList.add('hidden');
-        const replyPane = document.getElementById('reply-pane');
-        replyPane.classList.remove('hidden');
+        const placeholderPane = document.getElementById('placeholder-pane');
+        if (placeholderPane) placeholderPane.classList.add('hidden');
 
-        const senderName = inq.user ? inq.user.name : (inq.guest_name || 'Guest Citizen');
+        const replyPane = document.getElementById('reply-pane');
+        if (replyPane) replyPane.classList.remove('hidden');
+
+        const senderName = inq.user ? inq.user.name : (inq.guest_name || 'Guest Resident');
         const senderEmail = inq.user ? inq.user.email : (inq.guest_email || 'No email provided');
         const initial = senderName.substring(0, 1).toUpperCase();
         
@@ -316,81 +356,94 @@
         }
 
         // Update header & avatar
-        document.getElementById('inq-sender').innerText = senderName;
-        document.getElementById('inq-sub-text').innerText = senderEmail;
-        document.getElementById('thread-avatar').innerText = initial;
-        document.getElementById('sender-circle-avatar').innerText = initial;
-        document.getElementById('sender-bubble-name').innerText = senderName.toUpperCase();
+        const inqSenderEl = document.getElementById('inq-sender');
+        if (inqSenderEl) inqSenderEl.innerText = senderName;
 
-        document.getElementById('inq-text').innerText = inq.inquiry_text;
+        const inqSubTextEl = document.getElementById('inq-sub-text');
+        if (inqSubTextEl) inqSubTextEl.innerText = senderEmail;
 
-        const responsesContainer = document.getElementById('inq-responses');
-        responsesContainer.innerHTML = '';
+        const threadAvatarEl = document.getElementById('thread-avatar');
+        if (threadAvatarEl) threadAvatarEl.innerText = initial;
 
-        let isFirstResponse = true;
-        if (inq.responses && inq.responses.length > 0) {
-            inq.responses.forEach(resp => {
-                const respContent = resp.response_text || resp.requireent_text || resp.requirement_text || '';
+        const circleAvatarEl = document.getElementById('sender-circle-avatar');
+        if (circleAvatarEl) circleAvatarEl.innerText = initial;
 
-                // Skip the first reply if it is just a mirror of the original inquiry text
-                if (isFirstResponse && respContent === inq.inquiry_text) {
-                    const isByGuest = resp.responded_by === null;
-                    const isByCitizen = resp.responder && resp.responder.role === 'citizen';
-                    if (isByGuest || isByCitizen) {
+        const bubbleNameEl = document.getElementById('sender-bubble-name');
+        if (bubbleNameEl) bubbleNameEl.innerText = senderName.toUpperCase();
+
+        const inqTextEl = document.getElementById('inq-text');
+        if (inqTextEl) inqTextEl.innerText = inq.inquiry_text;
+
+        if (isNewMessage) {
+            const responsesContainer = document.getElementById('inq-responses');
+            if (responsesContainer) {
+                responsesContainer.innerHTML = '';
+
+                let isFirstResponse = true;
+                if (inq.responses && inq.responses.length > 0) {
+                    inq.responses.forEach(resp => {
+                        const respContent = resp.response_text || resp.requireent_text || resp.requirement_text || '';
+
+                        if (isFirstResponse && respContent === inq.inquiry_text) {
+                            const isByGuest = resp.responded_by === null;
+                            const isByResident = resp.responder && resp.responder.role === 'resident';
+                            if (isByGuest || isByResident) {
+                                isFirstResponse = false;
+                                return;
+                            }
+                        }
                         isFirstResponse = false;
-                        return;
-                    }
+
+                        const isResidentOrGuest = !resp.responded_by || (resp.responder && resp.responder.role === 'resident');
+                        const isFacilitator = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
+
+                        const messageDiv = document.createElement('div');
+
+                        if (isResidentOrGuest && !isFacilitator) {
+                            const residentName = inq.user ? inq.user.name : (inq.guest_name || 'Resident');
+                            const residentInitial = residentName.substring(0, 1).toUpperCase();
+                            messageDiv.className = 'flex items-start space-x-3 max-w-[85%]';
+                            messageDiv.innerHTML = `
+                                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs cursor-pointer hover:bg-red-100 transition-colors" onclick="openActiveUserProfile()">
+                                    ${residentInitial}
+                                </div>
+                                <div class="bg-white border border-slate-200 text-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-3xs">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">${residentName}</span>
+                                        <span class="text-[8px] text-slate-400 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    </div>
+                                    <p class="text-xs leading-relaxed font-medium">${respContent}</p>
+                                </div>
+                            `;
+                        } else {
+                            const adminName = resp.responder ? resp.responder.name : 'GovAssist Admin';
+                            const adminInitial = adminName.substring(0, 1).toUpperCase();
+                            messageDiv.className = 'flex items-start justify-end space-x-3 max-w-[85%] ml-auto';
+                            messageDiv.innerHTML = `
+                                <div class="bg-red-700 text-white p-3.5 rounded-2xl rounded-tr-none shadow-3xs">
+                                    <div class="flex items-center justify-between mb-1 opacity-80">
+                                        <span class="text-[9px] font-black text-red-200 uppercase tracking-wider">${adminName}</span>
+                                        <span class="text-[8px] text-red-200 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    </div>
+                                    <p class="text-xs leading-relaxed font-medium">${respContent}</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-red-50 text-red-700 border border-red-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs">
+                                    ${adminInitial}
+                                </div>
+                            `;
+                        }
+                        responsesContainer.appendChild(messageDiv);
+                    });
                 }
-                isFirstResponse = false;
+            }
 
-                // Determine if this is a citizen/guest message OR a facilitator/admin reply
-                // A message is FROM the citizen/guest if:
-                //   - responded_by is null (guest sent it), OR
-                //   - responder has role 'citizen' (logged-in citizen)
-                const isCitizenOrGuest = !resp.responded_by || (resp.responder && resp.responder.role === 'citizen');
-                const isFacilitator = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
-
-                const messageDiv = document.createElement('div');
-
-                if (isCitizenOrGuest && !isFacilitator) {
-                    // Citizen/Guest message — left-aligned bubble
-                    const citizenName = inq.user ? inq.user.name : (inq.guest_name || 'Citizen');
-                    const citizenInitial = citizenName.substring(0, 1).toUpperCase();
-                    messageDiv.className = 'flex items-start space-x-3 max-w-[85%]';
-                    messageDiv.innerHTML = `
-                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs cursor-pointer hover:bg-red-100 transition-colors" onclick="openActiveUserProfile()">
-                            ${citizenInitial}
-                        </div>
-                        <div class="bg-white border border-slate-200 text-slate-800 p-3.5 rounded-2xl rounded-tl-none shadow-3xs">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">${citizenName}</span>
-                                <span class="text-[8px] text-slate-400 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            </div>
-                            <p class="text-xs leading-relaxed font-medium">${respContent}</p>
-                        </div>
-                    `;
-                } else {
-                    // Facilitator / Admin reply — right-aligned bubble
-                    const adminName = resp.responder ? resp.responder.name : 'GovAssist Admin';
-                    const adminInitial = adminName.substring(0, 1).toUpperCase();
-                    messageDiv.className = 'flex items-start justify-end space-x-3 max-w-[85%] ml-auto';
-                    messageDiv.innerHTML = `
-                        <div class="bg-red-700 text-white p-3.5 rounded-2xl rounded-tr-none shadow-3xs">
-                            <div class="flex items-center justify-between mb-1 opacity-80">
-                                <span class="text-[9px] font-black text-red-200 uppercase tracking-wider">${adminName}</span>
-                                <span class="text-[8px] text-red-200 ml-2">${new Date(resp.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            </div>
-                            <p class="text-xs leading-relaxed font-medium">${respContent}</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-red-50 text-red-700 border border-red-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-3xs">
-                            ${adminInitial}
-                        </div>
-                    `;
+            setTimeout(() => {
+                const listContainer = document.getElementById('thread-message-list');
+                if (listContainer) {
+                    listContainer.scrollTop = listContainer.scrollHeight;
                 }
-                responsesContainer.appendChild(messageDiv);
-            });
+            }, 100);
         }
-
 
         const replyFormContainer = document.getElementById('reply-form-container');
         if (replyFormContainer) {
@@ -402,24 +455,60 @@
         }
 
         const statusBadge = document.getElementById('inq-status-badge');
-        statusBadge.innerText = 'STATUS: ' + inq.status.toUpperCase();
-        
-        // Scroll the message list container to bottom
-        setTimeout(() => {
-            const listContainer = document.getElementById('thread-message-list');
-            if (listContainer) {
-                listContainer.scrollTop = listContainer.scrollHeight;
-            }
-        }, 100);
+        if (statusBadge) {
+            statusBadge.innerText = 'STATUS: ' + (inq.status || 'PENDING').toUpperCase();
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const replyForm = document.getElementById('reply-form');
+        if (replyForm) {
+            replyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (!activeInquiryData) return;
+
+                const textarea = document.getElementById('reply_message');
+                const message = textarea ? textarea.value.trim() : '';
+                if (!message) return;
+
+                const submitBtn = replyForm.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                fetch(`/facilitator/inquiries/${activeInquiryData.id}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (data.success && data.inquiry) {
+                        if (textarea) textarea.value = '';
+                        activeInquiryData = data.inquiry;
+                        selectInquiry(null, data.inquiry, true);
+                    }
+                })
+                .catch(err => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    console.error("Reply submit error:", err);
+                });
+            });
+        }
+    });
 
     function openActiveUserProfile() {
         if (!activeInquiryData) return;
         const user = activeInquiryData.user;
-        const modal = document.getElementById('citizen-profile-modal');
+        const modal = document.getElementById('resident-profile-modal');
         if (!modal) return;
 
-        const name = user ? user.name : (activeInquiryData.guest_name || 'Guest Citizen');
+        const name = user ? user.name : (activeInquiryData.guest_name || 'Guest Resident');
         const email = user ? user.email : (activeInquiryData.guest_email || 'N/A');
         const initial = name.substring(0, 1).toUpperCase();
 
@@ -475,8 +564,8 @@
         document.body.classList.add('overflow-hidden');
     }
 
-    function closeCitizenProfileModal() {
-        const modal = document.getElementById('citizen-profile-modal');
+    function closeResidentProfileModal() {
+        const modal = document.getElementById('resident-profile-modal');
         if (modal) {
             modal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');

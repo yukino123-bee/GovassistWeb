@@ -37,11 +37,11 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        $citizen = User::create([
+        $resident = User::create([
             'name' => 'Mark Cagatin',
             'email' => 'cagatinmark26@gmail.com',
             'password' => Hash::make('password'),
-            'role' => 'citizen',
+            'role' => 'resident',
             'language' => 'ceb', // Cebuano
             'dob' => '2005-03-11',
             'address' => 'Fatima, San Miguel, Zamboanga del Sur',
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => Hash::make('password'),
-            'role' => 'citizen',
+            'role' => 'resident',
             'language' => 'en',
             'dob' => '1998-05-15',
             'address' => 'Poblacion, San Miguel, Zamboanga del Sur',
@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
             'password' => Hash::make('password'),
-            'role' => 'citizen',
+            'role' => 'resident',
             'language' => 'en',
             'dob' => '1990-10-22',
             'address' => 'Dumalian, San Miguel, Zamboanga del Sur',
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed User Languages
         UserLanguage::create(['user_id' => $facilitator->id, 'language_code' => 'en', 'is_default' => true]);
-        UserLanguage::create(['user_id' => $citizen->id, 'language_code' => 'ceb', 'is_default' => true]);
+        UserLanguage::create(['user_id' => $resident->id, 'language_code' => 'ceb', 'is_default' => true]);
         UserLanguage::create(['user_id' => $john->id, 'language_code' => 'en', 'is_default' => true]);
         UserLanguage::create(['user_id' => $jane->id, 'language_code' => 'en', 'is_default' => true]);
 
@@ -562,7 +562,7 @@ class DatabaseSeeder extends Seeder
         ]);
         EligibilityQuestion::create([
             'service_id' => $edu->id,
-            'question_text_en' => 'Are you a Filipino citizen?',
+            'question_text_en' => 'Are you a Filipino resident?',
             'question_text_ceb' => 'Usa ba ikaw ka lungsoranon sa Pilipinas?',
             'question_text_fil' => 'Ikaw ba ay isang mamamayang Pilipino?',
             'type' => 'boolean',
@@ -655,7 +655,7 @@ class DatabaseSeeder extends Seeder
 
         // 7. Seed History for Mark Cagatin
         $assessment = EligibilityAssessment::create([
-            'user_id' => $citizen->id,
+            'user_id' => $resident->id,
             'service_id' => $emp->id,
             'status' => 'eligible',
             'created_at' => Carbon::now()->subDays(4),
@@ -674,7 +674,7 @@ class DatabaseSeeder extends Seeder
 
         // Checklist application for Mark Cagatin
         $checklist = UserChecklist::create([
-            'user_id' => $citizen->id,
+            'user_id' => $resident->id,
             'service_id' => $emp->id,
             'status' => 'pending',
             'created_at' => Carbon::now()->subDays(2),
@@ -694,7 +694,7 @@ class DatabaseSeeder extends Seeder
 
         // 8. Seed Inquiries & Responses
         $inquiry = UserInquiry::create([
-            'user_id' => $citizen->id,
+            'user_id' => $resident->id,
             'service_id' => $emp->id,
             'inquiry_text' => 'Hello, I uploaded my resume but I would like to ask if there are any specific local trainings happening this month for San Miguel residents?',
             'status' => 'in_progress',

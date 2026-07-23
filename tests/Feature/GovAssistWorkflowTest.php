@@ -149,12 +149,12 @@ test('facilitator can manage eligibility questions', function () {
     expect(EligibilityQuestion::count())->toBe(0);
 });
 
-test('citizen can switch languages and complete full flow', function () {
+test('resident can switch languages and complete full flow', function () {
     Storage::fake('public');
 
     $facilitator = User::factory()->create(['role' => 'facilitator']);
-    $citizen = User::factory()->create([
-        'role' => 'citizen',
+    $resident = User::factory()->create([
+        'role' => 'resident',
         'dob' => '2000-01-01',
         'address' => 'Test Address',
         'civil_status' => 'Single',
@@ -215,26 +215,26 @@ test('citizen can switch languages and complete full flow', function () {
         'expected_value' => 'true',
     ]);
 
-    // 1. Access Citizen Home
-    $response = $this->actingAs($citizen)->get(route('citizen.home'));
+    // 1. Access Resident Home
+    $response = $this->actingAs($resident)->get(route('resident.home'));
     $response->assertStatus(200);
 
     // 2. Perform Eligibility Assessment
-    $assessResponse = $this->actingAs($citizen)->post(route('citizen.eligibility.assess.submit', $service->id), [
+    $assessResponse = $this->actingAs($resident)->post(route('resident.eligibility.assess.submit', $service->id), [
         "question_{$question->id}" => 'true',
     ]);
 
     $assessment = EligibilityAssessment::first();
     expect($assessment->status)->toBe('eligible');
-    $assessResponse->assertRedirect(route('citizen.eligibility.result', $assessment->id));
+    $assessResponse->assertRedirect(route('resident.eligibility.result', $assessment->id));
 
     // 3. View Checklist
-    $checklistResponse = $this->actingAs($citizen)->get(route('citizen.eligibility.checklist', $service->id));
+    $checklistResponse = $this->actingAs($resident)->get(route('resident.eligibility.checklist', $service->id));
     $checklistResponse->assertStatus(200);
 
     // 4. Upload Checklist Requirement File
     $file = UploadedFile::fake()->create('id.pdf', 500);
-    $uploadResponse = $this->actingAs($citizen)->post(route('citizen.eligibility.upload', [$service->id, $requirement->id]), [
+    $uploadResponse = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => $file,
     ]);
     $uploadResponse->assertRedirect();
@@ -244,8 +244,8 @@ test('citizen can switch languages and complete full flow', function () {
     expect($checklistItem->status)->toBe('pending');
 
     // 5. Submit Application
-    $applyResponse = $this->actingAs($citizen)->post(route('citizen.eligibility.apply', $service->id));
-    $applyResponse->assertRedirect(route('citizen.home'));
+    $applyResponse = $this->actingAs($resident)->post(route('resident.eligibility.apply', $service->id));
+    $applyResponse->assertRedirect(route('resident.home'));
 
     $userChecklist = UserChecklist::first();
     expect($userChecklist->status)->toBe('pending');
@@ -273,8 +273,8 @@ test('citizen can switch languages and complete full flow', function () {
     expect($userChecklist->remarks)->toBe('All documents verified.');
 });
 
-test('citizen can submit inquiry and facilitator replies', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+test('resident can submit inquiry and facilitator replies', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
     $facilitator = User::factory()->create(['role' => 'facilitator']);
     $category = ServiceCategory::create(['category_name' => 'Education']);
     $service = GovernmentService::create([
@@ -286,7 +286,7 @@ test('citizen can submit inquiry and facilitator replies', function () {
     ]);
 
     // 1. Submit manual inquiry
-    $inquiryResponse = $this->actingAs($citizen)->post(route('citizen.inquiry.manual'), [
+    $inquiryResponse = $this->actingAs($resident)->post(route('resident.inquiry.manual'), [
         'inquiry_text' => 'Help with Education Assistance',
         'service_id' => $service->id,
     ]);
@@ -310,20 +310,56 @@ test('citizen can submit inquiry and facilitator replies', function () {
     expect($inquiry->status)->toBe('resolved');
     expect($inquiry->responses->last()->response_text)->toBe('We can help you with this program.');
 
-    // 4. Submit secondary manual inquiry (should append to existing)
-    $secondResponse = $this->actingAs($citizen)->post(route('citizen.inquiry.manual'), [
+    // 4. Submit secondary manual inquiry with inquiry_id (appends to existing thread)
+    $secondResponse = $this->actingAs($resident)->post(route('resident.inquiry.manual'), [
+        'inquiry_id' => $inquiry->id,
         'inquiry_text' => 'What are the requirements for Education Assistance?',
         'service_id' => $service->id,
     ]);
     $secondResponse->assertRedirect();
+    expect($inquiry->responses()->count())->toBe(3);
+
+    // 5. Submit new manual inquiry without inquiry_id (creates distinct new thread)
+    $thirdResponse = $this->actingAs($resident)->post(route('resident.inquiry.manual'), [
+        'inquiry_text' => 'New distinct inquiry about Medical Assistance',
+    ]);
+    $thirdResponse->assertRedirect();
+    expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(2);
 });
 
-test('facilitator can delete inquiry thread', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+test('facilitator can reply via json ajax and poll messages', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
     $facilitator = User::factory()->create(['role' => 'facilitator']);
 
     $inquiry = UserInquiry::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
+        'inquiry_text' => 'Need help with housing',
+        'status' => 'pending',
+    ]);
+
+    // AJAX reply from facilitator
+    $response = $this->actingAs($facilitator)
+        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), [
+            'message' => 'Housing assistance is available on Mondays.',
+        ]);
+
+    $response->assertOk();
+    $response->assertJson(['success' => true]);
+
+    // Poll messages endpoint
+    $pollResponse = $this->actingAs($resident)
+        ->getJson(route('resident.inquiry.messages', $inquiry->id));
+
+    $pollResponse->assertOk();
+    $pollResponse->assertJsonPath('inquiry.id', $inquiry->id);
+});
+
+test('facilitator can delete inquiry thread', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+
+    $inquiry = UserInquiry::create([
+        'user_id' => $resident->id,
         'inquiry_text' => 'Some inquiry content',
         'status' => 'pending',
     ]);
@@ -341,37 +377,37 @@ test('facilitator can delete inquiry thread', function () {
     $this->assertDatabaseMissing('inquiry_requirenses', ['inquiry_id' => $inquiry->id]);
 });
 
-test('citizen can unsend their reply message or delete inquiry', function () {
-    $citizen = User::factory()->create(['role' => 'citizen']);
+test('resident can unsend their reply message or delete inquiry', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
 
     $inquiry = UserInquiry::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'inquiry_text' => 'First message of inquiry',
         'status' => 'pending',
     ]);
 
     $reply = InquiryRequirense::create([
         'inquiry_id' => $inquiry->id,
-        'requireent_text' => 'Citizen response message',
-        'responded_by' => $citizen->id,
+        'requireent_text' => 'Resident response message',
+        'responded_by' => $resident->id,
     ]);
 
     // 1. Delete reply (unsend message)
-    $response1 = $this->actingAs($citizen)->delete(route('citizen.inquiry.delete_reply', $reply->id));
+    $response1 = $this->actingAs($resident)->delete(route('resident.inquiry.delete_reply', $reply->id));
     $response1->assertJson(['success' => true]);
     $this->assertDatabaseMissing('inquiry_requirenses', ['id' => $reply->id]);
 
     // 2. Delete parent inquiry thread
-    $response2 = $this->actingAs($citizen)->delete(route('citizen.inquiry.delete_inquiry', $inquiry->id));
+    $response2 = $this->actingAs($resident)->delete(route('resident.inquiry.delete_inquiry', $inquiry->id));
     $response2->assertJson(['success' => true]);
     $this->assertDatabaseMissing('user_inquiries', ['id' => $inquiry->id]);
 });
 
-test('citizen can edit and resubmit application if not approved', function () {
+test('resident can edit and resubmit application if not approved', function () {
     Storage::fake('public');
 
-    $citizen = User::factory()->create([
-        'role' => 'citizen',
+    $resident = User::factory()->create([
+        'role' => 'resident',
         'dob' => '2000-01-01',
         'address' => 'Test Address',
         'civil_status' => 'Single',
@@ -396,7 +432,7 @@ test('citizen can edit and resubmit application if not approved', function () {
 
     // Setup an initial rejected application
     $checklist = UserChecklist::create([
-        'user_id' => $citizen->id,
+        'user_id' => $resident->id,
         'service_id' => $service->id,
         'status' => 'rejected',
     ]);
@@ -409,7 +445,7 @@ test('citizen can edit and resubmit application if not approved', function () {
     ]);
 
     // Try to unlock application
-    $response = $this->actingAs($citizen)->post(route('citizen.eligibility.checklist.edit', $service->id));
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.checklist.edit', $service->id));
     $response->assertRedirect();
 
     $checklist->refresh();

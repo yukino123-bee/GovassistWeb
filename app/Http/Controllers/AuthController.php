@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -66,7 +67,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'citizen',
+            'role' => 'resident',
             'language' => $lang,
         ]);
 
@@ -74,7 +75,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('citizen.home');
+        return redirect()->route('resident.home');
     }
 
     public function logout(Request $request)
@@ -108,7 +109,7 @@ class AuthController extends Controller
     public function verifyNotice(Request $request)
     {
         return $request->user()->hasVerifiedEmail()
-                    ? redirect()->route('citizen.home')
+                    ? redirect()->route('resident.home')
                     : view('auth.verify');
     }
 
@@ -119,21 +120,21 @@ class AuthController extends Controller
         ]);
 
         $user = $request->user();
-        $cachedOtp = Cache::get('verification_otp_' . $user->id);
+        $cachedOtp = Cache::get('verification_otp_'.$user->id);
 
-        if (!$cachedOtp || $cachedOtp !== $request->otp) {
+        if (! $cachedOtp || $cachedOtp !== $request->otp) {
             return back()->withErrors(['otp' => 'The OTP you entered is invalid or has expired.']);
         }
 
         // OTP is correct
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
-            event(new \Illuminate\Auth\Events\Verified($user));
+            event(new Verified($user));
         }
 
-        Cache::forget('verification_otp_' . $user->id);
+        Cache::forget('verification_otp_'.$user->id);
 
-        return redirect()->route('citizen.home');
+        return redirect()->route('resident.home');
     }
 
     public function verifyResend(Request $request)
@@ -149,6 +150,6 @@ class AuthController extends Controller
             return redirect()->route('facilitator.dashboard');
         }
 
-        return redirect()->route('citizen.home');
+        return redirect()->route('resident.home');
     }
 }

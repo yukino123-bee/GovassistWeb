@@ -33,11 +33,13 @@ jobs:
         npm run build
 
     - name: Create Production .env
+      env:
+        FTP_SERVER: ${{ secrets.FTP_SERVER }}
       run: |
         cp .env.example .env
         sed -i 's/APP_ENV=local/APP_ENV=production/' .env
         sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
-        sed -i 's/APP_URL=http:\/\/localhost/APP_URL=http:\/\/${{ secrets.FTP_SERVER }}/' .env
+        sed -i "s|APP_URL=http://localhost|APP_URL=http://${FTP_SERVER}|" .env
         sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
         sed -i 's/DB_HOST=127.0.0.1/DB_HOST=sql312.infinityfree.com/' .env
         sed -i 's/DB_PORT=3306/DB_PORT=3306/' .env

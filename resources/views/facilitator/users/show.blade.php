@@ -1,8 +1,8 @@
 @extends('layouts.facilitator')
 
-@section('title', 'View Citizen - GovAssist')
+@section('title', 'View Resident - GovAssist')
 
-@section('page_title', 'Citizens Registry')
+@section('page_title', 'Residents Registry')
 
 @section('content')
 <div class="bg-white border border-slate-200 shadow-sm">
@@ -10,7 +10,7 @@
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
             <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-            Citizen Details
+            Resident Details
         </h3>
         <a href="{{ route('facilitator.users') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none flex items-center">
             <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -45,8 +45,8 @@
                 <form action="{{ route('facilitator.users.destroy', $user) }}" method="POST" class="w-full" id="delete-user-{{ $user->id }}">
                     @csrf
                     @method('DELETE')
-                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this citizen?', () => document.getElementById('delete-user-{{ $user->id }}').submit())" class="w-full py-2 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest hover:text-red-600 hover:bg-slate-50 transition-colors text-center">
-                        Delete Citizen
+                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this resident?', () => document.getElementById('delete-user-{{ $user->id }}').submit())" class="w-full py-2 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest hover:text-red-600 hover:bg-slate-50 transition-colors text-center">
+                        Delete Resident
                     </button>
                 </form>
             </div>
@@ -107,7 +107,7 @@
                 @else
                     <div class="bg-yellow-50 border border-yellow-100 p-4 flex items-start text-yellow-800">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <p class="text-xs font-medium leading-relaxed">No valid ID has been uploaded by this citizen yet. Some services might require identification.</p>
+                        <p class="text-xs font-medium leading-relaxed">No valid ID has been uploaded by this resident yet. Some services might require identification.</p>
                     </div>
                 @endif
             </div>

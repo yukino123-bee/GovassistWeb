@@ -141,12 +141,12 @@
                 <div>
                     <p class="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1 mb-2 px-2">{{ __('messages.admin_reports') }}</p>
                     <div class="space-y-1">
-                        <!-- Citizens -->
+                        <!-- Residents -->
                         <a href="{{ route('facilitator.users') }}" class="group flex items-center space-x-3 px-3.5 py-2 rounded-xl transition-all duration-200 text-sm font-semibold border {{ Route::is('facilitator.users*') ? 'bg-red-50/90 text-red-700 border-red-200 shadow-2xs' : 'text-slate-700 border-transparent hover:bg-slate-50 hover:text-red-700 hover:border-slate-100' }}">
                             <svg class="w-4.5 h-4.5 shrink-0 {{ Route::is('facilitator.users*') ? 'text-red-700' : 'text-slate-400 group-hover:text-red-700 transition-colors' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
-                            <span>{{ __('messages.admin_citizens') }}</span>
+                            <span>{{ __('messages.admin_residents') }}</span>
                         </a>
 
                         <!-- Assessments -->

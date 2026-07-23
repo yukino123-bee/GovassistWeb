@@ -20,7 +20,7 @@
         @csrf
         @method('PUT')
         <div>
-            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Citizen</label>
+            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Resident</label>
             <select name="user_id" class="w-full text-sm px-3 py-2 border border-slate-200 rounded-none focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-colors" required>
                 @foreach($users as $user)
                     <option value="{{ $user->id }}" {{ (old('user_id', $checklist->user_id) == $user->id) ? 'selected' : '' }}>{{ $user->name }} ({{ $user->email }})</option>

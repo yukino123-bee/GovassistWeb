@@ -1,7 +1,7 @@
 @extends('layouts.facilitator')
 
-@section('title', 'Add Citizen - GovAssist')
-@section('page_title', 'Add New Citizen')
+@section('title', 'Add Resident - GovAssist')
+@section('page_title', 'Add New Resident')
 
 @section('content')
 <div class="mb-4">
@@ -14,7 +14,7 @@
 <div class="max-w-2xl bg-white border border-slate-200 shadow-sm">
     <div class="px-6 py-4 border-b border-slate-100 flex items-center space-x-2">
         <span class="w-2.5 h-2.5 bg-red-700 block"></span>
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Citizen Details</h3>
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Resident Details</h3>
     </div>
     <form action="{{ route('facilitator.users.store') }}" method="POST" class="p-6 space-y-4">
         @csrf
@@ -42,7 +42,7 @@
         </div>
         <div class="pt-4 border-t border-slate-100 flex justify-end">
             <button type="submit" class="px-6 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none shadow-sm">
-                Create Citizen
+                Create Resident
             </button>
         </div>
     </form>

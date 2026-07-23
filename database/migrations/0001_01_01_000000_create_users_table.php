@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('citizen'); // citizen, facilitator
+            $table->string('role')->default('resident'); // resident, facilitator
             $table->string('language')->default('en'); // en, ceb
             $table->string('avatar')->nullable();
             $table->date('dob')->nullable();

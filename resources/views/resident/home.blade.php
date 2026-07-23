@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @section('title', __('messages.app_name') . ' - Dashboard')
 
@@ -20,7 +20,7 @@
         </div>
         <div class="mt-4 md:mt-0 flex space-x-2">
             @auth
-                <a href="{{ route('citizen.eligibility') }}" class="px-4 py-2 bg-white hover:bg-red-50 transition-colors text-xs font-bold uppercase tracking-wider text-red-700">
+                <a href="{{ route('resident.eligibility') }}" class="px-4 py-2 bg-white hover:bg-red-50 transition-colors text-xs font-bold uppercase tracking-wider text-red-700">
                     Check Eligibility
                 </a>
             @else
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Search Form -->
-    <form action="{{ route('citizen.home') }}" method="GET" class="relative">
+    <form action="{{ route('resident.home') }}" method="GET" class="relative">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -40,7 +40,7 @@
         </span>
         <input type="text" name="search" value="{{ $search }}" placeholder="{{ __('messages.search_placeholder') }}" class="w-full pl-11 pr-12 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
         @if($search)
-            <a href="{{ route('citizen.home') }}" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600">
+            <a href="{{ route('resident.home') }}" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -91,7 +91,7 @@
                                         </div>
                                         
                                         <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                                            <a href="{{ route('citizen.eligibility.assess', $service->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-900 flex items-center space-x-1.5 group">
+                                            <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-900 flex items-center space-x-1.5 group">
                                                 <span>Check Eligibility</span>
                                                 <span class="inline-block transform group-hover:translate-x-1 transition-transform duration-200 text-xs font-bold">&rarr;</span>
                                             </a>
@@ -153,7 +153,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-2.5 flex justify-end">
-                                    <a href="{{ route('citizen.eligibility.checklist', $app->service_id) }}" class="text-[9px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 border border-slate-200 px-2 py-1 bg-slate-50">
+                                    <a href="{{ route('resident.eligibility.checklist', $app->service_id) }}" class="text-[9px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 border border-slate-200 px-2 py-1 bg-slate-50">
                                         {{ __('messages.view_details') }}
                                     </a>
                                 </div>
@@ -175,7 +175,7 @@
                     Message our Inquiry Helpdesk about application procedures, requirements guidelines, and validation updates.
                 </p>
                 <div class="mt-4">
-                    <a href="{{ route('citizen.inquiry') }}" class="inline-block w-full text-center px-4 py-2 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
+                    <a href="{{ route('resident.inquiry') }}" class="inline-block w-full text-center px-4 py-2 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
                         Open Inquiry Helpdesk
                     </a>
                 </div>

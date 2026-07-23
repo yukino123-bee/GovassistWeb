@@ -52,7 +52,7 @@ class EligibilityQuestionsSeeder extends Seeder
                 'operator' => '==',
             ],
             [
-                'question_text_en' => 'Is the patient a Filipino citizen?',
+                'question_text_en' => 'Is the patient a Filipino resident?',
                 'question_text_ceb' => 'Usa ba ka lungsoranon sa Pilipinas ang pasyente?',
                 'question_text_fil' => 'Ang pasyente ba ay isang mamamayang Pilipino?',
                 'type' => 'boolean',
@@ -205,7 +205,7 @@ class EligibilityQuestionsSeeder extends Seeder
                 'operator' => '==',
             ],
             [
-                'question_text_en' => 'Is the deceased a Filipino citizen?',
+                'question_text_en' => 'Is the deceased a Filipino resident?',
                 'question_text_ceb' => 'Usa ba ka lungsoranon sa Pilipinas ang namatay?',
                 'question_text_fil' => 'Ang namatay ba ay isang mamamayang Pilipino?',
                 'type' => 'boolean',

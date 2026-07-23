@@ -20,8 +20,8 @@
         <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50">
             <div class="space-y-4">
                 <div>
-                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Citizen Name</span>
-                    <span class="text-sm font-bold text-slate-800">{{ $assessment->user->name ?? 'Citizen' }}</span>
+                    <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Resident Name</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $assessment->user->name ?? 'Resident' }}</span>
                     <span class="text-xs text-slate-500 block">{{ $assessment->user->email ?? 'N/A' }}</span>
                 </div>
                 <div>
@@ -56,7 +56,7 @@
         <div class="px-6 py-4 border-b border-slate-100">
             <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-                Citizen's Assessment Answers
+                Resident's Assessment Answers
             </h3>
         </div>
         <div class="overflow-x-auto">

@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\FacilitatorController;
+use App\Http\Controllers\ResidentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -12,7 +12,7 @@ Route::get('/', function () {
         return redirect()->route('facilitator.dashboard');
     }
 
-    return redirect()->route('citizen.home');
+    return redirect()->route('resident.home');
 });
 
 // Authentication & Language Switcher
@@ -35,39 +35,40 @@ Route::post('/language/toggle', [AuthController::class, 'toggleLanguage'])->name
 use App\Http\Middleware\EnsureEmailIsVerifiedIfLoggedIn;
 use Illuminate\Support\Facades\Artisan;
 
-// Citizen Public Routes
-Route::prefix('citizen')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
-    Route::get('/home', [CitizenController::class, 'home'])->name('citizen.home');
-    Route::get('/eligibility', [CitizenController::class, 'eligibility'])->name('citizen.eligibility');
-    Route::get('/inquiry', [CitizenController::class, 'inquiry'])->name('citizen.inquiry');
-    Route::post('/inquiry/manual', [CitizenController::class, 'submitManualInquiry'])->name('citizen.inquiry.manual');
+// Resident Public Routes
+Route::prefix('resident')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
+    Route::get('/home', [ResidentController::class, 'home'])->name('resident.home');
+    Route::get('/eligibility', [ResidentController::class, 'eligibility'])->name('resident.eligibility');
+    Route::get('/inquiry', [ResidentController::class, 'inquiry'])->name('resident.inquiry');
+    Route::post('/inquiry/manual', [ResidentController::class, 'submitManualInquiry'])->name('resident.inquiry.manual');
 
     // Inquiries Reply & Unsend (Moved for Guest Access)
-    Route::post('/inquiry/{inquiry}/reply', [CitizenController::class, 'replyInquiry'])->name('citizen.inquiry.reply');
-    Route::delete('/inquiry/{inquiry}', [CitizenController::class, 'deleteInquiry'])->name('citizen.inquiry.delete_inquiry');
-    Route::delete('/inquiry/replies/{response}', [CitizenController::class, 'deleteReply'])->name('citizen.inquiry.delete_reply');
+    Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');
+    Route::post('/inquiry/{inquiry}/reply', [ResidentController::class, 'replyInquiry'])->name('resident.inquiry.reply');
+    Route::delete('/inquiry/{inquiry}', [ResidentController::class, 'deleteInquiry'])->name('resident.inquiry.delete_inquiry');
+    Route::delete('/inquiry/replies/{response}', [ResidentController::class, 'deleteReply'])->name('resident.inquiry.delete_reply');
 });
 
-// Citizen Protected Routes
-Route::middleware(['auth', 'role:citizen', 'verified'])->prefix('citizen')->group(function () {
+// Resident Protected Routes
+Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->group(function () {
     // Eligibility Assessment
-    Route::get('/eligibility/assess/{service}', [CitizenController::class, 'showAssessForm'])->name('citizen.eligibility.assess');
-    Route::post('/eligibility/assess/{service}', [CitizenController::class, 'processAssessForm'])->name('citizen.eligibility.assess.submit');
-    Route::get('/eligibility/result/{refNo}', [CitizenController::class, 'showAssessResult'])->name('citizen.eligibility.result');
-    Route::post('/eligibility/reassess/{service}', [CitizenController::class, 'requestReassessment'])->name('citizen.eligibility.reassess');
+    Route::get('/eligibility/assess/{service}', [ResidentController::class, 'showAssessForm'])->name('resident.eligibility.assess');
+    Route::post('/eligibility/assess/{service}', [ResidentController::class, 'processAssessForm'])->name('resident.eligibility.assess.submit');
+    Route::get('/eligibility/result/{refNo}', [ResidentController::class, 'showAssessResult'])->name('resident.eligibility.result');
+    Route::post('/eligibility/reassess/{service}', [ResidentController::class, 'requestReassessment'])->name('resident.eligibility.reassess');
 
     // Checklist & Document Upload
-    Route::get('/eligibility/checklist/{service}', [CitizenController::class, 'checklist'])->name('citizen.eligibility.checklist');
-    Route::post('/eligibility/checklist/{service}/upload/{requirement}', [CitizenController::class, 'uploadDocument'])->name('citizen.eligibility.upload');
-    Route::post('/eligibility/checklist/{service}/type', [CitizenController::class, 'setApplicationType'])->name('citizen.eligibility.set_type');
-    Route::post('/eligibility/apply/{service}', [CitizenController::class, 'apply'])->name('citizen.eligibility.apply');
-    Route::post('/eligibility/checklist/{service}/edit', [CitizenController::class, 'unlockChecklist'])->name('citizen.eligibility.checklist.edit');
+    Route::get('/eligibility/checklist/{service}', [ResidentController::class, 'checklist'])->name('resident.eligibility.checklist');
+    Route::post('/eligibility/checklist/{service}/upload/{requirement}', [ResidentController::class, 'uploadDocument'])->name('resident.eligibility.upload');
+    Route::post('/eligibility/checklist/{service}/type', [ResidentController::class, 'setApplicationType'])->name('resident.eligibility.set_type');
+    Route::post('/eligibility/apply/{service}', [ResidentController::class, 'apply'])->name('resident.eligibility.apply');
+    Route::post('/eligibility/checklist/{service}/edit', [ResidentController::class, 'unlockChecklist'])->name('resident.eligibility.checklist.edit');
 
     // Profile Settings
-    Route::get('/profile', [CitizenController::class, 'profile'])->name('citizen.profile');
-    Route::get('/profile/edit', [CitizenController::class, 'editProfile'])->name('citizen.profile.edit');
-    Route::post('/profile/edit', [CitizenController::class, 'updateProfile'])->name('citizen.profile.update');
-    Route::post('/profile/avatar', [CitizenController::class, 'updateAvatar'])->name('citizen.profile.avatar');
+    Route::get('/profile', [ResidentController::class, 'profile'])->name('resident.profile');
+    Route::get('/profile/edit', [ResidentController::class, 'editProfile'])->name('resident.profile.edit');
+    Route::post('/profile/edit', [ResidentController::class, 'updateProfile'])->name('resident.profile.update');
+    Route::post('/profile/avatar', [ResidentController::class, 'updateAvatar'])->name('resident.profile.avatar');
 });
 
 // Facilitator (Admin) Protected Routes
@@ -99,7 +100,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::put('/eligibility/{question}', [FacilitatorController::class, 'updateQuestion'])->name('facilitator.eligibility.update');
     Route::delete('/eligibility/{question}', [FacilitatorController::class, 'destroyQuestion'])->name('facilitator.eligibility.destroy');
 
-    // Users / Citizens Registry CRUD
+    // Users / Residents Registry CRUD
     Route::get('/users', [FacilitatorController::class, 'users'])->name('facilitator.users');
     Route::get('/users/create', [FacilitatorController::class, 'createUser'])->name('facilitator.users.create');
     Route::post('/users', [FacilitatorController::class, 'storeUser'])->name('facilitator.users.store');
@@ -133,6 +134,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
 
     // Inquiries Management
     Route::get('/inquiries', [FacilitatorController::class, 'inquiries'])->name('facilitator.inquiries');
+    Route::get('/inquiries/{inquiry}/messages', [FacilitatorController::class, 'getMessages'])->name('facilitator.inquiries.messages');
     Route::post('/inquiries/{inquiry}/reply', [FacilitatorController::class, 'replyInquiry'])->name('facilitator.inquiries.reply');
     Route::post('/inquiries/{inquiry}/status', [FacilitatorController::class, 'updateInquiryStatus'])->name('facilitator.inquiries.update_status');
     Route::delete('/inquiries/{inquiry}', [FacilitatorController::class, 'deleteInquiry'])->name('facilitator.inquiries.delete');
@@ -145,7 +147,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     // Reports & Data Export Center
     Route::get('/reports', [FacilitatorController::class, 'reports'])->name('facilitator.reports');
     Route::get('/reports/export/applications', [FacilitatorController::class, 'exportApplications'])->name('facilitator.reports.export.applications');
-    Route::get('/reports/export/citizens', [FacilitatorController::class, 'exportCitizens'])->name('facilitator.reports.export.citizens');
+    Route::get('/reports/export/residents', [FacilitatorController::class, 'exportResidents'])->name('facilitator.reports.export.residents');
     Route::get('/reports/export/assessments', [FacilitatorController::class, 'exportAssessments'])->name('facilitator.reports.export.assessments');
     Route::get('/reports/export/inquiries', [FacilitatorController::class, 'exportInquiries'])->name('facilitator.reports.export.inquiries');
     Route::get('/reports/export/all', [FacilitatorController::class, 'exportAllMasterReport'])->name('facilitator.reports.export.all');

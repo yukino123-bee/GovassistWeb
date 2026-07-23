@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @section('title', __('messages.profile_title'))
 
@@ -20,7 +20,7 @@
             </div>
             
             <!-- Upload Avatar Overlay Trigger -->
-            <form action="{{ route('citizen.profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form" class="absolute bottom-0 right-0">
+            <form action="{{ route('resident.profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form" class="absolute bottom-0 right-0">
                 @csrf
                 <label class="w-7 h-7 bg-red-700 hover:bg-red-800 text-white flex items-center justify-center border border-white cursor-pointer shadow-md transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
             
             <div class="bg-white border border-slate-200 shadow-sm divide-y divide-slate-100">
                 <!-- Edit Profile -->
-                <a href="{{ route('citizen.profile.edit') }}" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                <a href="{{ route('resident.profile.edit') }}" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 border border-red-200 text-red-700 bg-red-50/30">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

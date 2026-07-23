@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use App\Mail\VerifyOtpEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyOtpEmail;
 
 #[Fillable(['name', 'email', 'password', 'role', 'language', 'avatar', 'dob', 'address', 'civil_status', 'contact_number', 'valid_id_path', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
@@ -22,8 +22,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $otpCode = (string) random_int(100000, 999999);
-        Cache::put('verification_otp_' . $this->id, $otpCode, now()->addMinutes(15));
-        
+        Cache::put('verification_otp_'.$this->id, $otpCode, now()->addMinutes(15));
+
         Mail::to($this->email)->send(new VerifyOtpEmail($otpCode));
     }
 
@@ -32,9 +32,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'facilitator';
     }
 
-    public function isCitizen(): bool
+    public function isResident(): bool
     {
-        return $this->role === 'citizen';
+        return $this->role === 'resident';
     }
 
     public function assessments(): HasMany

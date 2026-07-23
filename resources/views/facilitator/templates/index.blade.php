@@ -14,7 +14,7 @@
                 </svg>
                 Program Document Templates
             </h3>
-            <p class="text-xs text-slate-500 mt-1">Configure and manage template files for all assistance programs. These files will be used to automatically verify citizen document submissions.</p>
+            <p class="text-xs text-slate-500 mt-1">Configure and manage template files for all assistance programs. These files will be used to automatically verify resident document submissions.</p>
         </div>
     </div>
 

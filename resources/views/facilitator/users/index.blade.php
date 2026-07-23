@@ -1,8 +1,8 @@
 @extends('layouts.facilitator')
 
-@section('title', 'Registered Citizens - GovAssist')
+@section('title', 'Registered Residents - GovAssist')
 
-@section('page_title', 'Citizens Registry')
+@section('page_title', 'Residents Registry')
 
 @section('content')
 <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
@@ -10,11 +10,11 @@
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/40">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
             <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-            Registered Citizens Registry
+            Registered Residents Registry
         </h3>
         <a href="{{ route('facilitator.users.create') }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold uppercase tracking-widest transition-colors rounded-xl flex items-center shadow-xs">
             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
-            Add Citizen
+            Add Resident
         </a>
     </div>
 
@@ -60,7 +60,7 @@
                                 <form action="{{ route('facilitator.users.destroy', $user) }}" method="POST" class="inline" id="delete-user-{{ $user->id }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this citizen?', () => document.getElementById('delete-user-{{ $user->id }}').submit())" class="text-xs font-extrabold uppercase tracking-widest text-red-400 hover:text-red-700 transition-colors focus:outline-none px-2 py-1.5">
+                                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this resident?', () => document.getElementById('delete-user-{{ $user->id }}').submit())" class="text-xs font-extrabold uppercase tracking-widest text-red-400 hover:text-red-700 transition-colors focus:outline-none px-2 py-1.5">
                                         Delete
                                     </button>
                                 </form>
@@ -69,7 +69,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-10 text-center text-slate-400 font-medium">No citizens registered yet.</td>
+                        <td colspan="7" class="px-6 py-10 text-center text-slate-400 font-medium">No residents registered yet.</td>
                     </tr>
                 @endforelse
             </tbody>

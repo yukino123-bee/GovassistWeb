@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @php
     $serviceTrans = $service->translations->where('language_code', app()->getLocale())->first();
@@ -13,7 +13,7 @@
 @section('header_title', __('messages.checklist_title'))
 
 @section('back_button')
-<a href="{{ route('citizen.eligibility') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
+<a href="{{ route('resident.eligibility') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
     </svg>
@@ -37,7 +37,7 @@
         <div class="p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs shadow-sm space-y-2">
             <p class="font-extrabold uppercase tracking-widest text-[9px] text-amber-800">Incomplete Profile Details</p>
             <p class="leading-relaxed font-medium">You must complete your profile details (Date of Birth, Complete Address, Civil Status, Contact Number, and upload a Valid Government ID) before you can submit this application.</p>
-            <a href="{{ route('citizen.profile.edit') }}" class="inline-block mt-1 bg-amber-600 hover:bg-amber-700 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 transition-colors">
+            <a href="{{ route('resident.profile.edit') }}" class="inline-block mt-1 bg-amber-600 hover:bg-amber-700 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 transition-colors">
                 Complete Profile Now
             </a>
         </div>
@@ -60,7 +60,7 @@
         <div class="bg-white border border-slate-200 p-6 shadow-sm space-y-4">
             <span class="text-[9px] font-bold uppercase tracking-widest text-red-700">Application Options</span>
             <h3 class="text-sm font-bold text-slate-900">Application Type</h3>
-            <form action="{{ route('citizen.eligibility.set_type', $service->id) }}" method="POST" id="app-type-form">
+            <form action="{{ route('resident.eligibility.set_type', $service->id) }}" method="POST" id="app-type-form">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="border p-4 flex items-start space-x-3 cursor-pointer hover:bg-slate-50 transition-colors {{ ($checklist && $checklist->application_type === 'new') || !$checklist || !$checklist->application_type ? 'border-red-700 bg-red-50/5' : 'border-slate-200' }}">
@@ -114,7 +114,7 @@
 
                 <!-- Form Upload -->
                 @if(!$alreadyApplied)
-                    <form action="{{ route('citizen.eligibility.upload', [$service->id, $req->id]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-2 pt-4 border-t border-slate-100">
+                    <form action="{{ route('resident.eligibility.upload', [$service->id, $req->id]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-2 pt-4 border-t border-slate-100">
                         @csrf
                         <div class="flex-grow">
                             <input type="file" name="document" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:border file:border-slate-200 file:text-[10px] file:font-bold file:uppercase file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 cursor-pointer" required>
@@ -169,7 +169,7 @@
                         </div>
                     @endif
                     <p class="text-xs text-slate-500 font-medium">Please edit your documents/details and resubmit your application.</p>
-                    <form action="{{ route('citizen.eligibility.checklist.edit', $service->id) }}" method="POST" class="mt-2">
+                    <form action="{{ route('resident.eligibility.checklist.edit', $service->id) }}" method="POST" class="mt-2">
                         @csrf
                         <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors shadow-sm rounded-none">
                             Edit Application & Resubmit
@@ -188,7 +188,7 @@
                 @endif
             </div>
         @else
-            <form id="apply-form" action="{{ route('citizen.eligibility.apply', $service->id) }}" method="POST">
+            <form id="apply-form" action="{{ route('resident.eligibility.apply', $service->id) }}" method="POST">
                 @csrf
                 
                 @if(!$profileCompleted)

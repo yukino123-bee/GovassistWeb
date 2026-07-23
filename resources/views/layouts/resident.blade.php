@@ -40,16 +40,16 @@
 
                 <!-- Desktop Navigation Links (Hidden on Mobile) -->
                 <nav class="hidden md:flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider">
-                    <a href="{{ route('citizen.home') }}" class="px-3 py-1.5 transition-all {{ Route::is('citizen.home') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.home') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.home') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_home') }}
                     </a>
-                    <a href="{{ route('citizen.eligibility') }}" class="px-3 py-1.5 transition-all {{ Route::is('citizen.eligibility*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.eligibility') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.eligibility*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_eligibility') }}
                     </a>
-                    <a href="{{ route('citizen.inquiry') }}" class="px-3 py-1.5 transition-all {{ Route::is('citizen.inquiry') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.inquiry') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.inquiry') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_inquiry') }}
                     </a>
-                    <a href="{{ route('citizen.profile') }}" class="px-3 py-1.5 transition-all {{ Route::is('citizen.profile*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.profile') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.profile*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_profile') }}
                     </a>
                 </nav>
@@ -76,7 +76,7 @@
 
                     @auth
                         <!-- User Avatar -->
-                        <a href="{{ route('citizen.profile') }}" class="flex items-center space-x-2 pl-2 border-l border-white/20">
+                        <a href="{{ route('resident.profile') }}" class="flex items-center space-x-2 pl-2 border-l border-white/20">
                             <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white/30 shadow-sm bg-white/10 flex items-center justify-center">
                                 @if(Auth::user()->avatar)
                                     <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
@@ -132,7 +132,7 @@
         <!-- Bottom Navigation (Visible ONLY on Mobile) -->
         <nav class="md:hidden bg-white border-t border-slate-100 shadow-2xl h-16 fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around">
             <!-- Home -->
-            <a href="{{ route('citizen.home') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('citizen.home') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('resident.home') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.home') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
@@ -140,7 +140,7 @@
             </a>
 
             <!-- Eligibility -->
-            <a href="{{ route('citizen.eligibility') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('citizen.eligibility*') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('resident.eligibility') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.eligibility*') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
@@ -148,7 +148,7 @@
             </a>
 
             <!-- Inquiry -->
-            <a href="{{ route('citizen.inquiry') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('citizen.inquiry') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('resident.inquiry') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.inquiry') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
@@ -156,7 +156,7 @@
             </a>
 
             <!-- Profile -->
-            <a href="{{ route('citizen.profile') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('citizen.profile*') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('resident.profile') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.profile*') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>

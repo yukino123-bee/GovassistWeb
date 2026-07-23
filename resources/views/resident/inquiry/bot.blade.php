@@ -1,4 +1,4 @@
-@extends('layouts.citizen')
+@extends('layouts.resident')
 
 @section('title', __('messages.bot_title'))
 
@@ -31,17 +31,7 @@
 
         <!-- Sidebar Content -->
         <div class="flex-grow overflow-y-auto p-3 space-y-2 bg-slate-50/20">
-            @if(!Auth::check())
-                <div id="guest-info-display" class="hidden p-2.5 mb-2 bg-slate-100 border border-slate-200 text-[10px] text-slate-650 flex items-center justify-between">
-                    <div class="truncate mr-2">
-                        <span class="font-extrabold text-slate-800 uppercase block tracking-wider text-[8px]">Guest Account</span>
-                        <span id="guest-display-detail" class="truncate font-semibold block"></span>
-                    </div>
-                    <button type="button" onclick="openGuestModal(null)" class="text-red-700 hover:text-red-900 font-extrabold uppercase tracking-wider shrink-0 cursor-pointer focus:outline-none">
-                        Edit
-                    </button>
-                </div>
-            @endif
+
 
             <!-- Contact Admin / New Inquiry Action Card -->
             <button type="button" onclick="resetToBotChat()" class="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-3 transition-all text-xs font-extrabold uppercase tracking-wider focus:outline-none shadow-sm cursor-pointer mb-3">
@@ -183,6 +173,8 @@
     const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     const currentUserId = {{ Auth::id() ?: 'null' }};
+    let currentGuestName = null;
+    let currentGuestEmail = null;
     let activeInquiryId = null;
 
     const inquiriesMap = {};
@@ -218,8 +210,50 @@
         }
     }
 
+    let pollInterval = null;
+    let lastResponseCount = -1;
+
+    function startMessagePolling() {
+        stopMessagePolling();
+        pollInterval = setInterval(fetchLatestMessages, 3000);
+    }
+
+    function stopMessagePolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    function fetchLatestMessages() {
+        if (!activeInquiryId) return;
+
+        const email = currentGuestEmail;
+        let url = `/resident/inquiry/${activeInquiryId}/messages`;
+        if (currentUserId === null && email) {
+            url += `?guest_email=${encodeURIComponent(email)}`;
+        }
+
+        fetch(url, {
+            headers: {
+                "Accept": "application/json"
+            }
+        })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (data && data.success && data.inquiry) {
+                const updatedInq = data.inquiry;
+                inquiriesMap[updatedInq.id] = updatedInq;
+                renderInquiryThread(updatedInq);
+            }
+        })
+        .catch(err => console.error("Poll error:", err));
+    }
+
     function resetToBotChat() {
+        stopMessagePolling();
         activeInquiryId = null;
+        lastResponseCount = -1;
         const titleEl = document.getElementById('chat-header-title');
         if (titleEl) {
             titleEl.innerHTML = defaultChatTitleHTML;
@@ -242,10 +276,26 @@
 
     function selectInquiry(inq) {
         activeInquiryId = inq.id;
+        renderInquiryThread(inq, true);
+        startMessagePolling();
+
+        const sidebar = document.getElementById('inquiry-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+            toggleSidebar();
+        }
+    }
+
+    function renderInquiryThread(inq, force = false) {
+        const respCount = (inq.responses || []).length;
+        if (!force && activeInquiryId === inq.id && lastResponseCount === respCount) {
+            return;
+        }
+        lastResponseCount = respCount;
 
         const titleEl = document.getElementById('chat-header-title');
         if (titleEl) {
-            const programName = inq.service ? inq.service.name_en : 'General Inquiry';
+            const programName = inq.service ? (inq.service.service_name || inq.service.name_en) : 'General Inquiry';
             titleEl.innerHTML = `
                 <!-- Hamburger Button for Mobile Sidebar Toggle -->
                 <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
@@ -266,22 +316,17 @@
             inq.responses.forEach(resp => {
                 const respText = resp.response_text || resp.requireent_text || '';
 
-                // Skip the first reply if it mirrors the original inquiry text
                 if (isFirstResponse && respText === inq.inquiry_text) {
                     const isByGuest = resp.responded_by === null;
-                    const isByCitizen = resp.responder && resp.responder.role === 'citizen';
-                    if (isByGuest || isByCitizen) {
+                    const isByResident = resp.responder && resp.responder.role === 'resident';
+                    if (isByGuest || isByResident) {
                         isFirstResponse = false;
                         return;
                     }
                 }
                 isFirstResponse = false;
 
-                // A message is FROM the current user/guest if:
-                //   - responded_by is null (guest sent it), OR
-                //   - responded_by matches the logged-in user, OR
-                //   - responder has role 'citizen'
-                const isByMe = resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'citizen');
+                const isByMe = resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'resident');
                 const isByAdmin = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
 
                 if (isByMe && !isByAdmin) {
@@ -297,12 +342,6 @@
 
         if (chatInput) {
             chatInput.placeholder = "Type your reply...";
-        }
-
-        const sidebar = document.getElementById('inquiry-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-            toggleSidebar();
         }
     }
 
@@ -344,6 +383,23 @@
 
     let pendingMsg = '';
 
+    function clearGuestSession() {
+        localStorage.removeItem('guest_name');
+        localStorage.removeItem('guest_email');
+        setCookie('guest_name', '', -1);
+        setCookie('guest_email', '', -1);
+        
+        fetch("{{ route('resident.inquiry.clear_guest') }}", {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": csrfToken(),
+                "Accept": "application/json"
+            }
+        }).then(() => {
+            window.location.reload();
+        });
+    }
+
     function closeGuestModal() {
         const modal = document.getElementById('guest-info-modal');
         if (modal) {
@@ -361,8 +417,8 @@
         const modal = document.getElementById('guest-info-modal');
         if (modal) {
             // Pre-fill from localStorage if exists
-            const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
-            const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
+            const savedName = currentGuestName;
+            const savedEmail = currentGuestEmail;
             if (savedName) document.getElementById('guest-name-input').value = savedName;
             if (savedEmail) document.getElementById('guest-email-input').value = savedEmail;
 
@@ -385,15 +441,10 @@
             return;
         }
 
-        localStorage.setItem('guest_name', name);
-        localStorage.setItem('guest_email', email);
-        
-        // Also set cookies to keep it in sync with Laravel
-        setCookie('guest_name', name, 30);
-        setCookie('guest_email', email, 30);
+        currentGuestName = name;
+        currentGuestEmail = email;
 
         closeGuestModal();
-        updateGuestInfoDisplay();
 
         if (pendingMsg) {
             appendMessage('user', pendingMsg);
@@ -407,53 +458,17 @@
         }
     }
 
-    function updateGuestInfoDisplay() {
-        const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
-        const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
-        const displayEl = document.getElementById('guest-info-display');
-        const detailEl = document.getElementById('guest-display-detail');
 
-        if (displayEl && detailEl) {
-            if (savedName && savedEmail) {
-                detailEl.innerText = `${savedName} (${savedEmail})`;
-                displayEl.classList.remove('hidden');
-            } else {
-                displayEl.classList.add('hidden');
-            }
-        }
-    }
-
-    // Helper functions for cookies
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            let date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-    }
-
-    function getCookie(name) {
-        let nameEQ = name + "=";
-        let ca = document.cookie.split(';');
-        for(let i=0;i < ca.length;i++) {
-            let c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-        }
-        return null;
-    }
 
     function sendManualInquiry(msg, guestName = null, guestEmail = null) {
         if (activeInquiryId) {
             // Replying to an existing inquiry thread
-            const url = `/citizen/inquiry/${activeInquiryId}/reply`;
+            const url = `/resident/inquiry/${activeInquiryId}/reply`;
             const bodyData = { message: msg };
 
             // Always include guest credentials for guest users
-            const name = guestName || localStorage.getItem('guest_name') || getCookie('guest_name');
-            const email = guestEmail || localStorage.getItem('guest_email') || getCookie('guest_email');
+            const name = guestName || currentGuestName;
+            const email = guestEmail || currentGuestEmail;
             if (currentUserId === null && name && email) {
                 bodyData.guest_name = name;
                 bodyData.guest_email = email;
@@ -475,7 +490,9 @@
                 return res.json();
             })
             .then(data => {
-                if (!data.success) {
+                if (data.success) {
+                    fetchLatestMessages();
+                } else {
                     console.error("Reply error:", data);
                     appendMessage('admin', "Failed to send reply. Please try again.");
                     scrollToBottom();
@@ -489,15 +506,15 @@
         } else {
             // Creating a new inquiry thread
             const bodyData = { inquiry_text: msg };
-            const name = guestName || localStorage.getItem('guest_name') || getCookie('guest_name');
-            const email = guestEmail || localStorage.getItem('guest_email') || getCookie('guest_email');
+            const name = guestName || currentGuestName;
+            const email = guestEmail || currentGuestEmail;
 
             if (name && email) {
                 bodyData.guest_name = name;
                 bodyData.guest_email = email;
             }
 
-            fetch("{{ route('citizen.inquiry.manual') }}", {
+            fetch("{{ route('resident.inquiry.manual') }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -517,7 +534,8 @@
                     activeInquiryId = data.inquiry.id;
                     inquiriesMap[data.inquiry.id] = data.inquiry;
                     prependInquiryToSidebar(data.inquiry);
-                    // Don't call selectInquiry — we already appended the message above
+                    renderInquiryThread(data.inquiry, true);
+                    startMessagePolling();
                 } else {
                     console.error("Inquiry error:", data);
                     appendMessage('admin', "Failed to send inquiry. Please try again.");
@@ -539,8 +557,8 @@
             if(!msg) return;
 
             if (currentUserId === null) {
-                const savedName = localStorage.getItem('guest_name') || getCookie('guest_name');
-                const savedEmail = localStorage.getItem('guest_email') || getCookie('guest_email');
+                const savedName = currentGuestName;
+                const savedEmail = currentGuestEmail;
                 if (!savedName || !savedEmail) {
                     openGuestModal(msg);
                     return;
@@ -585,8 +603,8 @@
             if (!deleteTarget) return;
 
             const url = deleteTarget.type === 'inquiry'
-                ? `/citizen/inquiry/${deleteTarget.id}`
-                : `/citizen/inquiry/replies/${deleteTarget.id}`;
+                ? `/resident/inquiry/${deleteTarget.id}`
+                : `/resident/inquiry/replies/${deleteTarget.id}`;
 
             fetch(url, {
                 method: "DELETE",
@@ -657,8 +675,6 @@
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    // Initialize default state & guest displays
-    updateGuestInfoDisplay();
     resetToBotChat();
 </script>
 @endsection

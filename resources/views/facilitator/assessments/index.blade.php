@@ -2,7 +2,7 @@
 
 @section('title', 'Eligibility Assessments History - GovAssist')
 
-@section('page_title', 'Citizen Eligibility Calculations')
+@section('page_title', 'Resident Eligibility Calculations')
 
 @section('content')
 <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
@@ -17,7 +17,7 @@
         <table class="w-full text-left text-sm text-slate-600">
             <thead>
                 <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
-                    <th class="px-6 py-3.5">Citizen Name</th>
+                    <th class="px-6 py-3.5">Resident Name</th>
                     <th class="px-6 py-3.5">Service Program</th>
                     <th class="px-6 py-3.5">Calculated Status</th>
                     <th class="px-6 py-3.5">Date Assessed</th>
@@ -27,7 +27,7 @@
             <tbody class="divide-y divide-slate-100">
                 @forelse($assessments as $assess)
                     <tr class="hover:bg-slate-50/70 transition-colors">
-                        <td class="px-6 py-4 font-semibold text-slate-800 text-xs">{{ $assess->user->name ?? 'Citizen' }}</td>
+                        <td class="px-6 py-4 font-semibold text-slate-800 text-xs">{{ $assess->user->name ?? 'Resident' }}</td>
                         <td class="px-6 py-4 text-xs text-slate-700">{{ $assess->service->name_en ?? 'Service' }}</td>
                         <td class="px-6 py-4">
                             @if($assess->status === 'eligible')
@@ -58,7 +58,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-10 text-center text-slate-400 font-medium">No citizen assessments recorded yet.</td>
+                        <td colspan="5" class="px-6 py-10 text-center text-slate-400 font-medium">No resident assessments recorded yet.</td>
                     </tr>
                 @endforelse
             </tbody>
