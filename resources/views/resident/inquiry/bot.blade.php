@@ -383,21 +383,6 @@
 
     let pendingMsg = '';
 
-    function clearGuestSession() {
-        localStorage.removeItem('guest_name');
-        localStorage.removeItem('guest_email');
-        setCookie('guest_name', '', -1);
-        setCookie('guest_email', '', -1);
-        
-        fetch("{{ route('resident.inquiry.clear_guest') }}", {
-            method: "POST",
-            headers: {
-                "X-CSRF-TOKEN": csrfToken(),
-                "Accept": "application/json"
-            }
-        }).then(() => {
-            window.location.reload();
-        });
     }
 
     function closeGuestModal() {
