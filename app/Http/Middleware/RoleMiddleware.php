@@ -12,13 +12,20 @@ class RoleMiddleware
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (! Auth::check()) {
             return redirect()->route('login');
         }
 
-        if (Auth::user()->role !== $role) {
+        $userRole = Auth::user()->role;
+
+        // Treat legacy 'citizen' role as 'resident' for backwards compatibility
+        if ($userRole === 'citizen') {
+            $userRole = 'resident';
+        }
+
+        if (! in_array($userRole, $roles)) {
             abort(403, 'Unauthorized action.');
         }
 
