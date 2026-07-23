@@ -383,8 +383,6 @@
 
     let pendingMsg = '';
 
-    }
-
     function closeGuestModal() {
         const modal = document.getElementById('guest-info-modal');
         if (modal) {
