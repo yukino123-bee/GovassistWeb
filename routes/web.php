@@ -69,6 +69,14 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
     Route::get('/profile/edit', [ResidentController::class, 'editProfile'])->name('resident.profile.edit');
     Route::post('/profile/edit', [ResidentController::class, 'updateProfile'])->name('resident.profile.update');
     Route::post('/profile/avatar', [ResidentController::class, 'updateAvatar'])->name('resident.profile.avatar');
+
+    // Legal Pages
+    Route::get('/legal/terms', function () {
+        return view('legal.terms');
+    })->name('resident.legal.terms');
+    Route::get('/legal/privacy', function () {
+        return view('legal.privacy');
+    })->name('resident.legal.privacy');
 });
 
 // Facilitator (Admin) Protected Routes

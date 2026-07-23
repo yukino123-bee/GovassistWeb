@@ -100,7 +100,7 @@
             
             <div class="bg-white border border-slate-200 shadow-sm divide-y divide-slate-100">
                 <!-- Terms -->
-                <a href="#" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                <a href="{{ route('resident.legal.terms') }}" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 border border-red-200 text-red-700 bg-red-50/30">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                 </a>
 
                 <!-- Privacy -->
-                <a href="#" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                <a href="{{ route('resident.legal.privacy') }}" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
                     <div class="flex items-center space-x-4">
                         <div class="p-2 border border-red-200 text-red-700 bg-red-50/30">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
