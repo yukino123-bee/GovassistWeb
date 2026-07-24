@@ -87,7 +87,7 @@
                     <div class="border border-slate-200 bg-slate-50/20 p-3.5 flex flex-col justify-center rounded-none shadow-sm">
                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Government ID Verification</span>
                         @if($checklist->user->valid_id_path)
-                            <a href="{{ asset('storage/' . $checklist->user->valid_id_path) }}" target="_blank" class="mt-1 px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-wider border border-red-200 rounded-none hover:bg-red-100 transition-colors inline-block text-center shadow-xs">
+                            <a href="{{ route('facilitator.users.valid_id', $checklist->user) }}" target="_blank" class="mt-1 px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-wider border border-red-200 rounded-none hover:bg-red-100 transition-colors inline-block text-center shadow-xs">
                                 View Valid ID
                             </a>
                         @else
@@ -148,11 +148,11 @@
                                         </div>
 
                                         <div class="flex flex-col sm:flex-row items-center gap-2">
-                                            <button type="button" onclick="openDocumentWebview('{{ asset('storage/' . $doc->file_path) }}', '{{ $doc->requirement->name_en }}')" class="w-full text-center text-white font-extrabold flex items-center justify-center space-x-1.5 border border-red-700 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
+                                            <button type="button" onclick="openDocumentWebview('{{ route('facilitator.checklist_items.document', $doc) }}', '{{ $doc->requirement->name_en }}')" class="w-full text-center text-white font-extrabold flex items-center justify-center space-x-1.5 border border-red-700 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
                                                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 <span>Web View</span>
                                             </button>
-                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="w-full text-center text-slate-700 font-extrabold flex items-center justify-center space-x-1.5 border border-slate-300 py-2.5 bg-white hover:bg-slate-50 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
+                                            <a href="{{ route('facilitator.checklist_items.document', $doc) }}" target="_blank" class="w-full text-center text-slate-700 font-extrabold flex items-center justify-center space-x-1.5 border border-slate-300 py-2.5 bg-white hover:bg-slate-50 transition-colors text-[10px] uppercase tracking-widest shadow-xs">
                                                 <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                 <span>Fullscreen</span>
                                             </a>

@@ -78,7 +78,14 @@ class AppServiceProvider extends ServiceProvider
                 ->sortByDesc('time')
                 ->take(10);
 
-            $view->with('adminNotifications', $notifications);
+            $pendingAppsCount = UserChecklist::where('status', 'pending')->count();
+            $pendingInquiriesCount = UserInquiry::where('status', 'pending')->count();
+            $pendingReassessmentsCount = ReassessmentRequest::where('status', 'pending')->count();
+
+            $view->with('adminNotifications', $notifications)
+                ->with('pendingAppsCount', $pendingAppsCount)
+                ->with('pendingInquiriesCount', $pendingInquiriesCount)
+                ->with('pendingReassessmentsCount', $pendingReassessmentsCount);
         });
     }
 }

@@ -113,6 +113,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/users/create', [FacilitatorController::class, 'createUser'])->name('facilitator.users.create');
     Route::post('/users', [FacilitatorController::class, 'storeUser'])->name('facilitator.users.store');
     Route::get('/users/{user}', [FacilitatorController::class, 'showUser'])->name('facilitator.users.show');
+    Route::get('/users/{user}/valid-id', [FacilitatorController::class, 'viewValidId'])->name('facilitator.users.valid_id');
     Route::get('/users/{user}/edit', [FacilitatorController::class, 'editUser'])->name('facilitator.users.edit');
     Route::put('/users/{user}', [FacilitatorController::class, 'updateUser'])->name('facilitator.users.update');
     Route::delete('/users/{user}', [FacilitatorController::class, 'destroyUser'])->name('facilitator.users.destroy');
@@ -136,6 +137,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::put('/applications/{checklist}', [FacilitatorController::class, 'updateApplication'])->name('facilitator.applications.update');
     Route::delete('/applications/{checklist}', [FacilitatorController::class, 'destroyApplication'])->name('facilitator.applications.destroy');
     Route::post('/applications/{checklist}/status', [FacilitatorController::class, 'updateApplicationStatus'])->name('facilitator.applications.update_status');
+    Route::get('/checklist-items/{item}/document', [FacilitatorController::class, 'viewDocument'])->name('facilitator.checklist_items.document');
     Route::post('/checklist-items/{item}/status', [FacilitatorController::class, 'updateItemStatus'])->name('facilitator.checklist_items.update_status');
     Route::post('/checklist-items/batch/{checklist}', [FacilitatorController::class, 'batchUpdateChecklistItems'])->name('facilitator.checklist_items.batch_update');
     Route::post('/checklist-items/{item}/auto-verify', [FacilitatorController::class, 'autoVerifyItem'])->name('facilitator.checklist_items.auto_verify');

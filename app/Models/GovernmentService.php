@@ -25,7 +25,7 @@ class GovernmentService extends Model
 
     public function requirements(): HasMany
     {
-        return $this->hasMany(ServiceRequirement::class, 'service_id');
+        return $this->hasMany(ServiceRequirement::class, 'service_id')->orderBy('display_order', 'asc');
     }
 
     public function eligibilityQuestions(): HasMany

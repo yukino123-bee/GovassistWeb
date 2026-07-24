@@ -505,6 +505,21 @@ class FacilitatorController extends Controller
         return view('facilitator.applications.show', compact('checklist', 'requirements', 'uploadedDocs'));
     }
 
+    public function viewDocument(UserChecklistItem $item)
+    {
+        if (! $item->file_path) {
+            abort(404, 'No document uploaded for this item.');
+        }
+
+        $disk = env('FILESYSTEM_DISK', 'public');
+
+        if (! \Illuminate\Support\Facades\Storage::disk($disk)->exists($item->file_path)) {
+            abort(404, 'File not found on disk.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk($disk)->response($item->file_path);
+    }
+
     public function updateApplicationStatus(Request $request, UserChecklist $checklist)
     {
         $request->validate([
@@ -572,7 +587,8 @@ class FacilitatorController extends Controller
 
         if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
             foreach ($uploadedDocs as $doc) {
-                $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($doc->file_path);
+                $disk = env('FILESYSTEM_DISK', 'public');
+                $filePath = \Illuminate\Support\Facades\Storage::disk($disk)->path($doc->file_path);
                 if (file_exists($filePath)) {
                     $extension = pathinfo($filePath, PATHINFO_EXTENSION);
                     $zipEntryName = str_replace(' ', '_', $doc->requirement->name_en).'.'.$extension;
@@ -760,6 +776,21 @@ class FacilitatorController extends Controller
         $user->load(['checklists.service', 'inquiries']);
 
         return view('facilitator.users.show', compact('user'));
+    }
+
+    public function viewValidId(User $user)
+    {
+        if (! $user->valid_id_path) {
+            abort(404, 'User does not have a valid ID.');
+        }
+
+        $disk = env('FILESYSTEM_DISK', 'public');
+
+        if (! \Illuminate\Support\Facades\Storage::disk($disk)->exists($user->valid_id_path)) {
+            abort(404, 'File not found on disk.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk($disk)->response($user->valid_id_path);
     }
 
     public function editUser(User $user)

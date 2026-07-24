@@ -208,7 +208,12 @@ class ResidentController extends Controller
         // Apply renewal filter if active
         if ($isEmployment && $checklist && $checklist->application_type === 'renewal') {
             $requirements = $requirements->filter(function ($req) {
-                return str_contains(strtolower($req->name_en), 'pds');
+                $name = strtolower($req->name_en);
+
+                return str_contains($name, 'pds') ||
+                       str_contains($name, 'recommendation') ||
+                       str_contains($name, 'letter request') ||
+                       str_contains($name, 'endorsement');
             });
         }
 
@@ -245,10 +250,10 @@ class ResidentController extends Controller
             'user_id' => Auth::id(),
             'service_id' => $service->id,
         ], [
-            'status' => 'pending',
+            'status' => 'draft',
         ]);
 
-        if ($checklist->status === 'pending') {
+        if ($checklist->status === 'draft') {
             $checklist->update([
                 'application_type' => $request->application_type,
             ]);
@@ -286,7 +291,7 @@ class ResidentController extends Controller
                 'user_id' => Auth::id(),
                 'service_id' => $service->id,
             ], [
-                'status' => 'pending',
+                'status' => 'draft',
             ]);
 
             $checklistItem = UserChecklistItem::updateOrCreate([
@@ -321,7 +326,13 @@ class ResidentController extends Controller
                     $result = json_decode($output, true);
                     if (isset($result['match']) && $result['match'] === true) {
                         $checklistItem->update(['status' => 'approved']);
+                    } else {
+                        // Flag for correction or re-upload if it doesn't match
+                        $checklistItem->update(['status' => 'rejected']);
                     }
+                } else {
+                    // Script failed or didn't output anything, default to rejected for correction
+                    $checklistItem->update(['status' => 'rejected']);
                 }
             }
         }
@@ -358,7 +369,12 @@ class ResidentController extends Controller
         $isEmployment = str_contains(strtolower($service->service_name), 'employment');
         if ($isEmployment && $checklist->application_type === 'renewal') {
             $requirements = $requirements->filter(function ($req) {
-                return str_contains(strtolower($req->name_en), 'pds');
+                $name = strtolower($req->name_en);
+
+                return str_contains($name, 'pds') ||
+                       str_contains($name, 'recommendation') ||
+                       str_contains($name, 'letter request') ||
+                       str_contains($name, 'endorsement');
             });
         }
         foreach ($requirements as $req) {
