@@ -450,6 +450,15 @@ class ResidentController extends Controller
             }
         }
 
+        // Messenger-style behavior: Re-use single thread per user account or guest email
+        if (! $inquiry) {
+            if (Auth::check()) {
+                $inquiry = UserInquiry::where('user_id', Auth::id())->latest('updated_at')->first();
+            } elseif ($request->filled('guest_email')) {
+                $inquiry = UserInquiry::where('guest_email', $request->input('guest_email'))->latest('updated_at')->first();
+            }
+        }
+
         if ($inquiry) {
             if ($request->input('service_id')) {
                 $inquiry->update([
@@ -463,7 +472,7 @@ class ResidentController extends Controller
                 'responded_by' => Auth::check() ? Auth::id() : null,
             ]);
 
-            $inquiry->update(['status' => 'pending']);
+            $inquiry->update(['status' => 'pending', 'updated_at' => now()]);
         } else {
             $inquiry = UserInquiry::create([
                 'user_id' => Auth::check() ? Auth::id() : null,

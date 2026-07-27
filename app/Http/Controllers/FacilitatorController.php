@@ -641,8 +641,12 @@ class FacilitatorController extends Controller
     public function inquiries()
     {
         $inquiries = UserInquiry::with(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->unique(function ($inq) {
+                return $inq->user_id ? 'user_'.$inq->user_id : 'guest_'.strtolower($inq->guest_email ?? 'unknown');
+            })
+            ->values();
 
         return view('facilitator.inquiries.index', compact('inquiries'));
     }
