@@ -903,6 +903,14 @@ class FacilitatorController extends Controller
             'template_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
+        abort_unless(
+            ServiceRequirement::query()
+                ->whereKey($request->integer('requirement_id'))
+                ->where('service_id', $request->integer('service_id'))
+                ->exists(),
+            404,
+        );
+
         $disk = config('filesystems.default');
         $path = $request->file('template_file')->store('templates', $disk);
 

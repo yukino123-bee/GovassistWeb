@@ -100,9 +100,13 @@
 
                     <!-- Upload Badge status -->
                     <div class="flex-shrink-0">
-                        @if(isset($uploadedDocs[$req->id]) && $uploadedDocs[$req->id]->is_submitted)
+                        @if(isset($uploadedDocs[$req->id]) && $uploadedDocs[$req->id]->status === 'approved')
                             <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[9px] font-bold uppercase tracking-wider">
-                                Uploaded
+                                OCR Verified
+                            </span>
+                        @elseif(isset($uploadedDocs[$req->id]) && $uploadedDocs[$req->id]->is_submitted)
+                            <span class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-bold uppercase tracking-wider">
+                                Pending Review
                             </span>
                         @else
                             <span class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-bold uppercase tracking-wider">
@@ -117,7 +121,7 @@
                     <form action="{{ route('resident.eligibility.upload', [$service->id, $req->id]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row sm:items-center gap-2 pt-4 border-t border-slate-100">
                         @csrf
                         <div class="flex-grow">
-                            <input type="file" name="document" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:border file:border-slate-200 file:text-[10px] file:font-bold file:uppercase file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 cursor-pointer" required>
+                            <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:border file:border-slate-200 file:text-[10px] file:font-bold file:uppercase file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 cursor-pointer" required>
                         </div>
                         <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider">
                             Upload

@@ -17,6 +17,7 @@ use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -210,6 +211,17 @@ test('facilitator can manage document templates by program', function () {
 });
 
 test('document templates verification matches keywords for PDF uploads', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    Process::fake([
+        '*' => Process::result(output: json_encode([
+            'match' => true,
+            'score' => 0.91,
+            'method' => 'pdf_text_template_and_keywords',
+            'note' => 'Document verified successfully.',
+        ])),
+    ]);
+
     $resident = User::factory()->create(['role' => 'resident']);
 
     $category = ServiceCategory::create(['category_name' => 'Category']);
@@ -226,7 +238,8 @@ test('document templates verification matches keywords for PDF uploads', functio
         'is_required' => true,
     ]);
 
-    // Create a mock template
+    Storage::disk('public')->put('templates/mock_template.pdf', 'template');
+
     $template = DocumentTemplate::create([
         'service_id' => $service->id,
         'requirement_id' => $requirement->id,
@@ -235,8 +248,6 @@ test('document templates verification matches keywords for PDF uploads', functio
         'file_path' => 'templates/mock_template.pdf',
     ]);
 
-    // Mock upload file
-    Storage::fake('public');
     $file = UploadedFile::fake()->create('document.pdf', 10);
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
@@ -247,7 +258,58 @@ test('document templates verification matches keywords for PDF uploads', functio
     $this->assertDatabaseHas('user_checklist_items', [
         'requirement_id' => $requirement->id,
         'is_submitted' => true,
+        'status' => 'approved',
     ]);
+
+    Process::assertRan(fn ($process) => str_contains(implode(' ', $process->command), 'Indigency'));
+});
+
+test('document template verification rejects a mismatched upload', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    Process::fake([
+        '*' => Process::result(output: json_encode([
+            'match' => false,
+            'score' => 0.08,
+            'method' => 'pdf_text_template_and_keywords',
+            'note' => 'The document does not match the configured template or all required keywords.',
+        ])),
+    ]);
+
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Category']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance Program',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Medical Certificate'],
+        'is_required' => true,
+    ]);
+
+    Storage::disk('public')->put('templates/medical-certificate.pdf', 'template');
+    DocumentTemplate::create([
+        'service_id' => $service->id,
+        'requirement_id' => $requirement->id,
+        'name_en' => 'Medical Certificate,Patient Name,Physician',
+        'name_ceb' => 'Medical Certificate,Patient Name,Physician',
+        'file_path' => 'templates/medical-certificate.pdf',
+    ]);
+
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
+        $service->id,
+        $requirement->id,
+    ]), [
+        'document' => UploadedFile::fake()->create('unrelated-document.pdf', 10),
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('error', 'The document does not match the configured template or all required keywords.');
+    expect(UserChecklistItem::query()->where('requirement_id', $requirement->id)->exists())->toBeFalse();
+    expect(Storage::disk('public')->allFiles('documents'))->toBeEmpty();
 });
 
 test('facilitator layout loads notifications correctly', function () {

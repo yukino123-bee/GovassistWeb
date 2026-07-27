@@ -115,7 +115,7 @@
                                         <div class="flex items-center justify-end space-x-2">
                                             @if($req->template)
                                                 <!-- View / Download -->
-                                                <a href="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($req->template->file_path) }}" target="_blank" title="View Current Template" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
+                                                <a href="{{ Storage::disk(config('filesystems.default'))->url($req->template->file_path) }}" target="_blank" title="View Current Template" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                 </a>
 

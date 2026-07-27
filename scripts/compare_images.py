@@ -1,8 +1,10 @@
 import sys
 import json
 import os
+import re
 import zipfile
 import xml.etree.ElementTree as ET
+from difflib import SequenceMatcher
 
 def extract_text_from_pdf(pdf_path):
     try:
@@ -13,8 +15,26 @@ def extract_text_from_pdf(pdf_path):
             t = page.extract_text()
             if t:
                 text += t + " "
+        if text.strip():
+            return text.strip()
+    except Exception:
+        pass
+
+    try:
+        import fitz
+        import pytesseract
+        from PIL import Image
+        from io import BytesIO
+
+        text = ""
+        with fitz.open(pdf_path) as document:
+            for page in document:
+                pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                image = Image.open(BytesIO(pixmap.tobytes("png")))
+                text += pytesseract.image_to_string(image) + " "
+
         return text.strip()
-    except Exception as e:
+    except Exception:
         return ""
 
 def extract_text_from_docx(docx_path):
@@ -33,7 +53,7 @@ def extract_text_from_docx(docx_path):
                     texts.append(elem.text)
                     
             return " ".join(texts)
-    except Exception as e:
+    except Exception:
         return ""
 
 def extract_text_from_image(image_path):
@@ -78,58 +98,74 @@ def search_keywords(text, keywords_str):
         return False
         
     cleaned_text = clean_text(text)
-    
-    # Split keywords by commas and trim spaces
     keywords = [k.strip().lower() for k in keywords_str.split(',') if k.strip()]
-    
+
+    if not keywords:
+        return False
+
     for kw in keywords:
-        if not kw:
-            continue
-        # Check if the full phrase is in the text
         if kw in cleaned_text:
-            return True
+            continue
             
-        # Also check individual important words of the phrase (length > 3)
         words = [w.strip(".,;:?!()[]{}") for w in kw.split()]
         important_words = [w for w in words if len(w) > 3]
-        if important_words and all(w in cleaned_text for w in important_words):
-            return True
-            
-    return False
+        if not important_words or not all(w in cleaned_text for w in important_words):
+            return False
+
+    return True
+
+def extract_document_text(path):
+    extension = os.path.splitext(path)[1].lower()
+
+    if extension == '.pdf':
+        return extract_text_from_pdf(path), "pdf_text"
+    if extension in ['.docx', '.doc']:
+        return extract_text_from_docx(path), "docx_text"
+    if extension in ['.png', '.jpg', '.jpeg']:
+        return extract_text_from_image(path), "ocr_image"
+
+    return "", "unsupported"
+
+def text_similarity(document_text, template_text):
+    document_words = set(re.findall(r"[a-z0-9]{3,}", clean_text(document_text)))
+    template_words = set(re.findall(r"[a-z0-9]{3,}", clean_text(template_text)))
+
+    if not document_words or not template_words:
+        return 0.0
+
+    template_coverage = len(document_words & template_words) / len(template_words)
+    sequence_score = SequenceMatcher(
+        None,
+        clean_text(template_text),
+        clean_text(document_text),
+    ).ratio()
+
+    return max(template_coverage, sequence_score)
 
 def compare_images(image_path1, image_path2, keywords=None):
     if not os.path.exists(image_path1):
-        return {"match": True, "score": 1.0, "method": "cloud_storage", "note": "File not on local disk"}
+        return {"match": False, "score": 0.0, "method": "missing_document", "note": "The uploaded document could not be read."}
+
+    if not os.path.exists(image_path2):
+        return {"match": False, "score": 0.0, "method": "missing_template", "note": "The administrator template could not be read."}
 
     ext1 = os.path.splitext(image_path1)[1].lower()
+    extracted_text, method = extract_document_text(image_path1)
+    template_text, _ = extract_document_text(image_path2)
+    keywords_match = search_keywords(extracted_text, keywords)
 
-    # 1. Try extracting text based on file format
-    extracted_text = ""
-    method = "unknown"
+    if extracted_text and template_text:
+        score = text_similarity(extracted_text, template_text)
+        matched = keywords_match and score >= 0.55
+        return {
+            "match": matched,
+            "score": score,
+            "method": f"{method}_template_and_keywords",
+            "text_snippet": extracted_text[:150],
+            "note": "Document verified successfully." if matched else "The document does not match the configured template or all required keywords.",
+        }
 
-    if ext1 == '.pdf':
-        extracted_text = extract_text_from_pdf(image_path1)
-        method = "pdf_text"
-    elif ext1 in ['.docx', '.doc']:
-        extracted_text = extract_text_from_docx(image_path1)
-        method = "docx_text"
-    elif ext1 in ['.png', '.jpg', '.jpeg']:
-        extracted_text = extract_text_from_image(image_path1)
-        method = "ocr_image"
-
-    # 2. Check if keyword match is successful
-    if extracted_text and keywords:
-        matched = search_keywords(extracted_text, keywords)
-        if matched:
-            return {
-                "match": True,
-                "score": 1.0,
-                "method": f"{method}_keyword",
-                "text_snippet": extracted_text[:150],
-            }
-
-    # 3. Fallback: Standard visual SSIM comparison if local template exists
-    if ext1 in ['.png', '.jpg', '.jpeg'] and os.path.exists(image_path2):
+    if ext1 in ['.png', '.jpg', '.jpeg']:
         try:
             import cv2
             from skimage.metrics import structural_similarity as ssim
@@ -140,23 +176,22 @@ def compare_images(image_path1, image_path2, keywords=None):
             if img1 is not None and img2 is not None:
                 img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
                 score, _ = ssim(img1, img2, full=True)
-                threshold = 0.85
-                is_match = score > threshold
+                matched = keywords_match and score >= 0.55
 
                 return {
-                    "match": bool(is_match),
+                    "match": bool(matched),
                     "score": float(score),
-                    "method": "visual_ssim",
+                    "method": "visual_ssim_and_keywords",
+                    "note": "Document verified successfully." if matched else "The document does not match the configured template or all required keywords.",
                 }
         except Exception:
             pass
 
-    # Default: Return match: True so legitimate uploads are never blocked
     return {
-        "match": True,
-        "score": 1.0,
+        "match": False,
+        "score": 0.0,
         "method": method,
-        "note": "Document uploaded successfully",
+        "note": "OCR could not confirm that this document matches the configured template and all required keywords. Please upload a clear, correct document.",
     }
 
 if __name__ == "__main__":

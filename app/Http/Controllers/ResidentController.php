@@ -14,6 +14,7 @@ use App\Models\ServiceRequirement;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
+use App\Services\DocumentOcrVerifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -279,8 +280,12 @@ class ResidentController extends Controller
         return back()->with('error', 'Cannot change application type after submission.');
     }
 
-    public function uploadDocument(Request $request, GovernmentService $service, ServiceRequirement $requirement)
-    {
+    public function uploadDocument(
+        Request $request,
+        GovernmentService $service,
+        ServiceRequirement $requirement,
+        DocumentOcrVerifier $documentOcrVerifier,
+    ) {
         $request->validate([
             'document' => ['required', 'file', 'mimes:pdf,jpg,png,jpeg,doc,docx', 'max:5120'],
         ]);
@@ -288,8 +293,33 @@ class ResidentController extends Controller
         abort_unless($requirement->service_id === $service->id, 404);
 
         if ($file = $request->file('document')) {
+            $disk = config('filesystems.default');
             $folderName = Str::slug($service->name);
-            $path = $file->store('documents/'.$folderName, config('filesystems.default'));
+            $path = $file->store('documents/'.$folderName, $disk);
+
+            $template = DocumentTemplate::query()
+                ->where('service_id', $service->id)
+                ->where('requirement_id', $requirement->id)
+                ->first();
+
+            $status = 'pending';
+
+            if ($template) {
+                $verification = $documentOcrVerifier->verify(
+                    $disk,
+                    $path,
+                    $template->file_path,
+                    implode(',', array_filter([$template->name_en, $template->name_ceb])),
+                );
+
+                if (! $verification['matched']) {
+                    Storage::disk($disk)->delete($path);
+
+                    return back()->with('error', $verification['message']);
+                }
+
+                $status = 'approved';
+            }
 
             $checklist = UserChecklist::firstOrCreate([
                 'user_id' => Auth::id(),
@@ -298,46 +328,29 @@ class ResidentController extends Controller
                 'status' => 'draft',
             ]);
 
-            $checklistItem = UserChecklistItem::updateOrCreate([
+            $existingChecklistItem = UserChecklistItem::query()
+                ->where('checklist_id', $checklist->id)
+                ->where('requirement_id', $requirement->id)
+                ->first();
+
+            UserChecklistItem::updateOrCreate([
                 'checklist_id' => $checklist->id,
                 'requirement_id' => $requirement->id,
             ], [
                 'is_submitted' => true,
                 'file_path' => $path,
                 'submitted_at' => now(),
-                'status' => 'pending',
+                'status' => $status,
             ]);
 
-            // Automation: Compare against Admin Template using OCR
-            $template = DocumentTemplate::where('requirement_id', $requirement->id)->first();
-            if ($template) {
-                $userDocPath = storage_path('app/public/'.$path);
-                $templatePath = storage_path('app/public/'.$template->file_path);
-                $scriptPath = base_path('scripts/compare_images.py');
-
-                // Pass english/cebuano requirement names and template names as search terms
-                $keywords = implode(',', array_filter([
-                    $requirement->name_en,
-                    $requirement->name_ceb,
-                    $template->name_en,
-                    $template->name_ceb,
-                ]));
-
-                if (file_exists($userDocPath)) {
-                    $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath).' '.escapeshellarg($keywords);
-                    $output = shell_exec($command);
-
-                    if ($output) {
-                        $result = json_decode($output, true);
-                        if (isset($result['match']) && $result['match'] === true && str_contains($result['method'] ?? '', 'keyword')) {
-                            $checklistItem->update(['status' => 'approved']);
-                        }
-                    }
-                }
+            if ($existingChecklistItem?->file_path && $existingChecklistItem->file_path !== $path) {
+                Storage::disk($disk)->delete($existingChecklistItem->file_path);
             }
         }
 
-        return back()->with('success', 'Document uploaded successfully.');
+        return back()->with('success', $template
+            ? 'Document verified against the template and uploaded successfully.'
+            : 'Document uploaded successfully and is pending facilitator review.');
     }
 
     public function apply(GovernmentService $service)
