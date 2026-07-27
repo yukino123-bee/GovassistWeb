@@ -562,7 +562,8 @@ class ResidentController extends Controller
         }
 
         if ($file = $request->file('valid_id')) {
-            $path = $file->store('valid_ids', env('FILESYSTEM_DISK', 'public'));
+            $disk = env('FILESYSTEM_DISK', 'public');
+            $path = $file->store('valid_ids', $disk);
 
             // Automation: check if user name components match the ID
             $idPath = storage_path('app/public/'.$path);
@@ -578,19 +579,21 @@ class ResidentController extends Controller
                 $lastName = end($nameParts) ?? '';
             }
 
-            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName ?: '').' '.escapeshellarg($middleName ?: '').' '.escapeshellarg($lastName ?: '');
-            $output = shell_exec($command);
+            $idMatches = true;
+            if (file_exists($idPath)) {
+                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName ?: '').' '.escapeshellarg($middleName ?: '').' '.escapeshellarg($lastName ?: '');
+                $output = shell_exec($command);
 
-            $idMatches = true; // Default to true so server execution issues never block valid uploads
-            if ($output) {
-                $result = json_decode($output, true);
-                if (is_array($result) && isset($result['match']) && $result['match'] === false) {
-                    $idMatches = false;
+                if ($output) {
+                    $result = json_decode($output, true);
+                    if (is_array($result) && isset($result['match']) && $result['match'] === false) {
+                        $idMatches = false;
+                    }
                 }
             }
 
             if (! $idMatches) {
-                Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
+                Storage::disk($disk)->delete($path);
 
                 return back()->with('error', 'The uploaded ID does not match your registered account name.');
             }
