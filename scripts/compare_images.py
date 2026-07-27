@@ -41,7 +41,14 @@ def extract_text_from_image(image_path):
         import pytesseract
         from PIL import Image
         img = Image.open(image_path)
-        return pytesseract.image_to_string(img)
+        
+        text = ""
+        # Try 0, 90, 180, 270 degrees to catch all orientations
+        for angle in [0, 90, 180, 270]:
+            rotated_img = img.rotate(angle, expand=True)
+            text += pytesseract.image_to_string(rotated_img) + " "
+            
+        return text
     except ImportError:
         return ""
     except Exception as e:
