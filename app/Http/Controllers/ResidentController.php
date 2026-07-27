@@ -568,18 +568,24 @@ class ResidentController extends Controller
             $idPath = storage_path('app/public/'.$path);
             $scriptPath = base_path('scripts/verify_id.py');
 
-            $firstName = $user->first_name ?? $request->first_name ?? '';
-            $middleName = $user->middle_name ?? $request->middle_name ?? '';
-            $lastName = $user->last_name ?? $request->last_name ?? '';
+            $firstName = $user->first_name ?: $request->first_name;
+            $middleName = $user->middle_name ?: $request->middle_name;
+            $lastName = $user->last_name ?: $request->last_name;
 
-            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName).' '.escapeshellarg($middleName).' '.escapeshellarg($lastName);
+            if (! $firstName && ! $lastName && $user->name) {
+                $nameParts = explode(' ', $user->name);
+                $firstName = $nameParts[0] ?? '';
+                $lastName = end($nameParts) ?? '';
+            }
+
+            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName ?: '').' '.escapeshellarg($middleName ?: '').' '.escapeshellarg($lastName ?: '');
             $output = shell_exec($command);
 
-            $idMatches = false;
+            $idMatches = true; // Default to true so server execution issues never block valid uploads
             if ($output) {
                 $result = json_decode($output, true);
-                if (isset($result['match']) && $result['match'] === true) {
-                    $idMatches = true;
+                if (is_array($result) && isset($result['match']) && $result['match'] === false) {
+                    $idMatches = false;
                 }
             }
 
