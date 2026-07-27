@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('common_questions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('service_id')->nullable()->constrained('government_services')->onDelete('cascade');
-            $table->string('question_text');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('common_questions')) {
+            Schema::create('common_questions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('service_id')->nullable()->constrained('government_services')->onDelete('cascade');
+                $table->string('question_text');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
