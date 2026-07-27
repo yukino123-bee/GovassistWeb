@@ -17,6 +17,7 @@ use App\Models\UserInquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
@@ -328,11 +329,17 @@ class ResidentController extends Controller
                         $checklistItem->update(['status' => 'approved']);
                     } else {
                         // Flag for correction or re-upload if it doesn't match
-                        $checklistItem->update(['status' => 'rejected']);
+                        $checklistItem->delete();
+                        Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
+
+                        return back()->with('error', 'Mismatch Document. The document does not match the required template.');
                     }
                 } else {
                     // Script failed or didn't output anything, default to rejected for correction
-                    $checklistItem->update(['status' => 'rejected']);
+                    $checklistItem->delete();
+                    Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
+
+                    return back()->with('error', 'Document verification failed. Please try again.');
                 }
             }
         }
@@ -545,6 +552,29 @@ class ResidentController extends Controller
 
         if ($file = $request->file('valid_id')) {
             $path = $file->store('valid_ids', env('FILESYSTEM_DISK', 'public'));
+
+            // Automation: check if user name is in the ID
+            $idPath = storage_path('app/public/'.$path);
+            $scriptPath = base_path('scripts/compare_images.py');
+            $keywords = $request->name ?? $user->name;
+
+            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($idPath).' '.escapeshellarg($keywords);
+            $output = shell_exec($command);
+
+            $idMatches = false;
+            if ($output) {
+                $result = json_decode($output, true);
+                if (isset($result['match']) && $result['match'] === true) {
+                    $idMatches = true;
+                }
+            }
+
+            if (! $idMatches) {
+                Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
+
+                return back()->with('error', 'The uploaded ID does not match your registered account name.');
+            }
+
             $user->valid_id_path = $path;
         }
 
