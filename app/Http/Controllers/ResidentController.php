@@ -183,12 +183,13 @@ class ResidentController extends Controller
 
     public function checklist(GovernmentService $service)
     {
-        $eligible = EligibilityAssessment::where('user_id', Auth::id())
-            ->where('service_id', $service->id)
-            ->where('status', 'eligible')
-            ->exists();
+        $user = Auth::user();
 
-        if (! $eligible) {
+        if (! $user->isProfileComplete()) {
+            return redirect()->route('resident.profile.edit')->with('error', 'Please complete your profile (Date of Birth, Address, Civil Status, Contact Number, and Valid ID) before availing a service.');
+        }
+
+        if (! $user->isEligibleFor($service->id)) {
             return redirect()->route('resident.eligibility')->with('error', 'You must first qualify through the Eligibility Assessment.');
         }
 
@@ -339,19 +340,14 @@ class ResidentController extends Controller
 
     public function apply(GovernmentService $service)
     {
-        $eligible = EligibilityAssessment::where('user_id', Auth::id())
-            ->where('service_id', $service->id)
-            ->where('status', 'eligible')
-            ->exists();
+        $user = Auth::user();
 
-        if (! $eligible) {
-            return back()->with('error', 'You must be eligible to apply.');
+        if (! $user->isProfileComplete()) {
+            return redirect()->route('resident.profile.edit')->with('error', 'Please complete your profile (Date of Birth, Address, Civil Status, Contact Number, and Valid ID) before submitting an application.');
         }
 
-        // Prevent application if profile is incomplete
-        $user = Auth::user();
-        if (! $user->dob || ! $user->address || ! $user->civil_status || ! $user->contact_number || ! $user->valid_id_path) {
-            return back()->with('error', 'Please complete your profile details (Date of Birth, Complete Address, Civil Status, Contact Number, and Valid ID) before submitting your application.');
+        if (! $user->isEligibleFor($service->id)) {
+            return back()->with('error', 'You must be eligible for this service before you can apply.');
         }
 
         $checklist = UserChecklist::where('user_id', Auth::id())

@@ -42,6 +42,30 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(EligibilityAssessment::class, 'user_id');
     }
 
+    /**
+     * Check if the resident's profile is fully completed.
+     */
+    public function isProfileComplete(): bool
+    {
+        return ! empty($this->name)
+            && ! empty($this->dob)
+            && ! empty($this->address)
+            && ! empty($this->civil_status)
+            && ! empty($this->contact_number)
+            && ! empty($this->valid_id_path);
+    }
+
+    /**
+     * Check if the resident is eligible for a given government service.
+     */
+    public function isEligibleFor(int $serviceId): bool
+    {
+        return $this->assessments()
+            ->where('service_id', $serviceId)
+            ->where('status', 'eligible')
+            ->exists();
+    }
+
     public function checklists(): HasMany
     {
         return $this->hasMany(UserChecklist::class, 'user_id');
