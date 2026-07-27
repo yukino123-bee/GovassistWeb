@@ -285,9 +285,11 @@ class ResidentController extends Controller
             'document' => ['required', 'file', 'mimes:pdf,jpg,png,jpeg,doc,docx', 'max:5120'],
         ]);
 
+        abort_unless($requirement->service_id === $service->id, 404);
+
         if ($file = $request->file('document')) {
             $folderName = Str::slug($service->name);
-            $path = $file->store('documents/'.$folderName, env('FILESYSTEM_DISK', 'public'));
+            $path = $file->store('documents/'.$folderName, config('filesystems.default'));
 
             $checklist = UserChecklist::firstOrCreate([
                 'user_id' => Auth::id(),
@@ -410,7 +412,7 @@ class ResidentController extends Controller
     public function submitManualInquiry(Request $request)
     {
         $rules = [
-            'inquiry_text' => ['required', 'string'],
+            'inquiry_text' => ['required', 'string', 'max:5000'],
             'service_id' => ['nullable', 'exists:government_services,id'],
             'inquiry_id' => ['nullable', 'exists:user_inquiries,id'],
         ];
@@ -429,7 +431,7 @@ class ResidentController extends Controller
                 $inquiry = UserInquiry::where('id', $request->input('inquiry_id'))
                     ->where('user_id', Auth::id())
                     ->first();
-            } else {
+            } elseif ($this->guestCanAccessInquiry($request, $request->integer('inquiry_id'))) {
                 $inquiry = UserInquiry::where('id', $request->input('inquiry_id'))
                     ->where('guest_email', $request->input('guest_email'))
                     ->first();
@@ -440,8 +442,6 @@ class ResidentController extends Controller
         if (! $inquiry) {
             if (Auth::check()) {
                 $inquiry = UserInquiry::where('user_id', Auth::id())->latest('updated_at')->first();
-            } elseif ($request->filled('guest_email')) {
-                $inquiry = UserInquiry::where('guest_email', $request->input('guest_email'))->latest('updated_at')->first();
             }
         }
 
@@ -468,6 +468,10 @@ class ResidentController extends Controller
                 'inquiry_text' => $request->input('inquiry_text'),
                 'status' => 'pending',
             ]);
+
+            if (! Auth::check()) {
+                $request->session()->push('guest_inquiry_ids', $inquiry->id);
+            }
 
             InquiryRequirense::create([
                 'inquiry_id' => $inquiry->id,
@@ -497,8 +501,7 @@ class ResidentController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->input('guest_email');
-            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+            if (! $this->guestCanAccessInquiry($request, $inquiry->id)) {
                 abort(403);
             }
         }
@@ -557,7 +560,7 @@ class ResidentController extends Controller
         }
 
         if ($file = $request->file('valid_id')) {
-            $disk = env('FILESYSTEM_DISK', 'public');
+            $disk = config('filesystems.default');
             $path = $file->store('valid_ids', $disk);
 
             // Automation: check if user name components match the ID
@@ -610,7 +613,7 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', env('FILESYSTEM_DISK', 'public'));
+            $path = $file->store('avatars', config('filesystems.default'));
             $user->avatar = $path;
             $user->save();
         }
@@ -640,14 +643,13 @@ class ResidentController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->input('guest_email');
-            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+            if (! $this->guestCanAccessInquiry($request, $inquiry->id)) {
                 abort(403);
             }
         }
 
         $request->validate([
-            'message' => ['required', 'string'],
+            'message' => ['required', 'string', 'max:5000'],
         ]);
 
         $reply = InquiryRequirense::create([
@@ -672,8 +674,7 @@ class ResidentController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->input('guest_email');
-            if (! $guestEmail || $inquiry->guest_email !== $guestEmail) {
+            if (! $this->guestCanAccessInquiry($request, $inquiry->id)) {
                 abort(403);
             }
         }
@@ -691,8 +692,7 @@ class ResidentController extends Controller
                 abort(403);
             }
         } else {
-            $guestEmail = $request->input('guest_email');
-            if (! $guestEmail || ! $response->inquiry || $response->inquiry->guest_email !== $guestEmail) {
+            if (! $response->inquiry || ! $this->guestCanAccessInquiry($request, $response->inquiry->id)) {
                 abort(403);
             }
         }
@@ -700,5 +700,10 @@ class ResidentController extends Controller
         $response->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    private function guestCanAccessInquiry(Request $request, int $inquiryId): bool
+    {
+        return in_array($inquiryId, $request->session()->get('guest_inquiry_ids', []), true);
     }
 }

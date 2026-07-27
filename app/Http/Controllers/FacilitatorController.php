@@ -511,7 +511,7 @@ class FacilitatorController extends Controller
             abort(404, 'No document uploaded for this item.');
         }
 
-        $disk = env('FILESYSTEM_DISK', 'public');
+        $disk = config('filesystems.default');
 
         if (! \Illuminate\Support\Facades\Storage::disk($disk)->exists($item->file_path)) {
             abort(404, 'File not found on disk.');
@@ -587,7 +587,7 @@ class FacilitatorController extends Controller
 
         if ($zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
             foreach ($uploadedDocs as $doc) {
-                $disk = env('FILESYSTEM_DISK', 'public');
+                $disk = config('filesystems.default');
                 $filePath = \Illuminate\Support\Facades\Storage::disk($disk)->path($doc->file_path);
                 if (file_exists($filePath)) {
                     $extension = pathinfo($filePath, PATHINFO_EXTENSION);
@@ -735,7 +735,7 @@ class FacilitatorController extends Controller
         $user->contact_number = $request->contact_number;
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', env('FILESYSTEM_DISK', 'public'));
+            $path = $file->store('avatars', config('filesystems.default'));
             $user->avatar = $path;
         }
 
@@ -788,7 +788,7 @@ class FacilitatorController extends Controller
             abort(404, 'User does not have a valid ID.');
         }
 
-        $disk = env('FILESYSTEM_DISK', 'public');
+        $disk = config('filesystems.default');
 
         if (! \Illuminate\Support\Facades\Storage::disk($disk)->exists($user->valid_id_path)) {
             abort(404, 'File not found on disk.');
@@ -903,7 +903,7 @@ class FacilitatorController extends Controller
             'template_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
-        $disk = env('FILESYSTEM_DISK', 'public');
+        $disk = config('filesystems.default');
         $path = $request->file('template_file')->store('templates', $disk);
 
         // Overwrite or create template for this requirement
@@ -938,7 +938,7 @@ class FacilitatorController extends Controller
 
     public function destroyTemplate(DocumentTemplate $template)
     {
-        $disk = env('FILESYSTEM_DISK', 'public');
+        $disk = config('filesystems.default');
         if ($template->file_path && \Storage::disk($disk)->exists($template->file_path)) {
             \Storage::disk($disk)->delete($template->file_path);
         }

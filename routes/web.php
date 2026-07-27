@@ -18,29 +18,28 @@ Route::get('/', function () {
 // Authentication & Language Switcher
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration');
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
-    Route::post('/email/verify/process', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+    Route::post('/email/verify/process', [AuthController::class, 'verifyEmail'])->middleware('throttle:verification')->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'verifyResend'])->middleware('throttle:6,1')->name('verification.send');
 });
 
 Route::post('/language/toggle', [AuthController::class, 'toggleLanguage'])->name('language.toggle');
 
 use App\Http\Middleware\EnsureEmailIsVerifiedIfLoggedIn;
-use Illuminate\Support\Facades\Artisan;
 
 // Resident Public Routes
 Route::prefix('resident')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
     Route::get('/home', [ResidentController::class, 'home'])->name('resident.home');
     Route::get('/eligibility', [ResidentController::class, 'eligibility'])->name('resident.eligibility');
     Route::get('/inquiry', [ResidentController::class, 'inquiry'])->name('resident.inquiry');
-    Route::post('/inquiry/manual', [ResidentController::class, 'submitManualInquiry'])->name('resident.inquiry.manual');
+    Route::post('/inquiry/manual', [ResidentController::class, 'submitManualInquiry'])->middleware('throttle:inquiries')->name('resident.inquiry.manual');
 
     // Inquiries Reply & Unsend (Moved for Guest Access)
     Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');
@@ -161,14 +160,4 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/reports/export/assessments', [FacilitatorController::class, 'exportAssessments'])->name('facilitator.reports.export.assessments');
     Route::get('/reports/export/inquiries', [FacilitatorController::class, 'exportInquiries'])->name('facilitator.reports.export.inquiries');
     Route::get('/reports/export/all', [FacilitatorController::class, 'exportAllMasterReport'])->name('facilitator.reports.export.all');
-});
-
-Route::get('/run-migrations', function () {
-    try {
-        Artisan::call('migrate', ['--force' => true]);
-
-        return 'Migrations ran successfully: <br><pre>'.Artisan::output().'</pre>';
-    } catch (Exception $e) {
-        return 'Migration failed: '.$e->getMessage();
-    }
 });

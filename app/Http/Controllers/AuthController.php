@@ -122,7 +122,7 @@ class AuthController extends Controller
         $user = $request->user();
         $cachedOtp = Cache::get('verification_otp_'.$user->id);
 
-        if (! $cachedOtp || $cachedOtp !== $request->otp) {
+        if (! is_string($cachedOtp) || ! hash_equals($cachedOtp, (string) $request->input('otp'))) {
             return back()->withErrors(['otp' => 'The OTP you entered is invalid or has expired.']);
         }
 

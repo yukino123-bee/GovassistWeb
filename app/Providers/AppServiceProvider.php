@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Models\ReassessmentRequest;
 use App\Models\UserChecklist;
 use App\Models\UserInquiry;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        RateLimiter::for('login', function (Request $request): Limit {
+            return Limit::perMinute(5)->by(strtolower((string) $request->input('email')).'|'.$request->ip());
+        });
+
+        RateLimiter::for('registration', fn (Request $request): Limit => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('verification', fn (Request $request): Limit => Limit::perMinute(6)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('inquiries', fn (Request $request): Limit => Limit::perMinute(20)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         view()->composer(['layouts.facilitator', 'facilitator.*'], function ($view) {
             // Fetch pending applications
             $pendingApps = UserChecklist::with(['user', 'service'])

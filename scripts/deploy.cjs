@@ -4,6 +4,16 @@ require("dotenv").config();
 
 const fs = require("fs");
 
+function requiredEnv(name) {
+    const value = process.env[name];
+
+    if (!value) {
+        throw new Error(`Missing required environment variable: ${name}`);
+    }
+
+    return value;
+}
+
 async function uploadDir(client, localDir, remoteDir, ignores = []) {
     await client.ensureDir(remoteDir);
     const entries = fs.readdirSync(localDir, { withFileTypes: true });
@@ -30,8 +40,8 @@ async function deploy() {
         console.log("Connecting to FTP...");
         await client.access({
             host: process.env.FTP_SERVER || "ftpupload.net",
-            user: process.env.FTP_USERNAME || "if0_42325610",
-            password: process.env.FTP_PASSWORD || "3fShnkJ56HCYn3E",
+            user: requiredEnv("FTP_USERNAME"),
+            password: requiredEnv("FTP_PASSWORD"),
             secure: false
         });
 
@@ -47,12 +57,12 @@ async function deploy() {
         let envContent = fs.readFileSync(path.join(__dirname, "../.env.example"), "utf8");
         envContent = envContent.replace("APP_ENV=local", "APP_ENV=production");
         envContent = envContent.replace("APP_DEBUG=true", "APP_DEBUG=false");
-        envContent = envContent.replace("APP_URL=http://localhost", "APP_URL=http://ftpupload.net");
+        envContent = envContent.replace("APP_URL=http://localhost", `APP_URL=${requiredEnv("PRODUCTION_APP_URL")}`);
         envContent = envContent.replace("DB_CONNECTION=sqlite", "DB_CONNECTION=mysql");
-        envContent = envContent.replace("DB_HOST=127.0.0.1", "DB_HOST=sql312.infinityfree.com");
-        envContent = envContent.replace("DB_DATABASE=laravel", "DB_DATABASE=if0_42325610_govassist");
-        envContent = envContent.replace("DB_USERNAME=root", "DB_USERNAME=if0_42325610");
-        envContent = envContent.replace("DB_PASSWORD=", "DB_PASSWORD=3fShnkJ56HCYn3E");
+        envContent = envContent.replace("DB_HOST=127.0.0.1", `DB_HOST=${requiredEnv("PRODUCTION_DB_HOST")}`);
+        envContent = envContent.replace("DB_DATABASE=gov", `DB_DATABASE=${requiredEnv("PRODUCTION_DB_DATABASE")}`);
+        envContent = envContent.replace("DB_USERNAME=root", `DB_USERNAME=${requiredEnv("PRODUCTION_DB_USERNAME")}`);
+        envContent = envContent.replace("DB_PASSWORD=", `DB_PASSWORD=${requiredEnv("PRODUCTION_DB_PASSWORD")}`);
         
         const tempEnvPath = path.join(__dirname, "../production.env");
         fs.writeFileSync(tempEnvPath, envContent);
