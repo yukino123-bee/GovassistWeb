@@ -529,7 +529,10 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'dob' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
@@ -539,7 +542,15 @@ class ResidentController extends Controller
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user->name = $request->name;
+        if ($request->filled('first_name') || $request->filled('last_name')) {
+            $user->first_name = $request->first_name;
+            $user->middle_name = $request->middle_name;
+            $user->last_name = $request->last_name;
+            $user->name = trim($request->first_name.' '.($request->middle_name ? $request->middle_name.' ' : '').$request->last_name);
+        } elseif ($request->filled('name')) {
+            $user->name = $request->name;
+        }
+
         $user->email = $request->email;
         $user->dob = $request->dob;
         $user->address = $request->address;
@@ -556,7 +567,14 @@ class ResidentController extends Controller
             // Automation: check if user name is in the ID
             $idPath = storage_path('app/public/'.$path);
             $scriptPath = base_path('scripts/verify_id.py');
-            $keywords = $request->name ?? $user->name;
+
+            $nameKeywords = array_filter([
+                $user->first_name ?? $request->first_name,
+                $user->middle_name ?? $request->middle_name,
+                $user->last_name ?? $request->last_name,
+                $user->name ?? $request->name,
+            ]);
+            $keywords = implode(',', $nameKeywords);
 
             $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($keywords);
             $output = shell_exec($command);

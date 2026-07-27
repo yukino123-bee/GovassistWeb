@@ -163,4 +163,6 @@ if __name__ == "__main__":
     keywords = sys.argv[3] if len(sys.argv) > 3 else None
     
     result = compare_images(path1, path2, keywords)
+    with open("/tmp/compare_images.log", "w") as f:
+        f.write(json.dumps(result))
     print(json.dumps(result))

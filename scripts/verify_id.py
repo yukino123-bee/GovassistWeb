@@ -10,20 +10,27 @@ def clean_text(text):
     return " ".join(text.lower().split())
 
 def check_name_in_text(cleaned_text, expected_name):
-    name_clean = clean_text(expected_name)
-    if not name_clean:
+    name_parts = [clean_text(k) for k in expected_name.split(',') if k.strip()]
+    if not name_parts:
         return True
-        
-    if name_clean in cleaned_text:
-        return True
-        
-    words = name_clean.split()
-    important_words = [w for w in words if len(w) >= 3]
-    if not important_words:
-        important_words = words
-        
-    found_words = [w for w in important_words if w in cleaned_text]
-    return len(found_words) > 0
+
+    for name_clean in name_parts:
+        if not name_clean:
+            continue
+
+        if name_clean in cleaned_text:
+            return True
+
+        words = name_clean.split()
+        important_words = [w for w in words if len(w) >= 3]
+        if not important_words:
+            important_words = words
+
+        found_words = [w for w in important_words if w in cleaned_text]
+        if len(found_words) > 0:
+            return True
+
+    return False
 
 def extract_text(image_path):
     extracted_text = ""

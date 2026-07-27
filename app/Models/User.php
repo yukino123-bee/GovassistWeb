@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
-#[Fillable(['name', 'email', 'password', 'role', 'language', 'avatar', 'dob', 'address', 'civil_status', 'contact_number', 'valid_id_path', 'email_verified_at'])]
+#[Fillable(['name', 'first_name', 'middle_name', 'last_name', 'email', 'password', 'role', 'language', 'avatar', 'dob', 'address', 'civil_status', 'contact_number', 'valid_id_path', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -60,6 +60,10 @@ class User extends Authenticatable implements MustVerifyEmail
     // ERD Column Aliases / Accessors
     public function getFullNameAttribute(): string
     {
+        if ($this->first_name || $this->last_name) {
+            return trim($this->first_name.' '.($this->middle_name ? $this->middle_name.' ' : '').$this->last_name);
+        }
+
         return $this->name;
     }
 
