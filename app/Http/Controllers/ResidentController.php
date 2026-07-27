@@ -305,7 +305,7 @@ class ResidentController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Automation: Compare against Admin Template
+            // Automation: Compare against Admin Template using OCR
             $template = DocumentTemplate::where('requirement_id', $requirement->id)->first();
             if ($template) {
                 $userDocPath = storage_path('app/public/'.$path);
@@ -320,26 +320,16 @@ class ResidentController extends Controller
                     $template->name_ceb,
                 ]));
 
-                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath).' '.escapeshellarg($keywords);
-                $output = shell_exec($command);
+                if (file_exists($userDocPath)) {
+                    $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($userDocPath).' '.escapeshellarg($templatePath).' '.escapeshellarg($keywords);
+                    $output = shell_exec($command);
 
-                if ($output) {
-                    $result = json_decode($output, true);
-                    if (isset($result['match']) && $result['match'] === true) {
-                        $checklistItem->update(['status' => 'approved']);
-                    } else {
-                        // Flag for correction or re-upload if it doesn't match
-                        $checklistItem->delete();
-                        Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
-
-                        return back()->with('error', 'Mismatch Document. The document does not match the required template.');
+                    if ($output) {
+                        $result = json_decode($output, true);
+                        if (isset($result['match']) && $result['match'] === true && str_contains($result['method'] ?? '', 'keyword')) {
+                            $checklistItem->update(['status' => 'approved']);
+                        }
                     }
-                } else {
-                    // Script failed or didn't output anything, default to rejected for correction
-                    $checklistItem->delete();
-                    Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
-
-                    return back()->with('error', 'Document verification failed. Please try again.');
                 }
             }
         }
