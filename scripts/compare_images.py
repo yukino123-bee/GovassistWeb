@@ -38,20 +38,34 @@ def extract_text_from_docx(docx_path):
 
 def extract_text_from_image(image_path):
     try:
+        from paddleocr import PaddleOCR
+        ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
+        result = ocr.ocr(image_path, cls=True)
+        if result:
+            text_lines = []
+            for res in result:
+                if res:
+                    for line in res:
+                        if line and len(line) > 1 and line[1]:
+                            text_lines.append(line[1][0])
+            if text_lines:
+                return " ".join(text_lines)
+    except Exception:
+        pass
+
+    try:
         import pytesseract
         from PIL import Image
         img = Image.open(image_path)
-        
+
         text = ""
         # Try 0, 90, 180, 270 degrees to catch all orientations
         for angle in [0, 90, 180, 270]:
             rotated_img = img.rotate(angle, expand=True)
             text += pytesseract.image_to_string(rotated_img) + " "
-            
+
         return text
-    except ImportError:
-        return ""
-    except Exception as e:
+    except Exception:
         return ""
 
 def clean_text(text):

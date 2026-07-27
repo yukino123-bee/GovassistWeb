@@ -36,8 +36,25 @@ def check_name_components(cleaned_text, first_name, middle_name, last_name):
 
 def extract_text(image_path):
     extracted_text = ""
-    
-    # Method 1: Try EasyOCR if available
+
+    # Method 1: Try PaddleOCR if available
+    try:
+        from paddleocr import PaddleOCR
+        ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
+        result = ocr.ocr(image_path, cls=True)
+        if result:
+            text_lines = []
+            for res in result:
+                if res:
+                    for line in res:
+                        if line and len(line) > 1 and line[1]:
+                            text_lines.append(line[1][0])
+            if text_lines:
+                return " ".join(text_lines), "paddleocr"
+    except Exception:
+        pass
+
+    # Method 2: Try EasyOCR if available
     try:
         import easyocr
         reader = easyocr.Reader(['en'], gpu=False)
