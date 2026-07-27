@@ -564,19 +564,15 @@ class ResidentController extends Controller
         if ($file = $request->file('valid_id')) {
             $path = $file->store('valid_ids', env('FILESYSTEM_DISK', 'public'));
 
-            // Automation: check if user name is in the ID
+            // Automation: check if user name components match the ID
             $idPath = storage_path('app/public/'.$path);
             $scriptPath = base_path('scripts/verify_id.py');
 
-            $nameKeywords = array_filter([
-                $user->first_name ?? $request->first_name,
-                $user->middle_name ?? $request->middle_name,
-                $user->last_name ?? $request->last_name,
-                $user->name ?? $request->name,
-            ]);
-            $keywords = implode(',', $nameKeywords);
+            $firstName = $user->first_name ?? $request->first_name ?? '';
+            $middleName = $user->middle_name ?? $request->middle_name ?? '';
+            $lastName = $user->last_name ?? $request->last_name ?? '';
 
-            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($keywords);
+            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName).' '.escapeshellarg($middleName).' '.escapeshellarg($lastName);
             $output = shell_exec($command);
 
             $idMatches = false;
