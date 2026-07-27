@@ -555,10 +555,10 @@ class ResidentController extends Controller
 
             // Automation: check if user name is in the ID
             $idPath = storage_path('app/public/'.$path);
-            $scriptPath = base_path('scripts/compare_images.py');
+            $scriptPath = base_path('scripts/verify_id.py');
             $keywords = $request->name ?? $user->name;
 
-            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($idPath).' '.escapeshellarg($keywords);
+            $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($keywords);
             $output = shell_exec($command);
 
             $idMatches = false;
@@ -572,7 +572,7 @@ class ResidentController extends Controller
             if (! $idMatches) {
                 Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
 
-                return back()->with('error', 'The uploaded ID does not match your registered account name.');
+                return back()->with('error', 'The uploaded ID does not match your registered account name. Output: '.$output);
             }
 
             $user->valid_id_path = $path;
