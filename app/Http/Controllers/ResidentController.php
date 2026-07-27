@@ -572,7 +572,7 @@ class ResidentController extends Controller
             if (! $idMatches) {
                 Storage::disk(env('FILESYSTEM_DISK', 'public'))->delete($path);
 
-                return back()->with('error', 'The uploaded ID does not match your registered account name. Output: '.$output);
+                return back()->with('error', 'The uploaded ID does not match your registered account name.');
             }
 
             $user->valid_id_path = $path;
