@@ -77,6 +77,44 @@ test('language toggle changes session language', function () {
     $this->assertEquals('ceb', session('locale'));
 });
 
+test('supplied subanen translations appear on authentication and dashboard pages', function () {
+    $category = ServiceCategory::create(['category_name' => 'Educational Assistance']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Educational Assistance Program',
+        'description' => 'Provides educational financial assistance.',
+        'procedure' => 'Complete the eligibility assessment.',
+    ]);
+    ServiceTranslation::create([
+        'service_id' => $service->id,
+        'language_code' => 'sub',
+        'service_name' => 'Gabang ni programa ne ngaji',
+        'description' => 'Me phenun gobang rin sehutliha rn megiskiela,',
+        'procedure' => null,
+    ]);
+
+    $this->postJson('/language/toggle', ['language' => 'sub'])->assertSuccessful();
+
+    $this->get(route('login'))
+        ->assertSuccessful()
+        ->assertSee('Sulat mu para mesunan hin mipegulek mu')
+        ->assertSee('Pheseled mu su ngalan mhibetangan mu')
+        ->assertSee('Milingawan mu Password mu');
+
+    $this->get(route('register'))
+        ->assertSuccessful()
+        ->assertSee('Ghitungan mu')
+        ->assertSee('Gbagel ngalan mu')
+        ->assertSee('Pheselected mu puli password');
+
+    $this->get(route('resident.home'))
+        ->assertSuccessful()
+        ->assertSee('Sembuen su haphegebek rin heseled mu')
+        ->assertSee('Gabang rin ne ngaji')
+        ->assertSee('Gabang ni programa ne ngaji')
+        ->assertSee('Me phenun gobang rin sehutliha rn megiskiela,');
+});
+
 test('eligibility assessment logic works correctly', function () {
     $resident = User::factory()->create(['role' => 'resident']);
 

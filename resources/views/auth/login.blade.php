@@ -58,25 +58,25 @@
 
                 <!-- Email Input -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-bold text-slate-700">Email</label>
+                    <label for="email" class="block text-sm font-bold text-slate-700">{{ __('messages.email') }}</label>
                     <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
                         <!-- Mail Icon -->
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}" placeholder="Enter your email address" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}" placeholder="{{ __('messages.login_email_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
                     </div>
                 </div>
 
                 <!-- Password Input -->
                 <div class="space-y-2">
-                    <label for="password" class="block text-sm font-bold text-slate-700">Password</label>
+                    <label for="password" class="block text-sm font-bold text-slate-700">{{ __('messages.password') }}</label>
                     <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
                         <!-- Lock Icon -->
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        <input type="password" name="password" id="password" placeholder="Enter your password" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3 pr-10" required>
+                        <input type="password" name="password" id="password" placeholder="{{ __('messages.login_password_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3 pr-10" required>
                         <!-- Show/Hide Toggle Button -->
                         <button type="button" onclick="togglePasswordVisibility('password', 'eye-icon')" class="absolute right-4 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,20 +89,20 @@
 
                 <!-- Forgot Password -->
                 <div class="flex justify-end text-xs pt-1">
-                    <a href="#" class="text-[#d5001c] hover:underline font-semibold transition-colors">{{ __('messages.forgot_password') }}?</a>
+                    <a href="#" class="text-[#d5001c] hover:underline font-semibold transition-colors">{{ __('messages.forgot_password') }}</a>
                 </div>
 
                 <!-- Sharp Submit Button -->
                 <button type="submit" class="w-full py-4 bg-[#d5001c] hover:bg-[#b80010] text-white font-bold rounded-none transition-all shadow-lg shadow-red-600/10 text-sm">
-                    Login
+                    {{ __('messages.login') }}
                 </button>
             </form>
 
             <!-- Footer Sign-up link & Copyright inside Container -->
             <div class="pt-4 border-t border-slate-100 space-y-3">
                 <div class="text-center text-sm text-slate-500 font-medium">
-                    Don't have an account? 
-                    <a href="{{ route('register') }}" class="text-[#d5001c] hover:underline ml-1 font-bold">Register</a>
+                    {{ __('messages.dont_have_account') }}
+                    <a href="{{ route('register') }}" class="text-[#d5001c] hover:underline ml-1 font-bold">{{ __('messages.register') }}</a>
                 </div>
                 <div class="text-center text-[9px] text-slate-400 uppercase tracking-widest font-bold">
                     &copy; {{ date('Y') }} SSFO GovAssist. All rights reserved.

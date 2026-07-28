@@ -10,22 +10,22 @@
     <!-- Welcome Header Banner (No rounded corners, vibrant red solid) -->
     <div class="bg-red-700 text-white p-6 border-l-4 border-red-300 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-            <span class="text-xs uppercase tracking-widest text-red-200 font-bold">{{ Auth::check() ? __('messages.welcome_back') : 'Welcome to GovAssist' }}</span>
+            <span class="text-xs uppercase tracking-widest text-red-200 font-bold">{{ Auth::check() ? __('messages.welcome_back') : __('messages.welcome_guest') }}</span>
             @auth
                 <h2 class="text-2xl font-bold mt-1 tracking-tight text-white">{{ Auth::user()->name }}</h2>
             @endauth
             <p class="text-xs text-red-100 mt-1 max-w-xl">
-                Welcome to your GovAssist Portal. Manage applications, verify eligibility, and submit requirements checklists.
+                {{ __('messages.dashboard_intro') }}
             </p>
         </div>
         <div class="mt-4 md:mt-0 flex space-x-2">
             @auth
                 <a href="{{ route('resident.eligibility') }}" class="px-4 py-2 bg-white hover:bg-red-50 transition-colors text-xs font-bold uppercase tracking-wider text-red-700">
-                    Check Eligibility
+                    {{ __('messages.check_eligibility') }}
                 </a>
             @else
                 <a href="{{ route('login') }}" class="px-4 py-2 bg-white hover:bg-red-50 transition-colors text-xs font-bold uppercase tracking-wider text-red-700">
-                    Log In to Access Features
+                    {{ __('messages.login_to_access') }}
                 </a>
             @endauth
         </div>
@@ -70,7 +70,7 @@
                         <div class="space-y-3">
                             <!-- Category Banner -->
                             <h4 class="text-xs font-extrabold uppercase tracking-widest text-red-700 bg-red-50/60 px-4 py-2.5 border-l-4 border-red-700 shadow-sm">
-                                {{ $category->category_name }}
+                                {{ $category->category_name === 'Educational Assistance' ? __('messages.educational_assistance') : $category->category_name }}
                             </h4>
 
                             <!-- Services Grid -->
@@ -92,7 +92,7 @@
                                         
                                         <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
                                             <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-900 flex items-center space-x-1.5 group">
-                                                <span>Check Eligibility</span>
+                                                <span>{{ __('messages.check_eligibility') }}</span>
                                                 <span class="inline-block transform group-hover:translate-x-1 transition-transform duration-200 text-xs font-bold">&rarr;</span>
                                             </a>
                                         </div>
