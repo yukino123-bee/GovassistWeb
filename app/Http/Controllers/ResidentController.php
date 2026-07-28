@@ -342,7 +342,7 @@ class ResidentController extends Controller
                     $disk,
                     $path,
                     $template->file_path,
-                    implode(',', array_filter([$template->name_en, $template->name_ceb])),
+                    $template->name_en ?: $template->name_ceb,
                 );
 
                 if (! $verification['matched']) {
@@ -632,6 +632,23 @@ class ResidentController extends Controller
     public function editProfile()
     {
         return view('resident.profile.edit');
+    }
+
+    public function viewValidId()
+    {
+        $user = Auth::user();
+
+        abort_unless($user->valid_id_path, 404, 'You have not uploaded a valid ID.');
+
+        $disk = config('filesystems.default');
+
+        abort_unless(
+            Storage::disk($disk)->exists($user->valid_id_path),
+            404,
+            'The uploaded ID could not be found.',
+        );
+
+        return Storage::disk($disk)->response($user->valid_id_path);
     }
 
     public function updateProfile(Request $request)

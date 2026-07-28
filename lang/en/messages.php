@@ -46,6 +46,8 @@ return [
     'account_settings' => 'Account Settings',
     'edit_profile' => 'Edit Profile',
     'edit_profile_desc' => 'Update your personal details',
+    'view_my_id' => 'View My ID',
+    'view_my_id_desc' => 'Open your uploaded valid ID',
     'language' => 'Language',
     'language_desc' => 'Change app display language',
     'app_settings' => 'App Settings',

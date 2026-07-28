@@ -46,6 +46,8 @@ return [
     'account_settings' => 'Mga Setting ng Account',
     'edit_profile' => 'I-edit ang Profile',
     'edit_profile_desc' => 'I-update ang iyong mga personal na detalye',
+    'view_my_id' => 'View My ID',
+    'view_my_id_desc' => 'Open your uploaded valid ID',
     'language' => 'Wika',
     'language_desc' => 'Baguhin ang wika ng app',
     'app_settings' => 'Mga Setting ng App',

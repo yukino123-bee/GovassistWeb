@@ -66,6 +66,7 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
 
     // Profile Settings
     Route::get('/profile', [ResidentController::class, 'profile'])->name('resident.profile');
+    Route::get('/profile/valid-id', [ResidentController::class, 'viewValidId'])->name('resident.profile.valid_id');
     Route::get('/profile/edit', [ResidentController::class, 'editProfile'])->name('resident.profile.edit');
     Route::post('/profile/edit', [ResidentController::class, 'updateProfile'])->name('resident.profile.update');
     Route::post('/profile/avatar', [ResidentController::class, 'updateAvatar'])->name('resident.profile.avatar');

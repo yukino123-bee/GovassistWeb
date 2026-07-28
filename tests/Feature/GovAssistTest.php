@@ -44,6 +44,29 @@ test('guest cannot access resident profile', function () {
     $response->assertRedirect('/login');
 });
 
+test('resident can securely view their uploaded valid ID', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+
+    $resident = User::factory()->create([
+        'role' => 'resident',
+        'valid_id_path' => 'valid_ids/resident-id.png',
+    ]);
+    Storage::disk('public')->put($resident->valid_id_path, 'resident-id-contents');
+
+    $this->actingAs($resident)
+        ->get(route('resident.profile'))
+        ->assertSuccessful()
+        ->assertSee('View My ID')
+        ->assertSee('href="'.route('resident.profile.valid_id').'"', false);
+
+    $idResponse = $this->actingAs($resident)
+        ->get(route('resident.profile.valid_id'))
+        ->assertSuccessful();
+
+    expect($idResponse->streamedContent())->toBe('resident-id-contents');
+});
+
 test('resident can register, login, and access resident home', function () {
     // 1. Register
     $registerResponse = $this->post('/register', [
@@ -430,7 +453,7 @@ test('document templates verification matches keywords for PDF uploads', functio
         'status' => 'approved',
     ]);
 
-    Process::assertRan(fn ($process) => str_contains(implode(' ', $process->command), 'Indigency'));
+    Process::assertRan(fn ($process) => $process->command[4] === 'Indigency');
 });
 
 test('document templates verification accepts an upload identical to the configured template', function () {

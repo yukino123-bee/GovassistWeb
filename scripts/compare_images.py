@@ -2,6 +2,9 @@ import sys
 import json
 import os
 import re
+import subprocess
+import tempfile
+import unicodedata
 import zipfile
 import xml.etree.ElementTree as ET
 from difflib import SequenceMatcher
@@ -35,6 +38,34 @@ def extract_text_from_pdf(pdf_path):
 
         return text.strip()
     except Exception:
+        pass
+
+    try:
+        import pytesseract
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory(prefix="govassist-pdf-ocr-") as temporary_directory:
+            output_prefix = os.path.join(temporary_directory, "page")
+            subprocess.run(
+                ["pdftoppm", "-png", "-r", "200", pdf_path, output_prefix],
+                check=True,
+                capture_output=True,
+                timeout=90,
+            )
+
+            text = ""
+            page_paths = sorted(
+                os.path.join(temporary_directory, filename)
+                for filename in os.listdir(temporary_directory)
+                if filename.endswith(".png")
+            )
+
+            for page_path in page_paths:
+                with Image.open(page_path) as image:
+                    text += pytesseract.image_to_string(image) + " "
+
+            return text.strip()
+    except Exception:
         return ""
 
 def extract_text_from_docx(docx_path):
@@ -53,6 +84,20 @@ def extract_text_from_docx(docx_path):
                     texts.append(elem.text)
                     
             return " ".join(texts)
+    except Exception:
+        return ""
+
+def extract_text_from_doc(doc_path):
+    try:
+        result = subprocess.run(
+            ["antiword", doc_path],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        return result.stdout.strip()
     except Exception:
         return ""
 
@@ -91,25 +136,55 @@ def extract_text_from_image(image_path):
 def clean_text(text):
     if not text:
         return ""
-    return " ".join(text.lower().split())
+
+    normalized = unicodedata.normalize("NFKD", text).lower()
+    normalized = "".join(character for character in normalized if not unicodedata.combining(character))
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+
+    return " ".join(normalized.split())
+
+def word_matches(keyword_word, document_words):
+    if keyword_word in document_words:
+        return True
+
+    if len(keyword_word) < 4:
+        return False
+
+    return any(
+        SequenceMatcher(
+            None,
+            keyword_word.replace("rn", "m").replace("1", "l"),
+            document_word.replace("rn", "m").replace("1", "l"),
+        ).ratio() >= 0.80
+        for document_word in document_words
+        if abs(len(keyword_word) - len(document_word)) <= 2
+    )
 
 def search_keywords(text, keywords_str):
     if not text or not keywords_str:
         return False
         
     cleaned_text = clean_text(text)
-    keywords = [k.strip().lower() for k in keywords_str.split(',') if k.strip()]
+    document_words = set(cleaned_text.split())
+    keywords = list(dict.fromkeys(
+        clean_text(keyword)
+        for keyword in keywords_str.split(',')
+        if clean_text(keyword)
+    ))
 
     if not keywords:
         return False
 
     for kw in keywords:
-        if kw in cleaned_text:
+        if f" {kw} " in f" {cleaned_text} ":
             continue
-            
-        words = [w.strip(".,;:?!()[]{}") for w in kw.split()]
-        important_words = [w for w in words if len(w) > 3]
-        if not important_words or not all(w in cleaned_text for w in important_words):
+
+        keyword_words = kw.split()
+        important_words = [word for word in keyword_words if len(word) > 3] or keyword_words
+        if not all(
+            word_matches(word, document_words)
+            for word in important_words
+        ):
             return False
 
     return True
@@ -119,28 +194,14 @@ def extract_document_text(path):
 
     if extension == '.pdf':
         return extract_text_from_pdf(path), "pdf_text"
-    if extension in ['.docx', '.doc']:
+    if extension == '.docx':
         return extract_text_from_docx(path), "docx_text"
+    if extension == '.doc':
+        return extract_text_from_doc(path), "doc_text"
     if extension in ['.png', '.jpg', '.jpeg']:
         return extract_text_from_image(path), "ocr_image"
 
     return "", "unsupported"
-
-def text_similarity(document_text, template_text):
-    document_words = set(re.findall(r"[a-z0-9]{3,}", clean_text(document_text)))
-    template_words = set(re.findall(r"[a-z0-9]{3,}", clean_text(template_text)))
-
-    if not document_words or not template_words:
-        return 0.0
-
-    template_coverage = len(document_words & template_words) / len(template_words)
-    sequence_score = SequenceMatcher(
-        None,
-        clean_text(template_text),
-        clean_text(document_text),
-    ).ratio()
-
-    return max(template_coverage, sequence_score)
 
 def compare_images(image_path1, image_path2, keywords=None):
     if not os.path.exists(image_path1):
@@ -149,49 +210,23 @@ def compare_images(image_path1, image_path2, keywords=None):
     if not os.path.exists(image_path2):
         return {"match": False, "score": 0.0, "method": "missing_template", "note": "The administrator template could not be read."}
 
-    ext1 = os.path.splitext(image_path1)[1].lower()
     extracted_text, method = extract_document_text(image_path1)
-    template_text, _ = extract_document_text(image_path2)
     keywords_match = search_keywords(extracted_text, keywords)
 
-    if extracted_text and template_text:
-        score = text_similarity(extracted_text, template_text)
-        matched = keywords_match and score >= 0.55
+    if extracted_text:
         return {
-            "match": matched,
-            "score": score,
-            "method": f"{method}_template_and_keywords",
+            "match": keywords_match,
+            "score": 1.0 if keywords_match else 0.0,
+            "method": f"{method}_keywords",
             "text_snippet": extracted_text[:150],
-            "note": "Document verified successfully." if matched else "The document does not match the configured template or all required keywords.",
+            "note": "Document verified successfully." if keywords_match else "The document is missing one or more required verification keywords.",
         }
-
-    if ext1 in ['.png', '.jpg', '.jpeg']:
-        try:
-            import cv2
-            from skimage.metrics import structural_similarity as ssim
-
-            img1 = cv2.imread(image_path1, cv2.IMREAD_GRAYSCALE)
-            img2 = cv2.imread(image_path2, cv2.IMREAD_GRAYSCALE)
-
-            if img1 is not None and img2 is not None:
-                img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
-                score, _ = ssim(img1, img2, full=True)
-                matched = keywords_match and score >= 0.55
-
-                return {
-                    "match": bool(matched),
-                    "score": float(score),
-                    "method": "visual_ssim_and_keywords",
-                    "note": "Document verified successfully." if matched else "The document does not match the configured template or all required keywords.",
-                }
-        except Exception:
-            pass
 
     return {
         "match": False,
         "score": 0.0,
         "method": method,
-        "note": "OCR could not confirm that this document matches the configured template and all required keywords. Please upload a clear, correct document.",
+        "note": "OCR could not read the document text. Please upload a clearer copy.",
     }
 
 if __name__ == "__main__":
@@ -204,6 +239,4 @@ if __name__ == "__main__":
     keywords = sys.argv[3] if len(sys.argv) > 3 else None
     
     result = compare_images(path1, path2, keywords)
-    with open("/tmp/compare_images.log", "w") as f:
-        f.write(json.dumps(result))
     print(json.dumps(result))

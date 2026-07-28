@@ -69,6 +69,25 @@
                     </svg>
                 </a>
 
+                @if(Auth::user()->valid_id_path)
+                    <a href="{{ route('resident.profile.valid_id') }}" target="_blank" rel="noopener" class="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2 border border-red-200 text-red-700 bg-red-50/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0c-1.5 4-4.5 7-9 7s-7.5-3-9-7c1.5-4 4.5-7 9-7s7.5 3 9 7z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-bold text-slate-900 uppercase tracking-wider">{{ __('messages.view_my_id') }}</span>
+                                <span class="block text-[10px] text-slate-500 mt-1">{{ __('messages.view_my_id_desc') }}</span>
+                            </div>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M5 7v12h12v-5" />
+                        </svg>
+                    </a>
+                @endif
+
                 <!-- Language Toggle -->
                 <div class="flex items-center justify-between p-4">
                     <div class="flex items-center space-x-4">
