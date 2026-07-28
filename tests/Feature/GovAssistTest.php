@@ -32,6 +32,13 @@ test('guest can access resident home', function () {
     $response->assertStatus(200);
 });
 
+test('login form links back to the resident home page', function () {
+    $this->get(route('login'))
+        ->assertSuccessful()
+        ->assertSee('Back to Home')
+        ->assertSee('href="'.route('resident.home').'"', false);
+});
+
 test('guest cannot access resident profile', function () {
     $response = $this->get('/resident/profile');
     $response->assertRedirect('/login');
@@ -40,7 +47,9 @@ test('guest cannot access resident profile', function () {
 test('resident can register, login, and access resident home', function () {
     // 1. Register
     $registerResponse = $this->post('/register', [
-        'name' => 'Mark Cagatin',
+        'first_name' => 'Mark',
+        'middle_name' => 'Santos',
+        'last_name' => 'Cagatin',
         'email' => 'mark@resident.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
@@ -49,6 +58,10 @@ test('resident can register, login, and access resident home', function () {
     $registerResponse->assertRedirect('/resident/home');
     $this->assertDatabaseHas('users', [
         'email' => 'mark@resident.com',
+        'name' => 'Mark Santos Cagatin',
+        'first_name' => 'Mark',
+        'middle_name' => 'Santos',
+        'last_name' => 'Cagatin',
         'role' => 'resident',
     ]);
 
@@ -64,11 +77,73 @@ test('resident can register, login, and access resident home', function () {
     $loginResponse->assertRedirect('/resident/home');
 });
 
+test('registration and profile fields enforce their displayed formats', function () {
+    $this->post(route('register'), [
+        'first_name' => 'Juan123',
+        'last_name' => 'Dela Cruz',
+        'email' => 'juan@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('first_name');
+
+    $resident = User::factory()->create(['role' => 'resident']);
+
+    $this->actingAs($resident)
+        ->get(route('resident.profile.edit'))
+        ->assertSuccessful()
+        ->assertSee('House/Unit No., Street, Barangay, Municipality/City, Province')
+        ->assertSee('Use 09XXXXXXXXX or +639XXXXXXXXX.');
+
+    $this->actingAs($resident)
+        ->post(route('resident.profile.update'), [
+            'email' => $resident->email,
+            'first_name' => 'Juan123',
+            'dob' => now()->addDay()->toDateString(),
+            'address' => str_repeat('a', 501),
+            'contact_number' => '12345',
+        ])
+        ->assertSessionHasErrors([
+            'first_name',
+            'dob',
+            'address',
+            'contact_number',
+        ]);
+});
+
 test('resident cannot access facilitator dashboard', function () {
     $resident = User::factory()->create(['role' => 'resident']);
 
     $response = $this->actingAs($resident)->get('/facilitator/dashboard');
     $response->assertStatus(403);
+});
+
+test('resident selects civil status from the supported options', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+
+    $this->actingAs($resident)
+        ->get(route('resident.profile.edit'))
+        ->assertSuccessful()
+        ->assertSee('Single')
+        ->assertSee('Married')
+        ->assertSee('Widowed')
+        ->assertSee('Divorced')
+        ->assertSee('Live-in');
+
+    $this->actingAs($resident)
+        ->post(route('resident.profile.update'), [
+            'email' => $resident->email,
+            'civil_status' => 'Invalid status',
+        ])
+        ->assertSessionHasErrors('civil_status');
+
+    $this->actingAs($resident)
+        ->post(route('resident.profile.update'), [
+            'email' => $resident->email,
+            'civil_status' => 'Live-in',
+        ])
+        ->assertRedirect();
+
+    expect($resident->fresh()->civil_status)->toBe('Live-in');
 });
 
 test('language toggle changes session language', function () {
@@ -194,6 +269,62 @@ test('eligibility assessment logic works correctly', function () {
     expect($failAssessment)->not->toBeNull();
     expect($failAssessment->status)->toBe('ineligible');
     $failResponse->assertRedirect(route('resident.eligibility.result', $failAssessment->id));
+});
+
+test('household income eligibility accepts only amounts from 2000 through 15000', function () {
+    $category = ServiceCategory::create(['category_name' => 'Medical Services']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance',
+        'description' => 'Medical support',
+        'procedure' => 'Complete the assessment.',
+    ]);
+    $question = EligibilityQuestion::create([
+        'service_id' => $service->id,
+        'question_text_en' => 'What is your monthly household income?',
+        'question_text_ceb' => 'Unsa ang binulan nga kita sa inyong panimalay?',
+        'question_text_fil' => 'Ano ang buwanang kita ng inyong sambahayan?',
+        'question_text_sub' => 'Household income',
+        'type' => 'number',
+        'operator' => '<',
+        'expected_value' => '15000',
+    ]);
+
+    $resident = User::factory()->create(['role' => 'resident']);
+
+    $this->actingAs($resident)
+        ->get(route('resident.eligibility.assess', $service))
+        ->assertSuccessful()
+        ->assertSee('min="2000"', false)
+        ->assertSee('max="15000"', false)
+        ->assertSee('Valid household income range: ₱2,000–₱15,000.');
+
+    foreach ([1999, 15001] as $invalidIncome) {
+        $this->actingAs($resident)
+            ->post(route('resident.eligibility.assess.submit', $service), [
+                "question_{$question->id}" => $invalidIncome,
+            ])
+            ->assertSessionHasErrors([
+                "question_{$question->id}" => 'Household income must be between ₱2,000 and ₱15,000.',
+            ]);
+    }
+
+    expect(EligibilityAssessment::query()->where('user_id', $resident->id)->exists())->toBeFalse();
+
+    foreach ([2000, 15000] as $validIncome) {
+        $eligibleResident = User::factory()->create(['role' => 'resident']);
+
+        $this->actingAs($eligibleResident)
+            ->post(route('resident.eligibility.assess.submit', $service), [
+                "question_{$question->id}" => $validIncome,
+            ])
+            ->assertRedirect();
+
+        expect(EligibilityAssessment::query()
+            ->where('user_id', $eligibleResident->id)
+            ->where('service_id', $service->id)
+            ->value('status'))->toBe('eligible');
+    }
 });
 
 test('facilitator can manage document templates by program', function () {

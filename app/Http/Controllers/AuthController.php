@@ -54,19 +54,28 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
+            'middle_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
+            'last_name' => ['required', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Get current language from session or default
         $lang = session('locale', 'en');
+        $fullName = collect([
+            $validated['first_name'],
+            $validated['middle_name'] ?? null,
+            $validated['last_name'],
+        ])->filter()->implode(' ');
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $fullName,
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'role' => 'resident',
             'language' => $lang,
         ]);

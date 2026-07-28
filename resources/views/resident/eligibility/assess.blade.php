@@ -48,7 +48,22 @@
                         </label>
                     </div>
                 @elseif($q->type === 'number')
-                    <input type="number" name="question_{{ $q->id }}" placeholder="Enter numeric value..." class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" required>
+                    @php
+                        $isHouseholdIncome = Illuminate\Support\Str::of($q->question_text_en)
+                            ->lower()
+                            ->containsAll(['household', 'income']);
+                    @endphp
+                    <input
+                        type="number"
+                        name="question_{{ $q->id }}"
+                        placeholder="{{ $isHouseholdIncome ? 'Enter an amount from 2,000 to 15,000' : 'Enter numeric value...' }}"
+                        @if($isHouseholdIncome) min="2000" max="15000" @endif
+                        class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm"
+                        required
+                    >
+                    @if($isHouseholdIncome)
+                        <p class="text-[11px] font-semibold text-slate-500">Valid household income range: ₱2,000–₱15,000.</p>
+                    @endif
                 @elseif($q->type === 'text')
                     <textarea name="question_{{ $q->id }}" rows="3" placeholder="Enter your response..." class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" required></textarea>
                 @endif

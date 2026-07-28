@@ -56,16 +56,28 @@
             <form action="{{ route('register') }}" method="POST" class="space-y-4">
                 @csrf
 
-                <!-- Full Name Input -->
-                <div class="space-y-1">
-                    <label for="name" class="block text-sm font-bold text-slate-700">{{ __('messages.full_name') }}</label>
-                    <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
-                        <!-- User Icon -->
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="e.g. John Doe" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="space-y-1">
+                        <label for="first_name" class="block text-sm font-bold text-slate-700">{{ __('messages.first_name') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" placeholder="e.g. Juan" maxlength="255" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" autocomplete="given-name" required>
+                        </div>
                     </div>
+
+                    <div class="space-y-1">
+                        <label for="middle_name" class="block text-sm font-bold text-slate-700">{{ __('messages.middle_name') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name') }}" placeholder="e.g. Santos (optional)" maxlength="255" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" autocomplete="additional-name">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1 sm:col-span-2">
+                        <label for="last_name" class="block text-sm font-bold text-slate-700">{{ __('messages.last_name') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" placeholder="e.g. Dela Cruz" maxlength="255" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" autocomplete="family-name" required>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 sm:col-span-2">Use letters, spaces, apostrophes, periods, or hyphens only.</p>
                 </div>
 
                 <!-- Email Input -->

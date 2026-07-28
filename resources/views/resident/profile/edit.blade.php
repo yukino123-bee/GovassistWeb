@@ -62,30 +62,39 @@
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-4">
                     <div>
                         <label for="first_name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">First Name / Given Names</label>
-                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name', Auth::user()->first_name ?? Auth::user()->name) }}" placeholder="e.g. Mark Jed" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" required>
+                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name', Auth::user()->first_name ?? Auth::user()->name) }}" placeholder="e.g. Juan" maxlength="255" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="given-name" required>
+                        <p class="mt-1 text-[10px] text-slate-400">Letters, spaces, apostrophes, periods, or hyphens only.</p>
                     </div>
 
                     <div>
                         <label for="middle_name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Middle Name (Optional)</label>
-                        <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', Auth::user()->middle_name) }}" placeholder="e.g. Maserin" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                        <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', Auth::user()->middle_name) }}" placeholder="e.g. Santos" maxlength="255" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="additional-name">
                     </div>
 
                     <div>
                         <label for="last_name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Last Name / Surname</label>
-                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', Auth::user()->last_name) }}" placeholder="e.g. Cagatin" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" required>
+                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', Auth::user()->last_name) }}" placeholder="e.g. Dela Cruz" maxlength="255" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="family-name" required>
                     </div>
                 </div>
 
                 <!-- Date of Birth -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="dob" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.dob') }}</label>
-                    <input type="date" name="dob" id="dob" value="{{ old('dob', Auth::user()->dob ? Auth::user()->dob->format('Y-m-d') : '') }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                    <input type="date" name="dob" id="dob" value="{{ old('dob', Auth::user()->dob ? Auth::user()->dob->format('Y-m-d') : '') }}" max="{{ now()->toDateString() }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                    <p class="text-[10px] text-slate-400">Format: MM/DD/YYYY. Future dates are not allowed.</p>
                 </div>
 
                 <!-- Civil Status -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="civil_status" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.civil_status') }}</label>
-                    <input type="text" name="civil_status" id="civil_status" value="{{ old('civil_status', Auth::user()->civil_status) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                    <select name="civil_status" id="civil_status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                        <option value="">Select civil status</option>
+                        @foreach(['Single', 'Married', 'Widowed', 'Divorced', 'Live-in'] as $civilStatus)
+                            <option value="{{ $civilStatus }}" @selected(old('civil_status', Auth::user()->civil_status) === $civilStatus)>
+                                {{ $civilStatus }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -98,13 +107,14 @@
                 <!-- Email Address -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.email_address') }}</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" required>
+                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" placeholder="e.g. juan@example.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="email" required>
                 </div>
 
                 <!-- Contact Info -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="contact_number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.contact_info') }}</label>
-                    <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number', Auth::user()->contact_number) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                    <input type="tel" name="contact_number" id="contact_number" value="{{ old('contact_number', Auth::user()->contact_number) }}" placeholder="e.g. 09171234567" pattern="(?:\+63|0)9[0-9]{9}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="tel">
+                    <p class="text-[10px] text-slate-400">Use 09XXXXXXXXX or +639XXXXXXXXX.</p>
                 </div>
 
                 <!-- Valid ID Upload -->
@@ -133,7 +143,8 @@
             <!-- Complete Address -->
             <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                 <label for="address" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.address') }}</label>
-                <textarea name="address" id="address" rows="2" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">{{ old('address', Auth::user()->address) }}</textarea>
+                <textarea name="address" id="address" rows="2" maxlength="500" placeholder="House/Unit No., Street, Barangay, Municipality/City, Province" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="street-address">{{ old('address', Auth::user()->address) }}</textarea>
+                <p class="text-[10px] text-slate-400">Include house or unit number, street, barangay, city or municipality, and province.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

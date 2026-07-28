@@ -100,6 +100,10 @@
 
             <!-- Footer Sign-up link & Copyright inside Container -->
             <div class="pt-4 border-t border-slate-100 space-y-3">
+                <a href="{{ route('resident.home') }}" class="flex items-center justify-center gap-2 text-xs font-bold text-slate-600 transition-colors hover:text-red-700">
+                    <span aria-hidden="true">&larr;</span>
+                    <span>{{ __('messages.back_to_home') }}</span>
+                </a>
                 <div class="text-center text-sm text-slate-500 font-medium">
                     {{ __('messages.dont_have_account') }}
                     <a href="{{ route('register') }}" class="text-[#d5001c] hover:underline ml-1 font-bold">{{ __('messages.register') }}</a>

@@ -7,6 +7,7 @@ use App\Models\AssessmentAnswer;
 use App\Models\CommonQuestion;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
+use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
 use App\Models\InquiryRequirense;
 use App\Models\ReassessmentRequest;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 
 class ResidentController extends Controller
@@ -96,12 +98,32 @@ class ResidentController extends Controller
 
         $questions = $service->eligibilityQuestions;
 
+        $rules = [];
+        $messages = [];
+
+        foreach ($questions as $question) {
+            $inputName = 'question_'.$question->id;
+
+            $rules[$inputName] = match ($question->type) {
+                'boolean' => ['required', 'in:true,false'],
+                'number' => $this->isHouseholdIncomeQuestion($question)
+                    ? ['required', 'numeric', 'between:2000,15000']
+                    : ['required', 'numeric'],
+                default => ['required', 'string', 'max:5000'],
+            };
+
+            if ($this->isHouseholdIncomeQuestion($question)) {
+                $messages[$inputName.'.between'] = 'Household income must be between ₱2,000 and ₱15,000.';
+            }
+        }
+
+        $validated = $request->validate($rules, $messages);
         $answers = [];
         $isEligible = true;
 
         foreach ($questions as $q) {
             $inputName = 'question_'.$q->id;
-            $userAnswer = $request->input($inputName);
+            $userAnswer = $validated[$inputName];
 
             $questionText = $q->question_text;
             $answers[$questionText] = $userAnswer;
@@ -118,7 +140,9 @@ class ResidentController extends Controller
                 $expected = floatval($q->expected_value);
                 $actual = floatval($userAnswer);
 
-                if (($q->operator === 'less_than_or_equal' || $q->operator === '<=') && $actual > $expected) {
+                if ($this->isHouseholdIncomeQuestion($q)) {
+                    $isEligible = $isEligible && $actual >= 2000 && $actual <= 15000;
+                } elseif (($q->operator === 'less_than_or_equal' || $q->operator === '<=') && $actual > $expected) {
                     $isEligible = false;
                 } elseif (($q->operator === 'less_than' || $q->operator === '<') && $actual >= $expected) {
                     $isEligible = false;
@@ -147,6 +171,13 @@ class ResidentController extends Controller
         }
 
         return redirect()->route('resident.eligibility.result', ['refNo' => $assessment->id]);
+    }
+
+    private function isHouseholdIncomeQuestion(EligibilityQuestion $question): bool
+    {
+        return Str::of($question->question_text_en)
+            ->lower()
+            ->containsAll(['household', 'income']);
     }
 
     public function showAssessResult($refNo)
@@ -608,15 +639,15 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'first_name' => ['nullable', 'string', 'max:255'],
-            'middle_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
+            'middle_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
+            'last_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'dob' => ['nullable', 'date'],
-            'address' => ['nullable', 'string'],
-            'civil_status' => ['nullable', 'string'],
-            'contact_number' => ['nullable', 'string'],
+            'dob' => ['nullable', 'date', 'before_or_equal:today'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'civil_status' => ['nullable', Rule::in(['Single', 'Married', 'Widowed', 'Divorced', 'Live-in'])],
+            'contact_number' => ['nullable', 'string', 'regex:/^(?:\+63|0)9\d{9}$/'],
             'valid_id' => ['nullable', 'file', 'mimes:pdf,jpg,png,jpeg', 'max:5120'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
