@@ -264,6 +264,53 @@ test('document templates verification matches keywords for PDF uploads', functio
     Process::assertRan(fn ($process) => str_contains(implode(' ', $process->command), 'Indigency'));
 });
 
+test('document templates verification accepts an upload identical to the configured template', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    Process::fake();
+
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Category']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance Program',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Medical Certificate'],
+        'is_required' => true,
+    ]);
+
+    $documentContents = 'scanned medical certificate binary contents';
+    Storage::disk('public')->put('templates/medical-certificate.pdf', $documentContents);
+    DocumentTemplate::create([
+        'service_id' => $service->id,
+        'requirement_id' => $requirement->id,
+        'name_en' => 'Medical Certificate,Patient Name,Physician',
+        'name_ceb' => 'Medical Certificate,Patient Name,Physician',
+        'file_path' => 'templates/medical-certificate.pdf',
+    ]);
+
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
+        $service->id,
+        $requirement->id,
+    ]), [
+        'document' => UploadedFile::fake()->createWithContent('medical-certificate.pdf', $documentContents),
+    ]);
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Document verified against the template and uploaded successfully.');
+    $this->assertDatabaseHas('user_checklist_items', [
+        'requirement_id' => $requirement->id,
+        'is_submitted' => true,
+        'status' => 'approved',
+    ]);
+    Process::assertNothingRan();
+});
+
 test('document template verification rejects a mismatched upload', function () {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);

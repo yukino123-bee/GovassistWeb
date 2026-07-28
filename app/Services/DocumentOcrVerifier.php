@@ -22,6 +22,15 @@ class DocumentOcrVerifier
             $localTemplatePath = $this->copyToTemporaryFile($disk, $templatePath);
             $temporaryPaths[] = $localTemplatePath;
 
+            if ($this->filesAreIdentical($localDocumentPath, $localTemplatePath)) {
+                return [
+                    'matched' => true,
+                    'message' => 'Document verified successfully.',
+                    'method' => 'exact_file_match',
+                    'score' => 1,
+                ];
+            }
+
             $result = Process::timeout(120)->run([
                 'python3',
                 base_path('scripts/compare_images.py'),
@@ -98,6 +107,23 @@ class DocumentOcrVerifier
         }
 
         return $pathWithExtension;
+    }
+
+    private function filesAreIdentical(string $documentPath, string $templatePath): bool
+    {
+        $documentSize = filesize($documentPath);
+        $templateSize = filesize($templatePath);
+
+        if ($documentSize === false || $documentSize === 0 || $documentSize !== $templateSize) {
+            return false;
+        }
+
+        $documentHash = hash_file('sha256', $documentPath);
+        $templateHash = hash_file('sha256', $templatePath);
+
+        return is_string($documentHash)
+            && is_string($templateHash)
+            && hash_equals($documentHash, $templateHash);
     }
 
     /**
