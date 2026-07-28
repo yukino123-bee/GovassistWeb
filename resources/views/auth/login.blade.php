@@ -89,7 +89,7 @@
 
                 <!-- Forgot Password -->
                 <div class="flex justify-end text-xs pt-1">
-                    <a href="#" class="text-[#d5001c] hover:underline font-semibold transition-colors">{{ __('messages.forgot_password') }}</a>
+                    <a href="{{ route('password.request') }}" class="text-[#d5001c] hover:underline font-semibold transition-colors">{{ __('messages.forgot_password') }}</a>
                 </div>
 
                 <!-- Sharp Submit Button -->
