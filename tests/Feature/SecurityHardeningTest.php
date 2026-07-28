@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CommonQuestion;
 use App\Models\GovernmentService;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
@@ -64,6 +65,29 @@ test('a guest retains access to an inquiry created in the same session', functio
     $this->getJson(route('resident.inquiry.messages', $inquiryId))
         ->assertSuccessful()
         ->assertJsonPath('inquiry.id', $inquiryId);
+});
+
+test('a resident cannot add a common question to another resident inquiry', function () {
+    $inquiryOwner = User::factory()->create(['role' => 'resident']);
+    $otherResident = User::factory()->create(['role' => 'resident']);
+    $inquiry = UserInquiry::create([
+        'user_id' => $inquiryOwner->id,
+        'inquiry_text' => 'Private inquiry',
+        'status' => 'pending',
+    ]);
+    $commonQuestion = CommonQuestion::create([
+        'question_text' => 'How do I apply?',
+        'answer_text' => 'Complete the eligibility assessment first.',
+    ]);
+
+    $this->actingAs($otherResident)
+        ->postJson(route('resident.inquiry.common_question'), [
+            'common_question_id' => $commonQuestion->id,
+            'inquiry_id' => $inquiry->id,
+        ])
+        ->assertForbidden();
+
+    expect($inquiry->responses()->count())->toBe(0);
 });
 
 test('a requirement cannot be uploaded through another service', function () {

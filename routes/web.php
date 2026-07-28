@@ -40,6 +40,7 @@ Route::prefix('resident')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])-
     Route::get('/eligibility', [ResidentController::class, 'eligibility'])->name('resident.eligibility');
     Route::get('/inquiry', [ResidentController::class, 'inquiry'])->name('resident.inquiry');
     Route::post('/inquiry/manual', [ResidentController::class, 'submitManualInquiry'])->middleware('throttle:inquiries')->name('resident.inquiry.manual');
+    Route::post('/inquiry/common-question', [ResidentController::class, 'answerCommonInquiryQuestion'])->middleware('throttle:inquiries')->name('resident.inquiry.common_question');
 
     // Inquiries Reply & Unsend (Moved for Guest Access)
     Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');

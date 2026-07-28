@@ -12,9 +12,16 @@ class InquiryRequirense extends Model
 
     protected $table = 'inquiry_requirenses';
 
-    protected $fillable = ['inquiry_id', 'requireent_text', 'responded_by'];
+    protected $fillable = ['inquiry_id', 'requireent_text', 'responded_by', 'is_system'];
 
     protected $appends = ['response_text'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_system' => 'boolean',
+        ];
+    }
 
     public function inquiry(): BelongsTo
     {

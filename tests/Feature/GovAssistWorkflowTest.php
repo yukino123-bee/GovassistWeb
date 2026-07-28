@@ -44,6 +44,7 @@ test('facilitator can perform services CRUD', function () {
     $service = GovernmentService::first();
     expect($service->service_name)->toBe('New Service EN');
     expect($service->icon)->toBe('academic-cap');
+    expect($service->commonQuestions)->toHaveCount(5);
 
     // 3. Edit service page
     $editResponse = $this->actingAs($facilitator)->get(route('facilitator.services.edit', $service->id));
@@ -325,6 +326,51 @@ test('resident can submit inquiry and facilitator replies', function () {
     ]);
     $thirdResponse->assertRedirect();
     expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(2);
+});
+
+test('common questions are answered automatically in the resident inquiry conversation', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Medical']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance',
+        'description' => 'Financial support for medical needs.',
+        'procedure' => 'Complete the assessment and submit the medical requirements.',
+    ]);
+    $commonQuestion = $service->commonQuestions()->firstOrFail();
+
+    $this->actingAs($resident)
+        ->get(route('resident.inquiry'))
+        ->assertSuccessful()
+        ->assertSee('Medical Assistance')
+        ->assertSee($commonQuestion->question_text);
+
+    $response = $this->actingAs($resident)
+        ->postJson(route('resident.inquiry.common_question'), [
+            'common_question_id' => $commonQuestion->id,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('inquiry.status', 'resolved')
+        ->assertJsonPath('inquiry.responses.1.is_system', true)
+        ->assertJsonPath('inquiry.responses.1.response_text', $commonQuestion->answer_text);
+
+    $inquiry = UserInquiry::query()->findOrFail($response->json('inquiry.id'));
+
+    expect($inquiry->inquiry_text)->toBe($commonQuestion->question_text)
+        ->and($inquiry->responses)->toHaveCount(2)
+        ->and($inquiry->responses->first()->is_system)->toBeFalse()
+        ->and($inquiry->responses->last()->is_system)->toBeTrue();
+
+    $this->actingAs($resident)
+        ->postJson(route('resident.inquiry.common_question'), [
+            'common_question_id' => $commonQuestion->id,
+            'inquiry_id' => $inquiry->id,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('inquiry.id', $inquiry->id)
+        ->assertJsonCount(4, 'inquiry.responses');
+
+    expect(UserInquiry::query()->where('user_id', $resident->id)->count())->toBe(1);
 });
 
 test('facilitator can reply via json ajax and poll messages', function () {

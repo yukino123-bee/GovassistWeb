@@ -97,15 +97,44 @@
             </div>
         </div>
 
-        <!-- Input area -->
-        <form id="chat-form" class="border-t border-slate-200 p-4 flex items-center gap-2 bg-white">
-            <div class="relative flex-grow flex">
-                <input type="text" id="chat-input" placeholder="Type your message to start a new inquiry with admin..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-                <button type="submit" id="chat-submit-btn" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
-                    Send
-                </button>
-            </div>
-        </form>
+        <!-- Common questions and input area -->
+        <div class="border-t border-slate-200 bg-white">
+            @if($services->isNotEmpty())
+                <div class="border-b border-slate-100 px-4 py-3">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                        <label for="common-question-service" class="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">Common questions</label>
+                        <select id="common-question-service" class="max-w-56 border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-700 focus:border-red-700 focus:outline-none">
+                            @foreach($services as $service)
+                                <option value="{{ $service->id }}">{{ $service->name_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @foreach($services as $service)
+                        <div class="common-question-group {{ $loop->first ? 'flex' : 'hidden' }} gap-2 overflow-x-auto pb-1" data-service-id="{{ $service->id }}">
+                            @foreach($service->commonQuestions as $commonQuestion)
+                                <button
+                                    type="button"
+                                    class="common-question-button shrink-0 border border-slate-200 bg-slate-50 px-3 py-2 text-left text-[10px] font-semibold text-slate-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-200 disabled:cursor-wait disabled:opacity-50"
+                                    data-question-id="{{ $commonQuestion->id }}"
+                                >
+                                    {{ $commonQuestion->question_text }}
+                                </button>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <form id="chat-form" class="flex items-center gap-2 p-4">
+                <div class="relative flex flex-grow">
+                    <input type="text" id="chat-input" placeholder="Type your message to start a new inquiry with admin..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+                    <button type="submit" id="chat-submit-btn" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 <!-- Custom Unsend Confirmation Modal -->
@@ -168,6 +197,9 @@
     const chatInput = document.getElementById('chat-input');
     const chatWindow = document.getElementById('chat-window');
     const chatSubmitBtn = document.getElementById('chat-submit-btn');
+    const commonQuestionButtons = document.querySelectorAll('.common-question-button');
+    const commonQuestionService = document.getElementById('common-question-service');
+    const commonQuestionGroups = document.querySelectorAll('.common-question-group');
 
     // Always read CSRF from meta tag — never use inline Blade token which can go stale
     const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -326,10 +358,13 @@
                 }
                 isFirstResponse = false;
 
-                const isByMe = resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'resident');
+                const isSystem = resp.is_system === true;
+                const isByMe = !isSystem && (resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'resident'));
                 const isByAdmin = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
 
-                if (isByMe && !isByAdmin) {
+                if (isSystem) {
+                    appendMessage('system', respText);
+                } else if (isByMe && !isByAdmin) {
                     appendMessage('user', respText, '', '', resp.id, 'reply');
                 } else {
                     const responderName = resp.responder ? resp.responder.name : 'GovAssist Admin';
@@ -382,6 +417,7 @@
     }
 
     let pendingMsg = '';
+    let pendingCommonQuestionId = null;
 
     function closeGuestModal() {
         const modal = document.getElementById('guest-info-modal');
@@ -429,7 +465,11 @@
 
         closeGuestModal();
 
-        if (pendingMsg) {
+        if (pendingCommonQuestionId) {
+            const commonQuestionId = pendingCommonQuestionId;
+            pendingCommonQuestionId = null;
+            sendCommonQuestion(commonQuestionId);
+        } else if (pendingMsg) {
             appendMessage('user', pendingMsg);
             chatInput.value = '';
             scrollToBottom();
@@ -439,6 +479,81 @@
             // Editing guest info — reload so the server can load this guest's history
             window.location.reload();
         }
+    }
+
+    function sendCommonQuestion(commonQuestionId) {
+        const bodyData = { common_question_id: commonQuestionId };
+
+        if (activeInquiryId) {
+            bodyData.inquiry_id = activeInquiryId;
+        }
+
+        if (currentUserId === null) {
+            if (!currentGuestName || !currentGuestEmail) {
+                pendingCommonQuestionId = commonQuestionId;
+                openGuestModal();
+                return;
+            }
+
+            bodyData.guest_name = currentGuestName;
+            bodyData.guest_email = currentGuestEmail;
+        }
+
+        commonQuestionButtons.forEach(button => button.disabled = true);
+
+        fetch("{{ route('resident.inquiry.common_question') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrfToken(),
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(bodyData)
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.text().then(text => {
+                    throw new Error('Common question failed: ' + res.status + ' ' + text);
+                });
+            }
+
+            return res.json();
+        })
+        .then(data => {
+            if (!data.success || !data.inquiry) {
+                throw new Error('The common question response was invalid.');
+            }
+
+            activeInquiryId = data.inquiry.id;
+            inquiriesMap[data.inquiry.id] = data.inquiry;
+            prependInquiryToSidebar(data.inquiry);
+            renderInquiryThread(data.inquiry, true);
+            startMessagePolling();
+        })
+        .catch(error => {
+            console.error('Common question error:', error);
+            appendMessage('system', 'The automatic answer is unavailable right now. Please send your question to an administrator.');
+            scrollToBottom();
+        })
+        .finally(() => {
+            commonQuestionButtons.forEach(button => button.disabled = false);
+        });
+    }
+
+    commonQuestionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            sendCommonQuestion(Number(button.dataset.questionId));
+        });
+    });
+
+    if (commonQuestionService) {
+        commonQuestionService.addEventListener('change', () => {
+            commonQuestionGroups.forEach(group => {
+                const isSelected = group.dataset.serviceId === commonQuestionService.value;
+                group.classList.toggle('hidden', !isSelected);
+                group.classList.toggle('flex', isSelected);
+            });
+        });
     }
 
 

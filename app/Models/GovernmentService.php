@@ -13,6 +13,13 @@ class GovernmentService extends Model
 
     protected $fillable = ['category_id', 'service_name', 'description', 'procedure', 'icon'];
 
+    protected static function booted(): void
+    {
+        static::created(function (GovernmentService $service): void {
+            CommonQuestion::createDefaultsForService($service);
+        });
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
@@ -31,6 +38,11 @@ class GovernmentService extends Model
     public function eligibilityQuestions(): HasMany
     {
         return $this->hasMany(EligibilityQuestion::class, 'service_id');
+    }
+
+    public function commonQuestions(): HasMany
+    {
+        return $this->hasMany(CommonQuestion::class, 'service_id');
     }
 
     public function checklists(): HasMany

@@ -394,7 +394,8 @@
                         }
                         isFirstResponse = false;
 
-                        const isResidentOrGuest = !resp.responded_by || (resp.responder && resp.responder.role === 'resident');
+                        const isSystem = resp.is_system === true;
+                        const isResidentOrGuest = !isSystem && (!resp.responded_by || (resp.responder && resp.responder.role === 'resident'));
                         const isFacilitator = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
 
                         const messageDiv = document.createElement('div');
@@ -416,7 +417,7 @@
                                 </div>
                             `;
                         } else {
-                            const adminName = resp.responder ? resp.responder.name : 'GovAssist Admin';
+                            const adminName = isSystem ? 'GovAssist System' : (resp.responder ? resp.responder.name : 'GovAssist Admin');
                             const adminInitial = adminName.substring(0, 1).toUpperCase();
                             messageDiv.className = 'flex items-start justify-end space-x-3 max-w-[85%] ml-auto';
                             messageDiv.innerHTML = `

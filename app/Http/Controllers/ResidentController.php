@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AnswerCommonInquiryQuestionRequest;
 use App\Models\AssessmentAnswer;
 use App\Models\CommonQuestion;
 use App\Models\DocumentTemplate;
@@ -17,6 +18,7 @@ use App\Models\UserInquiry;
 use App\Services\DocumentOcrVerifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -415,11 +417,16 @@ class ResidentController extends Controller
             $inquiries = collect();
         }
 
-        $services = GovernmentService::all();
-        $commonQuestions = CommonQuestion::all();
+        $services = GovernmentService::query()
+            ->with(['commonQuestions' => fn ($query) => $query
+                ->whereNotNull('answer_text')
+                ->oldest()
+                ->limit(5)])
+            ->oldest()
+            ->get();
         $templates = collect();
 
-        return view('resident.inquiry.bot', compact('inquiries', 'services', 'commonQuestions', 'templates'));
+        return view('resident.inquiry.bot', compact('inquiries', 'services', 'templates'));
     }
 
     public function submitManualInquiry(Request $request)
@@ -505,6 +512,67 @@ class ResidentController extends Controller
         $redirect = back()->with('success', 'Your inquiry has been sent to the administrators.');
 
         return $redirect;
+    }
+
+    public function answerCommonInquiryQuestion(AnswerCommonInquiryQuestionRequest $request)
+    {
+        $validated = $request->validated();
+        $commonQuestion = CommonQuestion::query()->findOrFail($validated['common_question_id']);
+
+        $inquiry = DB::transaction(function () use ($request, $validated, $commonQuestion) {
+            $inquiry = null;
+
+            if (isset($validated['inquiry_id'])) {
+                $inquiry = UserInquiry::query()->findOrFail($validated['inquiry_id']);
+
+                $canAccessInquiry = $request->user()
+                    ? $inquiry->user_id === $request->user()->id
+                    : $this->guestCanAccessInquiry($request, $inquiry->id)
+                        && $inquiry->guest_email === $validated['guest_email'];
+
+                abort_unless($canAccessInquiry, 403);
+            }
+
+            if (! $inquiry) {
+                $inquiry = UserInquiry::create([
+                    'user_id' => $request->user()?->id,
+                    'guest_name' => $validated['guest_name'] ?? null,
+                    'guest_email' => $validated['guest_email'] ?? null,
+                    'service_id' => $commonQuestion->service_id,
+                    'inquiry_text' => $commonQuestion->question_text,
+                    'status' => 'resolved',
+                ]);
+
+                if (! $request->user()) {
+                    $request->session()->push('guest_inquiry_ids', $inquiry->id);
+                }
+            }
+
+            InquiryRequirense::create([
+                'inquiry_id' => $inquiry->id,
+                'requireent_text' => $commonQuestion->question_text,
+                'responded_by' => $request->user()?->id,
+            ]);
+
+            InquiryRequirense::create([
+                'inquiry_id' => $inquiry->id,
+                'requireent_text' => $commonQuestion->answer_text,
+                'responded_by' => null,
+                'is_system' => true,
+            ]);
+
+            $inquiry->update([
+                'status' => 'resolved',
+                'updated_at' => now(),
+            ]);
+
+            return $inquiry;
+        });
+
+        return response()->json([
+            'success' => true,
+            'inquiry' => $inquiry->load(['service', 'responses.responder']),
+        ]);
     }
 
     public function getMessages(Request $request, UserInquiry $inquiry)
