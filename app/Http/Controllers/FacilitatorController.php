@@ -401,6 +401,7 @@ class FacilitatorController extends Controller
             'type' => ['required', 'string', 'in:boolean,number,text'],
             'expected_value' => ['required', 'string'],
             'operator' => ['required', 'string'],
+            'is_required' => ['sometimes', 'boolean'],
         ]);
 
         $scriptPath = base_path('scripts/translate.py');
@@ -425,6 +426,7 @@ class FacilitatorController extends Controller
             'type' => $request->type,
             'expected_value' => $request->expected_value,
             'operator' => $request->operator,
+            'is_required' => $request->boolean('is_required', true),
         ]);
 
         return back()->with('success', 'Question created and automatically translated successfully.');
@@ -448,9 +450,24 @@ class FacilitatorController extends Controller
             'type' => ['required', 'string', 'in:boolean,number,text'],
             'expected_value' => ['required', 'string'],
             'operator' => ['required', 'string'],
+            'is_required' => ['sometimes', 'boolean'],
         ]);
 
-        $question->update($request->all());
+        $question->update([
+            ...$request->only([
+                'service_id',
+                'question_text_en',
+                'question_text_ceb',
+                'question_text_fil',
+                'question_text_sub',
+                'type',
+                'expected_value',
+                'operator',
+            ]),
+            'is_required' => $request->has('is_required')
+                ? $request->boolean('is_required')
+                : $question->is_required,
+        ]);
 
         return redirect()->route('facilitator.eligibility')->with('success', 'Question updated successfully.');
     }

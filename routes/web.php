@@ -12,6 +12,10 @@ Route::get('/', function () {
         return redirect()->route('facilitator.dashboard');
     }
 
+    if (! Auth::check()) {
+        return redirect()->route('login');
+    }
+
     return redirect()->route('resident.home');
 });
 
@@ -36,25 +40,20 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/language/toggle', [AuthController::class, 'toggleLanguage'])->name('language.toggle');
 
-use App\Http\Middleware\EnsureEmailIsVerifiedIfLoggedIn;
-
-// Resident Public Routes
-Route::prefix('resident')->middleware([EnsureEmailIsVerifiedIfLoggedIn::class])->group(function () {
+// Resident Protected Routes
+Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->group(function () {
     Route::get('/home', [ResidentController::class, 'home'])->name('resident.home');
     Route::get('/eligibility', [ResidentController::class, 'eligibility'])->name('resident.eligibility');
     Route::get('/inquiry', [ResidentController::class, 'inquiry'])->name('resident.inquiry');
     Route::post('/inquiry/manual', [ResidentController::class, 'submitManualInquiry'])->middleware('throttle:inquiries')->name('resident.inquiry.manual');
     Route::post('/inquiry/common-question', [ResidentController::class, 'answerCommonInquiryQuestion'])->middleware('throttle:inquiries')->name('resident.inquiry.common_question');
 
-    // Inquiries Reply & Unsend (Moved for Guest Access)
+    // Inquiries Reply & Unsend
     Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');
     Route::post('/inquiry/{inquiry}/reply', [ResidentController::class, 'replyInquiry'])->name('resident.inquiry.reply');
     Route::delete('/inquiry/{inquiry}', [ResidentController::class, 'deleteInquiry'])->name('resident.inquiry.delete_inquiry');
     Route::delete('/inquiry/replies/{response}', [ResidentController::class, 'deleteReply'])->name('resident.inquiry.delete_reply');
-});
 
-// Resident Protected Routes
-Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->group(function () {
     // Eligibility Assessment
     Route::get('/eligibility/assess/{service}', [ResidentController::class, 'showAssessForm'])->name('resident.eligibility.assess');
     Route::post('/eligibility/assess/{service}', [ResidentController::class, 'processAssessForm'])->name('resident.eligibility.assess.submit');

@@ -48,6 +48,7 @@ foreach ($questionsToReplace as $index => $q) {
         'type' => 'text',
         'expected_value' => 'N/A',
         'operator' => '==',
+        'is_required' => false,
     ]);
 }
 

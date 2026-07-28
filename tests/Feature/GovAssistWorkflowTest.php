@@ -138,11 +138,13 @@ test('facilitator can manage eligibility questions', function () {
         'type' => 'boolean',
         'operator' => '==',
         'expected_value' => 'true',
+        'is_required' => '0',
     ]);
     $storeResponse->assertRedirect();
 
     $question = EligibilityQuestion::first();
-    expect($question->question_text_en)->toBe('Are you a resident?');
+    expect($question->question_text_en)->toBe('Are you a resident?')
+        ->and($question->is_required)->toBeFalse();
 
     // 3. Delete question
     $deleteResponse = $this->actingAs($facilitator)->delete(route('facilitator.eligibility.destroy', $question->id));

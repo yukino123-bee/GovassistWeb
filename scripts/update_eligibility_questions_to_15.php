@@ -104,6 +104,42 @@ $questions = [
     ],
 ];
 
+$optionalQuestionTexts = [
+    'Is the student an active member of any community youth organization?',
+    'Is the student a dependent of a solo parent or a person with disability?',
+    'Is the student willing to render community service hours if required?',
+    'Is the student enrolled in a priority course or degree program?',
+    'Is the student a first-time applicant for this specific assistance program?',
+    'Is the patient currently admitted to a public hospital or certified healthcare facility?',
+    "Is the patient's illness considered a severe or chronic condition requiring extensive treatment?",
+    'Has the patient exhausted all available PhilHealth benefits for this admission?',
+    'Does the patient require specialized medication not available in the local health center?',
+    'Is the patient a senior citizen, a person with disability, or a minor?',
+    'Is the patient scheduled for an urgent surgical procedure?',
+    'Is the patient a member of an indigenous cultural community?',
+    'Does the patient require continuous dialysis, chemotherapy, or physical therapy?',
+    'Is the patient unable to work due to the current medical condition?',
+    'Was the deceased a senior citizen or a person with disability?',
+    'Is the cause of death related to an accident or a sudden tragic event?',
+    'Was the deceased the primary breadwinner of the family?',
+    'Is the applicant requesting assistance specifically for casket or interment services?',
+    'Has the family complied with all local health regulations for the burial?',
+    'Is the passenger traveling for an urgent medical referral or emergency?',
+    'Is the passenger a stranded individual or victim of a calamity seeking to return home?',
+    'Is the passenger traveling to seek employment opportunities outside the province?',
+    'Is the passenger a senior citizen, a person with disability, or a pregnant woman?',
+    'Is the passenger requesting assistance for a one-way trip only?',
+    'Is the passenger traveling with essential medical equipment or a necessary escort?',
+    'Is the job seeker a graduate of a vocational training or skills development program?',
+    'Is the job seeker a displaced worker due to retrenchment or company closure?',
+    'Is the job seeker applying for a livelihood starter kit or capital assistance?',
+    'Is the job seeker a person with disability or a single parent seeking employment?',
+    'Is the job seeker willing to undergo additional skills training if required?',
+    'Is the job seeker applying for a position that matches their current qualifications?',
+    'Is the job seeker an out-of-school youth seeking entry-level employment?',
+    'Has the job seeker secured a social case study report from the MSWDO?',
+];
+
 foreach ($questions as $serviceId => $serviceQuestions) {
     foreach ($serviceQuestions as $q) {
         EligibilityQuestion::create([
@@ -114,6 +150,7 @@ foreach ($questions as $serviceId => $serviceQuestions) {
             'type' => $q['type'],
             'expected_value' => $q['expected'],
             'operator' => $q['operator'],
+            'is_required' => ! in_array($q['text'], $optionalQuestionTexts, true),
         ]);
     }
 }

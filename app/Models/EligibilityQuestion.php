@@ -7,10 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['service_id', 'question_text_en', 'question_text_ceb', 'question_text_fil', 'question_text_sub', 'type', 'expected_value', 'operator'])]
+#[Fillable(['service_id', 'question_text_en', 'question_text_ceb', 'question_text_fil', 'question_text_sub', 'type', 'expected_value', 'operator', 'is_required'])]
 class EligibilityQuestion extends Model
 {
     use HasFactory;
+
+    protected $attributes = [
+        'is_required' => true,
+    ];
 
     public function service(): BelongsTo
     {
@@ -23,5 +27,15 @@ class EligibilityQuestion extends Model
         $field = 'question_text_'.$lang;
 
         return $this->$field ?? $this->question_text_en;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_required' => 'boolean',
+        ];
     }
 }

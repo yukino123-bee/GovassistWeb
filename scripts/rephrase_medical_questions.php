@@ -77,6 +77,7 @@ foreach ($updates as $id => $trans) {
             'question_text_ceb' => $trans['ceb'],
             'question_text_fil' => $trans['fil'],
             'question_text_sub' => $trans['ceb'], // fallback to ceb
+            'is_required' => in_array($id, [25, 26, 27, 30, 31], true) ? false : $q->is_required,
         ]);
         echo "Updated ID $id\n";
     }
@@ -92,6 +93,7 @@ EligibilityQuestion::create([
     'type' => 'text',
     'expected_value' => 'N/A',
     'operator' => '==',
+    'is_required' => false,
 ]);
 
 echo "Added new relationship question\n";

@@ -143,6 +143,7 @@ CREATE TABLE `eligibility_questions` (
   `type` varchar(255) NOT NULL DEFAULT 'boolean',
   `expected_value` varchar(255) NOT NULL,
   `operator` varchar(255) NOT NULL DEFAULT '==',
+  `is_required` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

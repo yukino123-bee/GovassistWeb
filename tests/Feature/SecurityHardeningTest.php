@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 uses(RefreshDatabase::class);
 
 test('public responses include baseline security headers', function () {
-    $this->get('/resident/home')
+    $this->get('/login')
         ->assertSuccessful()
         ->assertHeader('X-Content-Type-Options', 'nosniff')
         ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
@@ -39,7 +39,7 @@ test('login attempts are rate limited', function () {
     ])->assertTooManyRequests();
 });
 
-test('a guest email address alone cannot access another guest inquiry', function () {
+test('a guest cannot access an inquiry', function () {
     $inquiry = UserInquiry::create([
         'guest_name' => 'Resident',
         'guest_email' => 'resident@example.com',
@@ -50,22 +50,26 @@ test('a guest email address alone cannot access another guest inquiry', function
     $this->getJson(route('resident.inquiry.messages', [
         'inquiry' => $inquiry,
         'guest_email' => 'resident@example.com',
-    ]))->assertForbidden();
+    ]))->assertRedirect(route('login'));
 });
 
-test('a guest retains access to an inquiry created in the same session', function () {
-    $response = $this->postJson(route('resident.inquiry.manual'), [
+test('a guest cannot create an inquiry', function () {
+    $this->postJson(route('resident.inquiry.manual'), [
         'guest_name' => 'Resident',
         'guest_email' => 'resident@example.com',
         'inquiry_text' => 'How do I apply?',
-    ])->assertSuccessful();
+    ])->assertRedirect(route('login'));
 
-    $inquiryId = $response->json('inquiry.id');
-
-    $this->getJson(route('resident.inquiry.messages', $inquiryId))
-        ->assertSuccessful()
-        ->assertJsonPath('inquiry.id', $inquiryId);
+    expect(UserInquiry::query()->count())->toBe(0);
 });
+
+test('guests cannot access resident core pages', function (string $routeName) {
+    $this->get(route($routeName))->assertRedirect(route('login'));
+})->with([
+    'resident home' => 'resident.home',
+    'government services and eligibility' => 'resident.eligibility',
+    'resident inquiries' => 'resident.inquiry',
+]);
 
 test('a resident cannot add a common question to another resident inquiry', function () {
     $inquiryOwner = User::factory()->create(['role' => 'resident']);

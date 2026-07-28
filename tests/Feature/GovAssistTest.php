@@ -22,14 +22,14 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('root redirects guest to resident home', function () {
+test('root redirects guest to login', function () {
     $response = $this->get('/');
-    $response->assertRedirect('/resident/home');
+    $response->assertRedirect('/login');
 });
 
-test('guest can access resident home', function () {
+test('guest cannot access resident home', function () {
     $response = $this->get('/resident/home');
-    $response->assertStatus(200);
+    $response->assertRedirect('/login');
 });
 
 test('login form links back to the resident home page', function () {
@@ -292,6 +292,71 @@ test('eligibility assessment logic works correctly', function () {
     expect($failAssessment)->not->toBeNull();
     expect($failAssessment->status)->toBe('ineligible');
     $failResponse->assertRedirect(route('resident.eligibility.result', $failAssessment->id));
+});
+
+test('optional assessment questions do not disqualify residents', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Medical Services']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance',
+        'description' => 'Medical support',
+        'procedure' => 'Complete the assessment.',
+    ]);
+    $requiredQuestion = EligibilityQuestion::create([
+        'service_id' => $service->id,
+        'question_text_en' => 'Are you a resident of the municipality?',
+        'question_text_ceb' => 'Residente ba ka sa munisipyo?',
+        'question_text_fil' => 'Residente ka ba ng munisipyo?',
+        'question_text_sub' => 'Resident?',
+        'type' => 'boolean',
+        'operator' => '==',
+        'expected_value' => 'true',
+        'is_required' => true,
+    ]);
+    $optionalQuestion = EligibilityQuestion::create([
+        'service_id' => $service->id,
+        'question_text_en' => 'Is the patient scheduled for urgent surgery?',
+        'question_text_ceb' => 'Naka-iskedyul ba ang pasyente alang sa operasyon?',
+        'question_text_fil' => 'Nakatakda ba ang pasyente para sa operasyon?',
+        'question_text_sub' => 'Surgery?',
+        'type' => 'boolean',
+        'operator' => '==',
+        'expected_value' => 'true',
+        'is_required' => false,
+    ]);
+
+    $this->actingAs($resident)
+        ->get(route('resident.eligibility.assess', $service))
+        ->assertSuccessful()
+        ->assertSee('Optional')
+        ->assertSee('name="question_'.$requiredQuestion->id.'" value="true"', false)
+        ->assertSee('name="question_'.$optionalQuestion->id.'" value="true"', false);
+
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.assess.submit', $service), [
+        "question_{$requiredQuestion->id}" => 'true',
+        "question_{$optionalQuestion->id}" => 'false',
+    ]);
+
+    $assessment = EligibilityAssessment::whereBelongsTo($resident, 'user')
+        ->whereBelongsTo($service, 'service')
+        ->firstOrFail();
+
+    expect($assessment->status)->toBe('eligible');
+    $response->assertRedirect(route('resident.eligibility.result', $assessment));
+
+    $secondResident = User::factory()->create(['role' => 'resident']);
+
+    $this->actingAs($secondResident)->post(route('resident.eligibility.assess.submit', $service), [
+        "question_{$requiredQuestion->id}" => 'true',
+    ]);
+
+    expect(
+        EligibilityAssessment::whereBelongsTo($secondResident, 'user')
+            ->whereBelongsTo($service, 'service')
+            ->firstOrFail()
+            ->status,
+    )->toBe('eligible');
 });
 
 test('household income eligibility accepts only amounts from 2000 through 15000', function () {

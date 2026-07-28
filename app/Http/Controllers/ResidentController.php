@@ -103,13 +103,14 @@ class ResidentController extends Controller
 
         foreach ($questions as $question) {
             $inputName = 'question_'.$question->id;
+            $presenceRule = $question->is_required ? 'required' : 'nullable';
 
             $rules[$inputName] = match ($question->type) {
-                'boolean' => ['required', 'in:true,false'],
+                'boolean' => [$presenceRule, 'in:true,false'],
                 'number' => $this->isHouseholdIncomeQuestion($question)
-                    ? ['required', 'numeric', 'between:2000,15000']
-                    : ['required', 'numeric'],
-                default => ['required', 'string', 'max:5000'],
+                    ? [$presenceRule, 'numeric', 'between:2000,15000']
+                    : [$presenceRule, 'numeric'],
+                default => [$presenceRule, 'string', 'max:5000'],
             };
 
             if ($this->isHouseholdIncomeQuestion($question)) {
@@ -123,10 +124,14 @@ class ResidentController extends Controller
 
         foreach ($questions as $q) {
             $inputName = 'question_'.$q->id;
-            $userAnswer = $validated[$inputName];
+            $userAnswer = $validated[$inputName] ?? null;
 
             $questionText = $q->question_text;
-            $answers[$questionText] = $userAnswer;
+            $answers[$questionText] = $userAnswer ?? 'No Answer';
+
+            if (! $q->is_required) {
+                continue;
+            }
 
             // Check eligibility rule
             if ($q->type === 'boolean') {

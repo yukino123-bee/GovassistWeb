@@ -80,6 +80,15 @@
                 <!-- Real hidden input submitted -->
                 <input type="hidden" name="expected_value" id="expected_value" value="{{ $question->expected_value }}">
             </div>
+
+            <label class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer md:col-span-2">
+                <input type="hidden" name="is_required" value="0">
+                <input type="checkbox" name="is_required" value="1" class="mt-0.5 w-4 h-4 text-red-700 border-slate-300 rounded focus:ring-red-600" {{ $question->is_required ? 'checked' : '' }}>
+                <span>
+                    <span class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Required eligibility criterion</span>
+                    <span class="block mt-1 text-xs text-slate-500">Optional questions collect supporting information but do not affect the eligibility result.</span>
+                </span>
+            </label>
         </div>
 
         <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50/20 -mx-6 -mb-6 p-6">

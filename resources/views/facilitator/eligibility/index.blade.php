@@ -46,7 +46,12 @@
                                             $locale = app()->getLocale();
                                             $mainQuestion = $q->{'question_text_' . $locale} ?: $q->question_text_en;
                                         @endphp
-                                        <div class="text-sm font-extrabold text-slate-800 mb-1.5 leading-snug">{{ $mainQuestion }}</div>
+                                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                            <div class="text-sm font-extrabold text-slate-800 leading-snug">{{ $mainQuestion }}</div>
+                                            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-xl border {{ $q->is_required ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200' }}">
+                                                {{ $q->is_required ? 'Required' : 'Optional' }}
+                                            </span>
+                                        </div>
                                         <div class="text-xs text-slate-500 mt-1.5 space-y-1">
                                             @if($locale !== 'en' && $q->question_text_en)<p>EN: {{ $q->question_text_en }}</p>@endif
                                             @if($locale !== 'ceb' && $q->question_text_ceb)<p>CEB: {{ $q->question_text_ceb }}</p>@endif
@@ -151,6 +156,15 @@
                 <!-- Real hidden input submitted -->
                 <input type="hidden" name="expected_value" id="expected_value" value="true">
             </div>
+
+            <label class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
+                <input type="hidden" name="is_required" value="0">
+                <input type="checkbox" name="is_required" value="1" checked class="mt-0.5 w-4 h-4 text-red-700 border-slate-300 rounded focus:ring-red-600">
+                <span>
+                    <span class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Required eligibility criterion</span>
+                    <span class="block mt-1 text-xs text-slate-500">Uncheck this for supporting questions that must not disqualify a resident.</span>
+                </span>
+            </label>
 
             <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all shadow-xs">
                 Save Eligibility Question

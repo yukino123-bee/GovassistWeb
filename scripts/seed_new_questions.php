@@ -80,6 +80,35 @@ $programs = [
     ],
 ];
 
+$optionalQuestionTexts = [
+    'Is the patient currently admitted to a hospital?',
+    'Are you applying for dialysis treatment assistance?',
+    'Are you applying for chemotherapy session assistance?',
+    'Are you requesting for maintenance medicines?',
+    'Are you a senior citizen or a Person with Disability (PWD)?',
+    'Do you have an active PhilHealth membership?',
+    'Is the requested assistance for a surgical operation?',
+    'Are you the person who directly paid for the funeral expenses?',
+    'Have you secured a permit to transfer the cadaver (if applicable)?',
+    'Are you requesting assistance for embalming or casket costs?',
+    'Are you requesting assistance for cemetery lot or niche rental?',
+    'Are you an active member of any local burial association or cooperative?',
+    'Are you willing to sign a waiver of non-duplication of claims?',
+    'Are you stranded and need to return to your home province?',
+    'Is your travel due to a medical emergency or hospital referral?',
+    'Are you traveling to seek employment outside the municipality?',
+    'Are you a victim of a recent calamity or disaster?',
+    'Are you a rescued victim of human trafficking or abuse?',
+    'Are you traveling alone?',
+    'Have you completed at least high school or Alternative Learning System (ALS)?',
+    'Are you applying for a starter kit or capital assistance?',
+    'Are you a solo parent seeking livelihood support?',
+    'Are you a returning Overseas Filipino Worker (OFW)?',
+    'Are you willing to attend a mandatory livelihood training seminar?',
+    'Do you have a business plan or project proposal (for capital assistance)?',
+    "Are you a member of a registered cooperative or workers' association?",
+];
+
 $scriptPath = base_path('scripts/translate.py');
 
 foreach ($programs as $serviceName => $questions) {
@@ -130,6 +159,7 @@ foreach ($programs as $serviceName => $questions) {
             'type' => $type,
             'expected_value' => $expected,
             'operator' => $operator,
+            'is_required' => ! in_array($qText, $optionalQuestionTexts, true),
         ]);
     }
 }
