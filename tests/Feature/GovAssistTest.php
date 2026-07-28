@@ -18,6 +18,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -794,43 +795,8 @@ test('facilitator can batch update document statuses', function () {
     ]);
 });
 
-test('facilitator can download all documents zipped', function () {
-    $admin = User::factory()->create(['role' => 'facilitator']);
-    $resident = User::factory()->create(['role' => 'resident']);
-    $category = ServiceCategory::create(['category_name' => 'Cat']);
-    $service = GovernmentService::create([
-        'category_id' => $category->id,
-        'service_name' => 'Service',
-        'description' => 'Test',
-        'procedure' => 'Test',
-    ]);
-
-    $checklist = UserChecklist::create([
-        'user_id' => $resident->id,
-        'service_id' => $service->id,
-        'status' => 'pending',
-    ]);
-
-    $req = ServiceRequirement::create([
-        'service_id' => $service->id,
-        'requirement_text' => ['en' => 'Indigency Certificate'],
-    ]);
-
-    Storage::fake('public');
-    $file = UploadedFile::fake()->create('document.pdf', 10);
-    $path = $file->store('documents', 'public');
-
-    $item = UserChecklistItem::create([
-        'checklist_id' => $checklist->id,
-        'requirement_id' => $req->id,
-        'file_path' => $path,
-        'status' => 'pending',
-        'is_submitted' => true,
-    ]);
-
-    $response = $this->actingAs($admin)->get(route('facilitator.applications.download_all', $checklist->id));
-    $response->assertStatus(200);
-    $response->assertHeader('content-type', 'application/zip');
+test('bulk application document download is unavailable', function () {
+    expect(Route::has('facilitator.applications.download_all'))->toBeFalse();
 });
 
 test('facilitator dashboard displays "none" instead of "0 apps" when there are no applications for a service', function () {

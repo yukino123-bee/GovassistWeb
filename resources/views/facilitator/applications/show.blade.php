@@ -99,22 +99,13 @@
 
             <!-- 3. Submitted Checklist Documents -->
             <div class="pt-8 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
                     <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
                         <svg class="w-4 h-4 text-red-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Submitted Checklist Documents
                     </h3>
-
-                    @if($uploadedDocs->whereNotNull('file_path')->isNotEmpty())
-                        <a href="{{ route('facilitator.applications.download_all', $checklist->id) }}" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-none shadow-sm transition-colors flex items-center justify-center space-x-1.5">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            <span>Download All Files (ZIP)</span>
-                        </a>
-                    @endif
                 </div>
 
                 <form action="{{ route('facilitator.checklist_items.batch_update', $checklist->id) }}" method="POST" class="space-y-6">

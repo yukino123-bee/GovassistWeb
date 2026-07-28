@@ -136,7 +136,6 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::get('/applications/create', [FacilitatorController::class, 'createApplication'])->name('facilitator.applications.create');
     Route::post('/applications', [FacilitatorController::class, 'storeApplication'])->name('facilitator.applications.store');
     Route::get('/applications/{checklist}', [FacilitatorController::class, 'showApplication'])->name('facilitator.applications.show');
-    Route::get('/applications/{checklist}/download-all', [FacilitatorController::class, 'downloadAllApplicationFiles'])->name('facilitator.applications.download_all');
     Route::get('/applications/{checklist}/edit', [FacilitatorController::class, 'editApplication'])->name('facilitator.applications.edit');
     Route::put('/applications/{checklist}', [FacilitatorController::class, 'updateApplication'])->name('facilitator.applications.update');
     Route::delete('/applications/{checklist}', [FacilitatorController::class, 'destroyApplication'])->name('facilitator.applications.destroy');
