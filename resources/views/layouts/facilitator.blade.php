@@ -224,7 +224,6 @@
                         <button type="button" onclick="confirmLanguage('en')" class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all {{ app()->getLocale() === 'en' ? 'bg-white text-red-700 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/10' }}">EN</button>
                         <button type="button" onclick="confirmLanguage('ceb')" class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all {{ app()->getLocale() === 'ceb' ? 'bg-white text-red-700 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/10' }}">CEB</button>
                         <button type="button" onclick="confirmLanguage('fil')" class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all {{ app()->getLocale() === 'fil' ? 'bg-white text-red-700 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/10' }}">FIL</button>
-                        <button type="button" onclick="confirmLanguage('sub')" class="text-xs font-bold px-3 py-1.5 rounded-lg transition-all {{ app()->getLocale() === 'sub' ? 'bg-white text-red-700 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/10' }}">SUB</button>
                     </div>
                     <!-- Mobile Selector -->
                     <div class="flex sm:hidden items-center bg-white/10 px-2 py-1.5 rounded-xl border border-white/10">
@@ -232,7 +231,6 @@
                             <option class="text-slate-800" value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>EN</option>
                             <option class="text-slate-800" value="ceb" {{ app()->getLocale() === 'ceb' ? 'selected' : '' }}>CEB</option>
                             <option class="text-slate-800" value="fil" {{ app()->getLocale() === 'fil' ? 'selected' : '' }}>FIL</option>
-                            <option class="text-slate-800" value="sub" {{ app()->getLocale() === 'sub' ? 'selected' : '' }}>SUB</option>
                         </select>
                     </div>
                 </div>

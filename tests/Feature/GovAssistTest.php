@@ -176,44 +176,6 @@ test('language toggle changes session language', function () {
     $this->assertEquals('ceb', session('locale'));
 });
 
-test('supplied subanen translations appear on authentication and dashboard pages', function () {
-    $category = ServiceCategory::create(['category_name' => 'Educational Assistance']);
-    $service = GovernmentService::create([
-        'category_id' => $category->id,
-        'service_name' => 'Educational Assistance Program',
-        'description' => 'Provides educational financial assistance.',
-        'procedure' => 'Complete the eligibility assessment.',
-    ]);
-    ServiceTranslation::create([
-        'service_id' => $service->id,
-        'language_code' => 'sub',
-        'service_name' => 'Gabang ni programa ne ngaji',
-        'description' => 'Me phenun gobang rin sehutliha rn megiskiela,',
-        'procedure' => null,
-    ]);
-
-    $this->postJson('/language/toggle', ['language' => 'sub'])->assertSuccessful();
-
-    $this->get(route('login'))
-        ->assertSuccessful()
-        ->assertSee('Sulat mu para mesunan hin mipegulek mu')
-        ->assertSee('Pheseled mu su ngalan mhibetangan mu')
-        ->assertSee('Milingawan mu Password mu');
-
-    $this->get(route('register'))
-        ->assertSuccessful()
-        ->assertSee('Ghitungan mu')
-        ->assertSee('Gbagel ngalan mu')
-        ->assertSee('Pheselected mu puli password');
-
-    $this->get(route('resident.home'))
-        ->assertSuccessful()
-        ->assertSee('Sembuen su haphegebek rin heseled mu')
-        ->assertSee('Gabang rin ne ngaji')
-        ->assertSee('Gabang ni programa ne ngaji')
-        ->assertSee('Me phenun gobang rin sehutliha rn megiskiela,');
-});
-
 test('eligibility assessment logic works correctly', function () {
     $resident = User::factory()->create(['role' => 'resident']);
 
@@ -309,7 +271,6 @@ test('optional assessment questions do not disqualify residents', function () {
         'question_text_en' => 'Are you a resident of the municipality?',
         'question_text_ceb' => 'Residente ba ka sa munisipyo?',
         'question_text_fil' => 'Residente ka ba ng munisipyo?',
-        'question_text_sub' => 'Resident?',
         'type' => 'boolean',
         'operator' => '==',
         'expected_value' => 'true',
@@ -320,7 +281,6 @@ test('optional assessment questions do not disqualify residents', function () {
         'question_text_en' => 'Is the patient scheduled for urgent surgery?',
         'question_text_ceb' => 'Naka-iskedyul ba ang pasyente alang sa operasyon?',
         'question_text_fil' => 'Nakatakda ba ang pasyente para sa operasyon?',
-        'question_text_sub' => 'Surgery?',
         'type' => 'boolean',
         'operator' => '==',
         'expected_value' => 'true',
@@ -373,7 +333,6 @@ test('household income eligibility accepts only amounts from 2000 through 15000'
         'question_text_en' => 'What is your monthly household income?',
         'question_text_ceb' => 'Unsa ang binulan nga kita sa inyong panimalay?',
         'question_text_fil' => 'Ano ang buwanang kita ng inyong sambahayan?',
-        'question_text_sub' => 'Household income',
         'type' => 'number',
         'operator' => '<',
         'expected_value' => '15000',

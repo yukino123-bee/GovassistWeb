@@ -17,14 +17,10 @@ def translate_text(text):
         # Translate to Filipino/Tagalog (tl)
         fil_trans = GoogleTranslator(source='auto', target='tl').translate(text)
         
-        # For Subanen, fallback to Cebuano since standard APIs don't support it
-        sub_trans = ceb_trans
-
         return {
             "en": en_trans,
             "ceb": ceb_trans,
-            "fil": fil_trans,
-            "sub": sub_trans
+            "fil": fil_trans
         }
     except Exception as e:
         return {"error": str(e)}

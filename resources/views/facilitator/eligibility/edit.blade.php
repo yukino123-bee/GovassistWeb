@@ -47,10 +47,6 @@
                 <textarea name="question_text_fil" id="question_text_fil" rows="2" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ $question->question_text_fil }}</textarea>
             </div>
 
-            <div class="space-y-1.5 md:col-span-2">
-                <label for="question_text_sub" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Question (Subanen)</label>
-                <textarea name="question_text_sub" id="question_text_sub" rows="2" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ $question->question_text_sub }}</textarea>
-            </div>
 
             <div class="space-y-1.5 md:col-span-2 border-t border-slate-100 pt-6 mt-2">
                 <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Logic Configuration</h4>

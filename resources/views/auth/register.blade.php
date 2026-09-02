@@ -28,8 +28,6 @@
                 <button type="button" onclick="changeLanguage('ceb')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'ceb' ? 'text-red-600 font-extrabold' : '' }}">CEB</button>
                 <span class="text-slate-300">|</span>
                 <button type="button" onclick="changeLanguage('fil')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'fil' ? 'text-red-600 font-extrabold' : '' }}">FIL</button>
-                <span class="text-slate-300">|</span>
-                <button type="button" onclick="changeLanguage('sub')" class="hover:text-red-600 transition-colors {{ app()->getLocale() === 'sub' ? 'text-red-600 font-extrabold' : '' }}">SUB</button>
             </div>
             
             <!-- Logo Header -->

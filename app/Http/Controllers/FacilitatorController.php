@@ -150,15 +150,12 @@ class FacilitatorController extends Controller
             'name_en' => ['required', 'string', 'max:255'],
             'name_ceb' => ['nullable', 'string', 'max:255'],
             'name_fil' => ['nullable', 'string', 'max:255'],
-            'name_sub' => ['nullable', 'string', 'max:255'],
             'description_en' => ['required', 'string'],
             'description_ceb' => ['nullable', 'string'],
             'description_fil' => ['nullable', 'string'],
-            'description_sub' => ['nullable', 'string'],
             'procedure_en' => ['required', 'string'],
             'procedure_ceb' => ['nullable', 'string'],
             'procedure_fil' => ['nullable', 'string'],
-            'procedure_sub' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
         ]);
@@ -205,17 +202,6 @@ class FacilitatorController extends Controller
             'procedure' => $procFil,
         ]);
 
-        // Save Translations: Subanen (Manual Entry Only - Not Automated)
-        if ($request->filled('name_sub') || $request->filled('description_sub') || $request->filled('procedure_sub')) {
-            ServiceTranslation::create([
-                'service_id' => $service->id,
-                'language_code' => 'sub',
-                'service_name' => $request->name_sub ?: '',
-                'description' => $request->description_sub ?: '',
-                'procedure' => $request->procedure_sub ?: '',
-            ]);
-        }
-
         Cache::forget('services_all');
         Cache::forget('categories_all');
 
@@ -235,15 +221,12 @@ class FacilitatorController extends Controller
             'name_en' => ['required', 'string', 'max:255'],
             'name_ceb' => ['nullable', 'string', 'max:255'],
             'name_fil' => ['nullable', 'string', 'max:255'],
-            'name_sub' => ['nullable', 'string', 'max:255'],
             'description_en' => ['required', 'string'],
             'description_ceb' => ['nullable', 'string'],
             'description_fil' => ['nullable', 'string'],
-            'description_sub' => ['nullable', 'string'],
             'procedure_en' => ['required', 'string'],
             'procedure_ceb' => ['nullable', 'string'],
             'procedure_fil' => ['nullable', 'string'],
-            'procedure_sub' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
         ]);
@@ -292,18 +275,6 @@ class FacilitatorController extends Controller
             'description' => $descFil,
             'procedure' => $procFil,
         ]);
-
-        // Update/create Subanen translation (Manual Entry Only - Not Automated)
-        if ($request->filled('name_sub') || $request->filled('description_sub') || $request->filled('procedure_sub')) {
-            ServiceTranslation::updateOrCreate([
-                'service_id' => $service->id,
-                'language_code' => 'sub',
-            ], [
-                'service_name' => $request->name_sub ?: '',
-                'description' => $request->description_sub ?: '',
-                'procedure' => $request->procedure_sub ?: '',
-            ]);
-        }
 
         Cache::forget('services_all');
         Cache::forget('categories_all');
@@ -408,7 +379,7 @@ class FacilitatorController extends Controller
         $command = 'python3 '.escapeshellarg($scriptPath).' --text '.escapeshellarg($request->question_text);
         $output = shell_exec($command);
 
-        $translations = ['en' => $request->question_text, 'ceb' => '', 'fil' => '', 'sub' => ''];
+        $translations = ['en' => $request->question_text, 'ceb' => '', 'fil' => ''];
 
         if ($output) {
             $result = json_decode($output, true);
@@ -422,7 +393,6 @@ class FacilitatorController extends Controller
             'question_text_en' => $translations['en'],
             'question_text_ceb' => $translations['ceb'],
             'question_text_fil' => $translations['fil'],
-            'question_text_sub' => $translations['sub'],
             'type' => $request->type,
             'expected_value' => $request->expected_value,
             'operator' => $request->operator,
@@ -446,7 +416,6 @@ class FacilitatorController extends Controller
             'question_text_en' => ['required', 'string'],
             'question_text_ceb' => ['required', 'string'],
             'question_text_fil' => ['required', 'string'],
-            'question_text_sub' => ['required', 'string'],
             'type' => ['required', 'string', 'in:boolean,number,text'],
             'expected_value' => ['required', 'string'],
             'operator' => ['required', 'string'],
@@ -459,7 +428,6 @@ class FacilitatorController extends Controller
                 'question_text_en',
                 'question_text_ceb',
                 'question_text_fil',
-                'question_text_sub',
                 'type',
                 'expected_value',
                 'operator',

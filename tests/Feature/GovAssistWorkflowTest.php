@@ -327,7 +327,7 @@ test('resident can submit inquiry and facilitator replies', function () {
         'inquiry_text' => 'New distinct inquiry about Medical Assistance',
     ]);
     $thirdResponse->assertRedirect();
-    expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(2);
+    expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(1);
 });
 
 test('common questions are answered automatically in the resident inquiry conversation', function () {

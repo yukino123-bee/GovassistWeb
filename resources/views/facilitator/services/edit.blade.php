@@ -31,63 +31,36 @@
             </select>
         </div>
 
-        <!-- Service Titles (English & Subanen Only) -->
+        <!-- Service Titles -->
         <div class="space-y-3">
             <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">1. Service Title</h4>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Name English -->
-                <div class="space-y-1.5">
-                    <label for="name_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Name (English)</label>
-                    <input type="text" name="name_en" id="name_en" value="{{ old('name_en', $service->name_en) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>
-                    <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
-                </div>
-
-                <!-- Name Subanen (Manual Input Only) -->
-                <div class="space-y-1.5">
-                    <label for="name_sub" class="block text-xs font-extrabold text-red-700 uppercase tracking-wider">Service Name (Subanen)</label>
-                    <input type="text" name="name_sub" id="name_sub" value="{{ old('name_sub', $service->name_sub) }}" placeholder="Enter Subanen service name..." class="w-full px-4 py-2.5 bg-red-50/20 border border-red-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
-                </div>
+            <div class="space-y-1.5">
+                <label for="name_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Name (English)</label>
+                <input type="text" name="name_en" id="name_en" value="{{ old('name_en', $service->name_en) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>
+                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
             </div>
         </div>
 
-        <!-- Descriptions (English & Subanen Only) -->
+        <!-- Descriptions -->
         <div class="space-y-3">
             <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">2. Service Description</h4>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Description English -->
-                <div class="space-y-1.5">
-                    <label for="description_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description (English)</label>
-                    <textarea name="description_en" id="description_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('description_en', $service->description_en) }}</textarea>
-                    <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
-                </div>
-
-                <!-- Description Subanen (Manual Input Only) -->
-                <div class="space-y-1.5">
-                    <label for="description_sub" class="block text-xs font-extrabold text-red-700 uppercase tracking-wider">Description (Subanen)</label>
-                    <textarea name="description_sub" id="description_sub" rows="3" placeholder="Enter Subanen description..." class="w-full px-4 py-2.5 bg-red-50/20 border border-red-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">{{ old('description_sub', $service->description_sub) }}</textarea>
-                </div>
+            <div class="space-y-1.5">
+                <label for="description_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description (English)</label>
+                <textarea name="description_en" id="description_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('description_en', $service->description_en) }}</textarea>
+                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
             </div>
         </div>
 
-        <!-- Application Procedures (English & Subanen Only) -->
+        <!-- Application Procedures -->
         <div class="space-y-3">
             <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">3. Application Procedure</h4>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Procedure English -->
-                <div class="space-y-1.5">
-                    <label for="procedure_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Procedure (English)</label>
-                    <textarea name="procedure_en" id="procedure_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('procedure_en', $service->procedure_en) }}</textarea>
-                    <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
-                </div>
-
-                <!-- Procedure Subanen (Manual Input Only) -->
-                <div class="space-y-1.5">
-                    <label for="procedure_sub" class="block text-xs font-extrabold text-red-700 uppercase tracking-wider">Procedure (Subanen)</label>
-                    <textarea name="procedure_sub" id="procedure_sub" rows="3" placeholder="Enter Subanen procedure..." class="w-full px-4 py-2.5 bg-red-50/20 border border-red-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">{{ old('procedure_sub', $service->procedure_sub) }}</textarea>
-                </div>
+            <div class="space-y-1.5">
+                <label for="procedure_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Procedure (English)</label>
+                <textarea name="procedure_en" id="procedure_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('procedure_en', $service->procedure_en) }}</textarea>
+                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
             </div>
         </div>
 

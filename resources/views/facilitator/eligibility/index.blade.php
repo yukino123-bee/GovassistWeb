@@ -56,7 +56,6 @@
                                             @if($locale !== 'en' && $q->question_text_en)<p>EN: {{ $q->question_text_en }}</p>@endif
                                             @if($locale !== 'ceb' && $q->question_text_ceb)<p>CEB: {{ $q->question_text_ceb }}</p>@endif
                                             @if($locale !== 'fil' && $q->question_text_fil)<p>FIL: {{ $q->question_text_fil }}</p>@endif
-                                            @if($locale !== 'sub' && $q->question_text_sub)<p>SUB: {{ $q->question_text_sub }}</p>@endif
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
@@ -64,27 +63,23 @@
                                             <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold border border-emerald-200 uppercase tracking-wider rounded-xl">
                                                 {{ $q->expected_value === 'true' ? 'Yes' : 'No' }}
                                             </span>
-                                        @elseif($q->type === 'number')
-                                            <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-extrabold border border-blue-200 font-mono rounded-xl">
-                                                {{ $q->expected_value }}
-                                            </span>
                                         @else
-                                            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-xs font-extrabold border border-slate-200 uppercase tracking-wider rounded-xl">
-                                                {{ $q->expected_value }}
+                                            <span class="text-xs font-bold text-slate-700">
+                                                {{ $q->operator }} {{ $q->expected_value }}
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <div class="flex justify-end space-x-2">
-                                            <a href="{{ route('facilitator.eligibility.edit', $q->id) }}" class="text-blue-600 hover:text-blue-700 focus:outline-none p-1.5 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-colors rounded-lg">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            <a href="{{ route('facilitator.eligibility.edit', $q->id) }}" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
-                                            <form action="{{ route('facilitator.eligibility.destroy', $q->id) }}" method="POST" id="delete-q-{{ $q->id }}" class="inline">
+                                            <form action="{{ route('facilitator.eligibility.destroy', $q->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this question?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" onclick="showConfirmModal('Are you sure you want to delete this question?', () => document.getElementById('delete-q-{{ $q->id }}').submit(), 'Delete Question')" class="text-rose-600 hover:text-rose-700 focus:outline-none p-1.5 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors rounded-lg">
+                                                <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
@@ -119,7 +114,7 @@
                 <label for="service_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Link</label>
                 <select name="service_id" id="service_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
                     @foreach($services as $svc)
-                        <option value="{{ $svc->id }}">{{ $svc->name_en }}</option>
+                        <option value="{{ $svc->id }}">{{ $svc->service_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -127,7 +122,7 @@
             <div class="space-y-1.5">
                 <label for="question_text" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Question</label>
                 <textarea name="question_text" id="question_text" rows="2" placeholder="e.g. Is your monthly income less than Php 15,000?" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required></textarea>
-                <p class="text-xs text-slate-400 mt-1">The system will automatically translate this into Cebuano, Filipino, and Subanen.</p>
+                <p class="text-xs text-slate-400 mt-1">The system will automatically translate this into Cebuano and Filipino.</p>
             </div>
 
             <div class="space-y-1.5">
