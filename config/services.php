@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'sms' => [
+        'enabled' => env('SMS_ENABLED', true),
+        'driver' => env('SMS_DRIVER', 'log'),
+        'api_key' => env('SMS_API_KEY'),
+        'sender_name' => env('SMS_SENDER_NAME', 'GovAssist'),
+        'rate_limit_max_attempts' => env('SMS_RATE_LIMIT_ATTEMPTS', 3),
+        'rate_limit_decay_minutes' => env('SMS_RATE_LIMIT_DECAY_MINUTES', 10),
+        'twilio' => [
+            'sid' => env('TWILIO_SID'),
+            'auth_token' => env('TWILIO_AUTH_TOKEN'),
+            'from' => env('TWILIO_FROM_NUMBER'),
+        ],
+    ],
+
 ];

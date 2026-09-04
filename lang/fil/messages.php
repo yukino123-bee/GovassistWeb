@@ -13,6 +13,8 @@ return [
     'email_placeholder' => 'Enter your email address',
     'login_email_placeholder' => 'Enter your email address',
     'register_email_placeholder' => 'Enter your email address',
+    'contact_number' => 'Contact / Phone Number',
+    'contact_number_placeholder' => 'hal. 09563559186',
     'password' => 'Password',
     'password_placeholder' => 'Enter your password',
     'login_password_placeholder' => 'Enter your password',

@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
     // Inquiries Reply & Unsend
     Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');
     Route::post('/inquiry/{inquiry}/reply', [ResidentController::class, 'replyInquiry'])->name('resident.inquiry.reply');
+    Route::post('/inquiry/{inquiry}/resolve', [ResidentController::class, 'resolveInquiry'])->name('resident.inquiry.resolve');
     Route::delete('/inquiry/{inquiry}', [ResidentController::class, 'deleteInquiry'])->name('resident.inquiry.delete_inquiry');
     Route::delete('/inquiry/replies/{response}', [ResidentController::class, 'deleteReply'])->name('resident.inquiry.delete_reply');
 

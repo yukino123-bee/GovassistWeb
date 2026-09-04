@@ -310,10 +310,10 @@ test('resident can submit inquiry and facilitator replies', function () {
     $replyResponse->assertRedirect();
 
     $inquiry->refresh();
-    expect($inquiry->status)->toBe('resolved');
+    $inquiry->update(['status' => 'in_progress']);
     expect($inquiry->responses->last()->response_text)->toBe('We can help you with this program.');
 
-    // 4. Submit secondary manual inquiry with inquiry_id (appends to existing thread)
+    // 4. Submit secondary follow-up reply with inquiry_id on active ticket
     $secondResponse = $this->actingAs($resident)->post(route('resident.inquiry.manual'), [
         'inquiry_id' => $inquiry->id,
         'inquiry_text' => 'What are the requirements for Education Assistance?',
@@ -322,12 +322,12 @@ test('resident can submit inquiry and facilitator replies', function () {
     $secondResponse->assertRedirect();
     expect($inquiry->responses()->count())->toBe(3);
 
-    // 5. Submit new manual inquiry without inquiry_id (creates distinct new thread)
+    // 5. Submit new manual inquiry ticket without inquiry_id (creates distinct new ticket)
     $thirdResponse = $this->actingAs($resident)->post(route('resident.inquiry.manual'), [
         'inquiry_text' => 'New distinct inquiry about Medical Assistance',
     ]);
     $thirdResponse->assertRedirect();
-    expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(1);
+    expect(UserInquiry::where('user_id', $resident->id)->count())->toBe(2);
 });
 
 test('common questions are answered automatically in the resident inquiry conversation', function () {

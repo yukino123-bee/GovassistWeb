@@ -468,6 +468,7 @@ class ResidentController extends Controller
     public function submitManualInquiry(Request $request)
     {
         $rules = [
+            'subject' => ['nullable', 'string', 'max:255'],
             'inquiry_text' => ['required', 'string', 'max:5000'],
             'service_id' => ['nullable', 'exists:government_services,id'],
             'inquiry_id' => ['nullable', 'exists:user_inquiries,id'],
@@ -492,12 +493,18 @@ class ResidentController extends Controller
                     ->where('guest_email', $request->input('guest_email'))
                     ->first();
             }
-        }
 
-        // Messenger-style behavior: Re-use single thread per user account or guest email
-        if (! $inquiry) {
-            if (Auth::check()) {
-                $inquiry = UserInquiry::where('user_id', Auth::id())->latest('updated_at')->first();
+            if ($inquiry && $inquiry->isResolvedOrClosed()) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
+                    ], 422);
+                }
+
+                return back()->withErrors([
+                    'inquiry_text' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
+                ]);
             }
         }
 
@@ -516,7 +523,10 @@ class ResidentController extends Controller
 
             $inquiry->update(['status' => 'pending', 'updated_at' => now()]);
         } else {
+            $subject = $request->input('subject') ?: Str::limit($request->input('inquiry_text'), 50);
+
             $inquiry = UserInquiry::create([
+                'subject' => $subject,
                 'user_id' => Auth::check() ? Auth::id() : null,
                 'guest_name' => $request->input('guest_name'),
                 'guest_email' => $request->input('guest_email'),
@@ -537,17 +547,26 @@ class ResidentController extends Controller
         }
 
         if ($request->wantsJson() || $request->ajax()) {
-            $response = response()->json([
+            return response()->json([
                 'success' => true,
                 'inquiry' => $inquiry->load(['service', 'responses.responder']),
             ]);
-
-            return $response;
         }
 
-        $redirect = back()->with('success', 'Your inquiry has been sent to the administrators.');
+        return back()->with('success', 'Your inquiry ticket #'.($inquiry->ticket_number ?? $inquiry->id).' has been submitted.');
+    }
 
-        return $redirect;
+    public function resolveInquiry(Request $request, UserInquiry $inquiry)
+    {
+        $canAccess = Auth::check()
+            ? $inquiry->user_id === Auth::id()
+            : $this->guestCanAccessInquiry($request, $inquiry->id);
+
+        abort_unless($canAccess, 403);
+
+        $inquiry->update(['status' => 'resolved']);
+
+        return back()->with('success', 'Inquiry ticket #'.($inquiry->ticket_number ?? $inquiry->id).' has been marked as resolved.');
     }
 
     public function answerCommonInquiryQuestion(AnswerCommonInquiryQuestionRequest $request)

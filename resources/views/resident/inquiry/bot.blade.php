@@ -1,778 +1,414 @@
 @extends('layouts.resident')
 
-@section('title', __('messages.bot_title'))
+@section('title', 'Municipal Inquiry & Ticket Helpdesk')
 
-@section('header_title', __('messages.bot_title'))
+@section('header_title', 'Inquiry & Support Helpdesk')
 
 @section('content')
-<!-- Main Container (ChatGPT style side-by-side view) -->
-<div class="max-w-6xl mx-auto h-[calc(100vh-9rem)] flex flex-col md:flex-row gap-6 relative">
+<div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- Sidebar Backdrop for Mobile -->
-    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden md:hidden"></div>
-
-    <!-- Sidebar: Inquiry History & Responses -->
-    <div id="inquiry-sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:w-80 md:h-full flex flex-col shrink-0">
-        <!-- Sidebar Header -->
-        <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center">
-                <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                Inquiry History
-            </span>
-            <!-- Close Button for Mobile -->
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 focus:outline-none">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
+    <!-- Page Header & Action Banner -->
+    <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-2xl p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 bg-white/20 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full">LGU Support Portal</span>
+                <span class="text-xs text-red-200">Official Municipal Helpdesk</span>
+            </div>
+            <h2 class="text-xl font-extrabold mt-1.5 tracking-tight">Municipal Inquiry & Support Tickets</h2>
+            <p class="text-xs text-red-100/90 mt-1 max-w-xl">
+                Submit formal inquiries regarding municipal assistance programs, track official staff responses, and resolve questions efficiently.
+            </p>
         </div>
 
-        <!-- Sidebar Content -->
-        <div class="flex-grow overflow-y-auto p-3 space-y-2 bg-slate-50/20">
+        <button type="button" onclick="openNewTicketModal()" class="shrink-0 bg-white hover:bg-slate-100 text-red-800 font-extrabold text-xs px-5 py-3 rounded-xl uppercase tracking-wider transition-all shadow-md flex items-center space-x-2 cursor-pointer">
+            <svg class="w-4 h-4 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Submit New Ticket</span>
+        </button>
+    </div>
 
+    <!-- Main Workspace (Side-by-side Ticket List & Ticket Details) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- Contact Admin / New Inquiry Action Card -->
-            <button type="button" onclick="resetToBotChat()" class="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white px-4 py-3 transition-all text-xs font-extrabold uppercase tracking-wider focus:outline-none shadow-sm cursor-pointer mb-3">
-                <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span>New Inquiry</span>
-            </button>
+        <!-- Left Column: Ticket History List (4 Cols) -->
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    Your Support Tickets
+                </h3>
+                <span class="text-[10px] font-bold text-slate-400">Total: {{ isset($inquiries) ? $inquiries->count() : 0 }}</span>
+            </div>
 
-            <div id="inquiries-list" class="space-y-2">
+            <!-- Filter Tabs -->
+            <div class="flex border-b border-slate-100 text-[10px] font-bold text-slate-500 bg-slate-50/50">
+                <button type="button" onclick="filterTickets('all')" id="tab-all" class="flex-1 py-2 text-center border-b-2 border-red-700 text-red-700 font-extrabold cursor-pointer">All</button>
+                <button type="button" onclick="filterTickets('pending')" id="tab-pending" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 cursor-pointer">Pending</button>
+                <button type="button" onclick="filterTickets('resolved')" id="tab-resolved" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 cursor-pointer">Resolved</button>
+            </div>
+
+            <!-- Ticket List Items -->
+            <div class="flex-grow overflow-y-auto p-3 space-y-2 divide-y divide-slate-50">
                 @if(isset($inquiries) && $inquiries->count() > 0)
                     @foreach($inquiries as $inq)
-                        <!-- Single Inquiry Item -->
-                        <div class="border border-slate-200 p-3 bg-white hover:border-red-700 transition-all cursor-pointer group rounded-none" onclick="selectInquiryById({{ $inq->id }})">
+                        <div id="ticket-item-{{ $inq->id }}" 
+                             data-status="{{ strtolower($inq->status) }}"
+                             onclick="selectTicket({{ $inq->id }})" 
+                             class="ticket-list-item pt-2 first:pt-0 p-3 rounded-xl border border-slate-100 hover:border-red-300 bg-white transition-all cursor-pointer group">
+                            
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-[10px] font-bold text-slate-800 truncate max-w-[120px]">{{ $inq->service ? $inq->service->name_en : 'General Inquiry' }}</span>
-                                <span class="text-[8px] font-extrabold uppercase px-1.5 py-0.5 border bg-amber-50 text-amber-700 border-amber-200">
-                                    {{ $inq->status }}
+                                <span class="font-mono text-[10px] font-extrabold text-slate-900 group-hover:text-red-700 transition-colors">
+                                    {{ $inq->ticket_number ?? 'TKT-'.str_pad($inq->id, 5, '0', STR_PAD_LEFT) }}
                                 </span>
+                                @if($inq->status === 'resolved')
+                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Resolved</span>
+                                @elseif($inq->status === 'closed')
+                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-slate-100 text-slate-600 border border-slate-200">Closed</span>
+                                @elseif($inq->status === 'in_progress')
+                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200">In Progress</span>
+                                @else
+                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+                                @endif
                             </div>
-                            <p class="text-[11px] text-slate-500 line-clamp-1 italic">"{{ $inq->inquiry_text }}"</p>
+
+                            <h4 class="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-slate-900">
+                                {{ $inq->subject ?: ($inq->service ? $inq->service->name_en : 'General Inquiry') }}
+                            </h4>
+                            
+                            <div class="flex items-center justify-between mt-2 text-[10px] text-slate-400">
+                                <span class="truncate max-w-[140px]">{{ $inq->service ? $inq->service->name_en : 'General' }}</span>
+                                <span>{{ $inq->created_at->format('M d, Y') }}</span>
+                            </div>
                         </div>
                     @endforeach
                 @else
-                    <div class="h-48 flex flex-col items-center justify-center text-center p-4">
-                        <svg class="w-8 h-8 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">No Inquiries</span>
-                        <p class="text-[10px] text-slate-400 mt-1 max-w-[160px]">Contact Admin to submit a request.</p>
+                    <div class="h-64 flex flex-col items-center justify-center text-center p-6 space-y-2">
+                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">No Support Tickets Yet</span>
+                        <p class="text-[11px] text-slate-400 max-w-xs">Click "+ Submit New Ticket" above to send an official question to LGU staff.</p>
                     </div>
                 @endif
             </div>
         </div>
-    </div>
 
-    <!-- Main Chat Window -->
-    <div class="flex-grow flex flex-col bg-white border border-slate-200 shadow-sm overflow-hidden h-full">
-        <!-- Header of the Chat Assistant -->
-        <div class="border-b border-slate-200 p-4 flex items-center justify-between bg-slate-50/50">
-            <h3 id="chat-header-title" class="text-xs font-bold uppercase tracking-widest text-slate-800 flex items-center">
-                <!-- Hamburger Button for Mobile Sidebar Toggle -->
-                <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
-                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        <!-- Right Column: Ticket Workspace & Discussion (8 Cols) -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]" id="ticket-workspace">
+            
+            <!-- Empty State when no ticket is selected -->
+            <div id="ticket-empty-state" class="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
+                <div class="w-16 h-16 bg-red-50 text-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
                     </svg>
-                </button>
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                Inquiry Helpdesk
-            </h3>
-        </div>
-
-        <!-- Chat Assistant Body -->
-        <div id="chat-window" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col bg-slate-50/50">
-            <!-- Initial Greeting Message -->
-            <div class="flex items-start space-x-3 max-w-[85%]">
-                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
-                    HD
                 </div>
-                <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
-                    Hello! Select an inquiry from the history sidebar, or click "New Inquiry" to message our administrators.
-                </div>
-            </div>
-        </div>
+                <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Select a Ticket or Open a New Request</h3>
+                <p class="text-xs text-slate-500 max-w-md mt-1">
+                    Select an inquiry ticket from the sidebar to view official LGU staff responses, or submit a new inquiry ticket for help.
+                </p>
 
-        <!-- Common questions and input area -->
-        <div class="border-t border-slate-200 bg-white">
-            @if($services->isNotEmpty())
-                <div class="border-b border-slate-100 px-4 py-3">
-                    <div class="mb-2 flex items-center justify-between gap-3">
-                        <label for="common-question-service" class="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">Common questions</label>
-                        <select id="common-question-service" class="max-w-56 border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-700 focus:border-red-700 focus:outline-none">
-                            @foreach($services as $service)
-                                <option value="{{ $service->id }}">{{ $service->name_en }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @foreach($services as $service)
-                        <div class="common-question-group {{ $loop->first ? 'flex' : 'hidden' }} gap-2 overflow-x-auto pb-1" data-service-id="{{ $service->id }}">
-                            @foreach($service->commonQuestions as $commonQuestion)
-                                <button
-                                    type="button"
-                                    class="common-question-button shrink-0 border border-slate-200 bg-slate-50 px-3 py-2 text-left text-[10px] font-semibold text-slate-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-200 disabled:cursor-wait disabled:opacity-50"
-                                    data-question-id="{{ $commonQuestion->id }}"
-                                >
-                                    {{ $commonQuestion->question_text }}
-                                </button>
+                <!-- Quick Common Questions Integration -->
+                @if($services->isNotEmpty())
+                    <div class="mt-8 text-left w-full max-w-lg bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">Instant FAQ Answers</span>
+                        <div class="space-y-1.5">
+                            @foreach($services->take(3) as $service)
+                                @foreach($service->commonQuestions->take(1) as $cq)
+                                    <button type="button" onclick="openFaqModal('{{ addslashes($cq->question_text) }}', '{{ addslashes($cq->answer_text) }}')" class="w-full text-left px-3 py-2 bg-slate-50 hover:bg-red-50 hover:text-red-800 text-slate-700 text-xs rounded-lg transition-colors font-medium flex items-center justify-between cursor-pointer">
+                                        <span class="truncate">Q: {{ $cq->question_text }}</span>
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                @endforeach
                             @endforeach
                         </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Active Ticket View (Hidden by default) -->
+            <div id="ticket-detail-view" class="hidden flex-col h-full">
+                <!-- Ticket Header Bar -->
+                <div class="p-4 border-b border-slate-200 bg-slate-50/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span id="detail-ticket-number" class="font-mono text-xs font-extrabold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-lg">TKT-00000</span>
+                            <span id="detail-ticket-status" class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+                        </div>
+                        <h3 id="detail-ticket-subject" class="text-sm font-extrabold text-slate-900 mt-1">Inquiry Subject</h3>
+                    </div>
+
+                    <!-- Mark as Resolved Action -->
+                    <form id="resolve-ticket-form" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" id="resolve-ticket-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg uppercase tracking-wider transition-colors shadow-xs flex items-center space-x-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>Mark as Resolved</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Ticket Thread Messages Area -->
+                <div id="detail-messages-area" class="flex-grow p-6 overflow-y-auto space-y-4 bg-slate-50/30">
+                    <!-- Dynamic Messages Output -->
+                </div>
+
+                <!-- Bottom Input Form / Locked Banner -->
+                <div class="border-t border-slate-200 bg-white p-4 shrink-0">
+                    
+                    <!-- Open Ticket: Reply Input Form -->
+                    <form id="reply-ticket-form" action="{{ route('resident.inquiry.manual') }}" method="POST" class="space-y-2">
+                        @csrf
+                        <input type="hidden" name="inquiry_id" id="reply-inquiry-id">
+                        
+                        <div class="flex items-center gap-2">
+                            <input type="text" name="inquiry_text" id="reply-inquiry-input" placeholder="Type a follow-up message to municipal staff..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+                            <button type="submit" id="reply-submit-btn" class="px-5 py-3 bg-red-700 hover:bg-red-800 text-white font-extrabold uppercase tracking-wider text-xs rounded-xl shadow-sm cursor-pointer transition-colors shrink-0">
+                                Send
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Resolved / Closed Ticket Banner -->
+                    <div id="ticket-locked-banner" class="hidden p-3.5 bg-slate-100 border border-slate-200 rounded-xl text-center space-y-1">
+                        <div class="flex items-center justify-center space-x-2 text-slate-700 font-extrabold text-xs uppercase tracking-wider">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <span>This Support Ticket Has Been Resolved & Closed</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">
+                            Further replies are locked to keep municipal records organized. Need help with another question? 
+                            <button type="button" onclick="openNewTicketModal()" class="text-red-700 font-bold hover:underline cursor-pointer">Open a new inquiry ticket</button>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Submit New Inquiry Ticket -->
+<div id="new-ticket-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white border border-slate-200 max-w-lg w-full rounded-2xl shadow-2xl p-6 relative animate-fade-in">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                <svg class="w-5 h-5 text-red-700 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Submit New Support Ticket
+            </h3>
+            <button type="button" onclick="closeNewTicketModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <form action="{{ route('resident.inquiry.manual') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label for="service_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Target Assistance Program (Optional)</label>
+                <select name="service_id" id="service_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800 font-semibold">
+                    <option value="">General Municipal Inquiry</option>
+                    @foreach($services as $s)
+                        <option value="{{ $s->id }}">{{ $s->name_en }}</option>
                     @endforeach
-                </div>
-            @endif
+                </select>
+            </div>
 
-            <form id="chat-form" class="flex items-center gap-2 p-4">
-                <div class="relative flex flex-grow">
-                    <input type="text" id="chat-input" placeholder="Type your message to start a new inquiry with admin..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-                    <button type="submit" id="chat-submit-btn" class="px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-[10px] flex items-center justify-center">
-                        Send
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Custom Unsend Confirmation Modal -->
-<div id="unsend-confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl shadow-2xl p-6 relative">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-2 flex items-center">
-            <svg class="w-5 h-5 text-red-600 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            Unsend Message
-        </h3>
-        <p class="text-xs text-slate-500 leading-relaxed font-medium mb-5">
-            Are you sure you want to unsend this message? This action is permanent and cannot be undone.
-        </p>
-        <div class="flex justify-end gap-3">
-            <button type="button" onclick="closeUnsendModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
-                Cancel
-            </button>
-            <button type="button" id="confirm-unsend-btn" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer shadow-sm">
-                Unsend
-            </button>
-        </div>
+            <div>
+                <label for="subject" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Inquiry Subject / Title</label>
+                <input type="text" name="subject" id="subject" placeholder="e.g. Requirement deadline clarification for Medical Assistance" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
+            </div>
+
+            <div>
+                <label for="inquiry_text" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Detailed Question / Message</label>
+                <textarea name="inquiry_text" id="inquiry_text" rows="4" placeholder="Provide full details about your question so LGU facilitators can assist you accurately..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required></textarea>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-100 pt-4">
+                <button type="button" onclick="closeNewTicketModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors shadow-sm cursor-pointer">
+                    Submit Ticket
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Guest Info Modal -->
-<div id="guest-info-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-    <div class="bg-white border border-slate-200 max-w-sm w-full rounded-2xl shadow-2xl p-6 relative">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-2 flex items-center">
-            <svg class="w-5 h-5 text-red-700 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            Guest Information
-        </h3>
-        <p class="text-[11px] text-slate-500 leading-relaxed font-medium mb-4">
-            Please enter your name and email to send your inquiry directly to our administrators.
-        </p>
-        <div class="space-y-3 mb-5">
-            <div>
-                <label class="text-[9px] font-extrabold uppercase text-slate-400 block mb-1">Name</label>
-                <input type="text" id="guest-name-input" placeholder="Your Name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold uppercase text-slate-400 block mb-1">Email Address</label>
-                <input type="email" id="guest-email-input" placeholder="yourname@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-xs text-slate-800" required>
-            </div>
+<!-- FAQ Modal -->
+<div id="faq-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white border border-slate-200 max-w-md w-full rounded-2xl shadow-2xl p-6 relative">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest">Instant FAQ Answer</h3>
+            <button type="button" onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <div class="flex justify-end gap-3">
-            <button type="button" onclick="closeGuestModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer">
-                Cancel
-            </button>
-            <button type="button" onclick="submitGuestInfo()" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-colors cursor-pointer shadow-sm">
-                Submit & Send
-            </button>
+        <h4 id="faq-modal-q" class="text-xs font-extrabold text-red-700 mb-2"></h4>
+        <div id="faq-modal-a" class="bg-slate-50 p-4 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed"></div>
+        <div class="mt-4 flex justify-end">
+            <button type="button" onclick="closeFaqModal()" class="px-4 py-2 bg-slate-800 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider cursor-pointer">Close</button>
         </div>
     </div>
 </div>
+
 <script>
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const chatWindow = document.getElementById('chat-window');
-    const chatSubmitBtn = document.getElementById('chat-submit-btn');
-    const commonQuestionButtons = document.querySelectorAll('.common-question-button');
-    const commonQuestionService = document.getElementById('common-question-service');
-    const commonQuestionGroups = document.querySelectorAll('.common-question-group');
-
-    // Always read CSRF from meta tag — never use inline Blade token which can go stale
-    const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    const currentUserId = {{ Auth::id() ?: 'null' }};
-    let currentGuestName = null;
-    let currentGuestEmail = null;
-    let activeInquiryId = null;
-
-    const inquiriesMap = {};
+    const inquiriesData = {};
     @if(isset($inquiries))
         @foreach($inquiries as $inq)
-            inquiriesMap[{{ $inq->id }}] = {!! json_encode($inq->load(['service', 'responses.responder'])) !!};
+            inquiriesData[{{ $inq->id }}] = {!! json_encode($inq->load(['service', 'responses.responder'])) !!};
         @endforeach
     @endif
 
-    function selectInquiryById(id) {
-        const inq = inquiriesMap[id];
-        if (inq) selectInquiry(inq);
-    }
-
-    const defaultChatTitleHTML = `
-        <!-- Hamburger Button for Mobile Sidebar Toggle -->
-        <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
-            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-        </button>
-        <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-        Inquiry Helpdesk
-    `;
-    const defaultChatWindowHTML = chatWindow.innerHTML;
-
-    function toggleSidebar() {
-        const sidebar = document.getElementById('inquiry-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar && backdrop) {
-            sidebar.classList.toggle('-translate-x-full');
-            backdrop.classList.toggle('hidden');
-        }
-    }
-
-    let pollInterval = null;
-    let lastResponseCount = -1;
-
-    function startMessagePolling() {
-        stopMessagePolling();
-        pollInterval = setInterval(fetchLatestMessages, 3000);
-    }
-
-    function stopMessagePolling() {
-        if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
-        }
-    }
-
-    function fetchLatestMessages() {
-        if (!activeInquiryId) return;
-
-        const email = currentGuestEmail;
-        let url = `/resident/inquiry/${activeInquiryId}/messages`;
-        if (currentUserId === null && email) {
-            url += `?guest_email=${encodeURIComponent(email)}`;
-        }
-
-        fetch(url, {
-            headers: {
-                "Accept": "application/json"
-            }
-        })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-            if (data && data.success && data.inquiry) {
-                const updatedInq = data.inquiry;
-                inquiriesMap[updatedInq.id] = updatedInq;
-                renderInquiryThread(updatedInq);
-            }
-        })
-        .catch(err => console.error("Poll error:", err));
-    }
-
-    function resetToBotChat() {
-        stopMessagePolling();
-        activeInquiryId = null;
-        lastResponseCount = -1;
-        const titleEl = document.getElementById('chat-header-title');
-        if (titleEl) {
-            titleEl.innerHTML = defaultChatTitleHTML;
-        }
-        chatWindow.innerHTML = defaultChatWindowHTML;
-        scrollToBottom();
-
-        if (chatInput) {
-            chatInput.disabled = false;
-            chatInput.placeholder = "Type your message to start a new inquiry with admin...";
-        }
-        if (chatSubmitBtn) chatSubmitBtn.disabled = false;
-
-        const sidebar = document.getElementById('inquiry-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-            toggleSidebar();
-        }
-    }
-
-    function selectInquiry(inq) {
-        activeInquiryId = inq.id;
-        renderInquiryThread(inq, true);
-        startMessagePolling();
-
-        const sidebar = document.getElementById('inquiry-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-            toggleSidebar();
-        }
-    }
-
-    function renderInquiryThread(inq, force = false) {
-        const respCount = (inq.responses || []).length;
-        if (!force && activeInquiryId === inq.id && lastResponseCount === respCount) {
-            return;
-        }
-        lastResponseCount = respCount;
-
-        const titleEl = document.getElementById('chat-header-title');
-        if (titleEl) {
-            const programName = inq.service ? (inq.service.service_name || inq.service.name_en) : 'General Inquiry';
-            titleEl.innerHTML = `
-                <!-- Hamburger Button for Mobile Sidebar Toggle -->
-                <button onclick="toggleSidebar()" class="md:hidden mr-3 p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors focus:outline-none" title="Toggle History">
-                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2"></span>
-                Inquiry #${inq.id} - ${programName}
-            `;
-        }
-
-        chatWindow.innerHTML = '';
-        appendMessage('user', inq.inquiry_text, '', '', inq.id, 'inquiry');
-
-        let isFirstResponse = true;
-        if (inq.responses && inq.responses.length > 0) {
-            inq.responses.forEach(resp => {
-                const respText = resp.response_text || resp.requireent_text || '';
-
-                if (isFirstResponse && respText === inq.inquiry_text) {
-                    const isByGuest = resp.responded_by === null;
-                    const isByResident = resp.responder && resp.responder.role === 'resident';
-                    if (isByGuest || isByResident) {
-                        isFirstResponse = false;
-                        return;
-                    }
-                }
-                isFirstResponse = false;
-
-                const isSystem = resp.is_system === true;
-                const isByMe = !isSystem && (resp.responded_by === null || resp.responded_by === currentUserId || (resp.responder && resp.responder.role === 'resident'));
-                const isByAdmin = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
-
-                if (isSystem) {
-                    appendMessage('system', respText);
-                } else if (isByMe && !isByAdmin) {
-                    appendMessage('user', respText, '', '', resp.id, 'reply');
-                } else {
-                    const responderName = resp.responder ? resp.responder.name : 'GovAssist Admin';
-                    appendMessage('admin', respText, '', responderName);
-                }
-            });
-        }
-
-        scrollToBottom();
-
-        if (chatInput) {
-            chatInput.placeholder = "Type your reply...";
-        }
-    }
-
-    function prependInquiryToSidebar(inq) {
-        // Save the updated/created inquiry in inquiriesMap
-        inquiriesMap[inq.id] = inq;
-
-        const list = document.getElementById('inquiries-list');
-        if (!list) return;
-
-        // Find and remove any existing list item for this inquiry to keep history clean and avoid duplicate cards
-        const existingItem = list.querySelector('[onclick*="selectInquiryById(' + inq.id + ')"]');
-        if (existingItem) {
-            existingItem.remove();
-        }
-
-        const noInquiriesEl = list.querySelector('.h-48');
-        if (noInquiriesEl) {
-            list.innerHTML = '';
-        }
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = "border border-slate-200 p-3 bg-white hover:border-red-700 transition-all cursor-pointer group rounded-none";
-        itemDiv.setAttribute('onclick', 'selectInquiryById(' + inq.id + ')');
-
-        const serviceName = inq.service ? (inq.service.service_name || inq.service.name_en) : 'General Inquiry';
-        itemDiv.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] font-bold text-slate-800 truncate max-w-[120px]">${serviceName}</span>
-                <span class="text-[8px] font-extrabold uppercase px-1.5 py-0.5 border bg-amber-50 text-amber-700 border-amber-200">
-                    ${inq.status}
-                </span>
-            </div>
-            <p class="text-[11px] text-slate-500 line-clamp-1 italic">"${inq.inquiry_text}"</p>
-        `;
-        
-        list.insertBefore(itemDiv, list.firstChild);
-    }
-
-    let pendingMsg = '';
-    let pendingCommonQuestionId = null;
-
-    function closeGuestModal() {
-        const modal = document.getElementById('guest-info-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-    }
-
-    function openGuestModal(msg = null) {
-        if (msg) {
-            pendingMsg = msg;
-        } else {
-            pendingMsg = '';
-        }
-        const modal = document.getElementById('guest-info-modal');
-        if (modal) {
-            // Pre-fill from localStorage if exists
-            const savedName = currentGuestName;
-            const savedEmail = currentGuestEmail;
-            if (savedName) document.getElementById('guest-name-input').value = savedName;
-            if (savedEmail) document.getElementById('guest-email-input').value = savedEmail;
-
-            modal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-    }
-
-    function submitGuestInfo() {
-        const name = document.getElementById('guest-name-input').value.trim();
-        const email = document.getElementById('guest-email-input').value.trim();
-
-        if (!name || !email) {
-            alert('Please fill in both fields.');
-            return;
-        }
-
-        if (!email.includes('@')) {
-            alert('Please enter a valid email address.');
-            return;
-        }
-
-        currentGuestName = name;
-        currentGuestEmail = email;
-
-        closeGuestModal();
-
-        if (pendingCommonQuestionId) {
-            const commonQuestionId = pendingCommonQuestionId;
-            pendingCommonQuestionId = null;
-            sendCommonQuestion(commonQuestionId);
-        } else if (pendingMsg) {
-            appendMessage('user', pendingMsg);
-            chatInput.value = '';
-            scrollToBottom();
-            sendManualInquiry(pendingMsg, name, email);
-            pendingMsg = '';
-        } else {
-            // Editing guest info — reload so the server can load this guest's history
-            window.location.reload();
-        }
-    }
-
-    function sendCommonQuestion(commonQuestionId) {
-        const bodyData = { common_question_id: commonQuestionId };
-
-        if (activeInquiryId) {
-            bodyData.inquiry_id = activeInquiryId;
-        }
-
-        if (currentUserId === null) {
-            if (!currentGuestName || !currentGuestEmail) {
-                pendingCommonQuestionId = commonQuestionId;
-                openGuestModal();
-                return;
-            }
-
-            bodyData.guest_name = currentGuestName;
-            bodyData.guest_email = currentGuestEmail;
-        }
-
-        commonQuestionButtons.forEach(button => button.disabled = true);
-
-        fetch("{{ route('resident.inquiry.common_question') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": csrfToken(),
-                "Accept": "application/json"
-            },
-            body: JSON.stringify(bodyData)
-        })
-        .then(res => {
-            if (!res.ok) {
-                return res.text().then(text => {
-                    throw new Error('Common question failed: ' + res.status + ' ' + text);
-                });
-            }
-
-            return res.json();
-        })
-        .then(data => {
-            if (!data.success || !data.inquiry) {
-                throw new Error('The common question response was invalid.');
-            }
-
-            activeInquiryId = data.inquiry.id;
-            inquiriesMap[data.inquiry.id] = data.inquiry;
-            prependInquiryToSidebar(data.inquiry);
-            renderInquiryThread(data.inquiry, true);
-            startMessagePolling();
-        })
-        .catch(error => {
-            console.error('Common question error:', error);
-            appendMessage('system', 'The automatic answer is unavailable right now. Please send your question to an administrator.');
-            scrollToBottom();
-        })
-        .finally(() => {
-            commonQuestionButtons.forEach(button => button.disabled = false);
-        });
-    }
-
-    commonQuestionButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            sendCommonQuestion(Number(button.dataset.questionId));
-        });
-    });
-
-    if (commonQuestionService) {
-        commonQuestionService.addEventListener('change', () => {
-            commonQuestionGroups.forEach(group => {
-                const isSelected = group.dataset.serviceId === commonQuestionService.value;
-                group.classList.toggle('hidden', !isSelected);
-                group.classList.toggle('flex', isSelected);
-            });
-        });
-    }
-
-
-
-    function sendManualInquiry(msg, guestName = null, guestEmail = null) {
-        if (activeInquiryId) {
-            // Replying to an existing inquiry thread
-            const url = `/resident/inquiry/${activeInquiryId}/reply`;
-            const bodyData = { message: msg };
-
-            // Always include guest credentials for guest users
-            const name = guestName || currentGuestName;
-            const email = guestEmail || currentGuestEmail;
-            if (currentUserId === null && name && email) {
-                bodyData.guest_name = name;
-                bodyData.guest_email = email;
-            }
-
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken(),
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(bodyData)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(t => { throw new Error('Reply failed: ' + res.status + ' ' + t); });
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    fetchLatestMessages();
-                } else {
-                    console.error("Reply error:", data);
-                    appendMessage('admin', "Failed to send reply. Please try again.");
-                    scrollToBottom();
-                }
-            })
-            .catch(err => {
-                console.error("Chat error:", err);
-                appendMessage('admin', "Connection error. Please try again.");
-                scrollToBottom();
-            });
-        } else {
-            // Creating a new inquiry thread
-            const bodyData = { inquiry_text: msg };
-            const name = guestName || currentGuestName;
-            const email = guestEmail || currentGuestEmail;
-
-            if (name && email) {
-                bodyData.guest_name = name;
-                bodyData.guest_email = email;
-            }
-
-            fetch("{{ route('resident.inquiry.manual') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken(),
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(bodyData)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(t => { throw new Error('Submit failed: ' + res.status + ' ' + t); });
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    activeInquiryId = data.inquiry.id;
-                    inquiriesMap[data.inquiry.id] = data.inquiry;
-                    prependInquiryToSidebar(data.inquiry);
-                    renderInquiryThread(data.inquiry, true);
-                    startMessagePolling();
-                } else {
-                    console.error("Inquiry error:", data);
-                    appendMessage('admin', "Failed to send inquiry. Please try again.");
-                    scrollToBottom();
-                }
-            })
-            .catch(err => {
-                console.error("Error creating manual inquiry:", err);
-                appendMessage('admin', "Connection error. Please try again.");
-                scrollToBottom();
-            });
-        }
-    }
-
-    if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const msg = chatInput.value.trim();
-            if(!msg) return;
-
-            if (currentUserId === null) {
-                const savedName = currentGuestName;
-                const savedEmail = currentGuestEmail;
-                if (!savedName || !savedEmail) {
-                    openGuestModal(msg);
-                    return;
-                } else {
-                    appendMessage('user', msg);
-                    chatInput.value = '';
-                    scrollToBottom();
-                    sendManualInquiry(msg, savedName, savedEmail);
-                }
+    function filterTickets(status) {
+        document.querySelectorAll('.ticket-list-item').forEach(item => {
+            if (status === 'all' || item.dataset.status === status) {
+                item.style.display = 'block';
             } else {
-                appendMessage('user', msg);
-                chatInput.value = '';
-                scrollToBottom();
-                sendManualInquiry(msg);
+                item.style.display = 'none';
+            }
+        });
+
+        // Toggle active tab style
+        ['all', 'pending', 'resolved'].forEach(t => {
+            const btn = document.getElementById('tab-' + t);
+            if (t === status) {
+                btn.className = 'flex-1 py-2 text-center border-b-2 border-red-700 text-red-700 font-extrabold cursor-pointer';
+            } else {
+                btn.className = 'flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 text-slate-500 font-bold cursor-pointer';
             }
         });
     }
 
-    let deleteTarget = null;
+    function selectTicket(id) {
+        const ticket = inquiriesData[id];
+        if (!ticket) return;
 
-    function confirmUnsend(id, type) {
-        deleteTarget = { id, type };
-        const modal = document.getElementById('unsend-confirm-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-    }
+        document.getElementById('ticket-empty-state').classList.add('hidden');
+        const detailView = document.getElementById('ticket-detail-view');
+        detailView.classList.remove('hidden');
+        detailView.classList.add('flex');
 
-    function closeUnsendModal() {
-        const modal = document.getElementById('unsend-confirm-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-    }
-
-    // Bind event for custom unsend confirmation button
-    const confirmUnsendBtn = document.getElementById('confirm-unsend-btn');
-    if (confirmUnsendBtn) {
-        confirmUnsendBtn.onclick = () => {
-            if (!deleteTarget) return;
-
-            const url = deleteTarget.type === 'inquiry'
-                ? `/resident/inquiry/${deleteTarget.id}`
-                : `/resident/inquiry/replies/${deleteTarget.id}`;
-
-            fetch(url, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken(),
-                    "Accept": "application/json"
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    closeUnsendModal();
-                    window.location.reload();
-                }
-            })
-            .catch(err => console.error("Error unsending:", err));
-        };
-    }
-
-    function appendMessage(sender, text, time = '', name = '', targetId = null, targetType = null) {
-        const messageDiv = document.createElement('div');
-        if (sender === 'user') {
-            messageDiv.className = "flex items-start justify-end space-x-3 max-w-[85%] self-end group/msg relative";
-            messageDiv.innerHTML = `
-                <div class="flex flex-col items-end">
-                    <div class="bg-red-700 text-white p-4 text-xs leading-relaxed font-semibold shadow-sm">
-                        ${text}
-                    </div>
-                    ${(targetId && targetType) ? `
-                        <button type="button" onclick="confirmUnsend(${targetId}, '${targetType}')" class="text-[9px] text-red-500 hover:text-red-700 font-bold uppercase tracking-wider mt-1 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer">
-                            Unsend
-                        </button>
-                    ` : ''}
-                </div>
-                <div class="w-7 h-7 bg-red-100 text-red-900 border border-red-200 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
-                    ME
-                </div>
-            `;
-        } else if (sender === 'admin') {
-            messageDiv.className = "flex items-start space-x-3 max-w-[85%]";
-            messageDiv.innerHTML = `
-                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
-                    AD
-                </div>
-                <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-wider mb-1">${name || 'GovAssist Admin'}</span>
-                    ${text}
-                    ${time ? `<span class="block text-[8px] text-slate-400 mt-2 text-right uppercase tracking-wider">${time}</span>` : ''}
-                </div>
-            `;
+        // Populate Header Info
+        document.getElementById('detail-ticket-number').textContent = ticket.ticket_number || ('TKT-' + String(ticket.id).padStart(5, '0'));
+        document.getElementById('detail-ticket-subject').textContent = ticket.subject || (ticket.service ? ticket.service.name_en : 'General Inquiry');
+        
+        const statusBadge = document.getElementById('detail-ticket-status');
+        const status = (ticket.status || 'pending').toLowerCase();
+        if (status === 'resolved') {
+            statusBadge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+            statusBadge.textContent = 'Resolved';
+        } else if (status === 'closed') {
+            statusBadge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+            statusBadge.textContent = 'Closed';
+        } else if (status === 'in_progress') {
+            statusBadge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200';
+            statusBadge.textContent = 'In Progress';
         } else {
-            messageDiv.className = "flex items-start space-x-3 max-w-[85%]";
-            messageDiv.innerHTML = `
-                <div class="w-7 h-7 bg-red-700 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">
-                    HD
-                </div>
-                <div class="bg-white border border-slate-200 text-slate-800 p-4 text-xs leading-relaxed shadow-sm">
-                    <span class="block text-[8px] font-black text-slate-400 uppercase tracking-wider mb-1">Inquiry Helpdesk</span>
-                    ${text}
-                    ${time ? `<span class="block text-[8px] text-slate-400 mt-2 text-right uppercase tracking-wider">${time}</span>` : ''}
-                </div>
-            `;
+            statusBadge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+            statusBadge.textContent = 'Pending';
         }
-        chatWindow.appendChild(messageDiv);
+
+        // Set Resolve Form Action
+        document.getElementById('resolve-ticket-form').action = '/resident/inquiry/' + ticket.id + '/resolve';
+        document.getElementById('reply-inquiry-id').value = ticket.id;
+
+        // Render Thread Messages
+        const messagesArea = document.getElementById('detail-messages-area');
+        messagesArea.innerHTML = '';
+
+        // Original Resident Inquiry Entry
+        const origBox = document.createElement('div');
+        origBox.className = 'bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2';
+        origBox.innerHTML = `
+            <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                <span class="font-extrabold text-slate-800">Your Initial Question</span>
+                <span class="text-[10px] text-slate-400 font-medium">${new Date(ticket.created_at).toLocaleString()}</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed">${ticket.inquiry_text}</p>
+        `;
+        messagesArea.appendChild(origBox);
+
+        // Staff Responses or Follow-ups
+        if (ticket.responses && ticket.responses.length > 0) {
+            ticket.responses.forEach(resp => {
+                const isStaff = resp.responder && (resp.responder.role === 'facilitator' || resp.responder.role === 'admin');
+                const respBox = document.createElement('div');
+                
+                if (isStaff) {
+                    respBox.className = 'bg-red-50/60 border border-red-200 p-4 rounded-xl shadow-xs space-y-2 relative';
+                    respBox.innerHTML = `
+                        <div class="flex items-center justify-between text-xs border-b border-red-100 pb-2">
+                            <span class="font-extrabold text-red-900 flex items-center">
+                                <span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+                                Official LGU Staff Response (${resp.responder ? resp.responder.name : 'Facilitator'})
+                            </span>
+                            <span class="text-[10px] text-red-700 font-semibold">${new Date(resp.created_at).toLocaleString()}</span>
+                        </div>
+                        <p class="text-xs text-slate-800 leading-relaxed">${resp.requireent_text}</p>
+                    `;
+                } else {
+                    respBox.className = 'bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2 ml-4';
+                    respBox.innerHTML = `
+                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                            <span class="font-bold text-slate-700">Follow-up Message</span>
+                            <span class="text-[10px] text-slate-400">${new Date(resp.created_at).toLocaleString()}</span>
+                        </div>
+                        <p class="text-xs text-slate-700 leading-relaxed">${resp.requireent_text}</p>
+                    `;
+                }
+                messagesArea.appendChild(respBox);
+            });
+        } else {
+            const waitingNotice = document.createElement('div');
+            waitingNotice.className = 'p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center space-y-1';
+            waitingNotice.innerHTML = `
+                <span class="text-xs font-bold text-amber-800 uppercase tracking-wider block">Awaiting LGU Staff Review</span>
+                <p class="text-[11px] text-amber-700">Your ticket is queued for facilitator review. You will receive an SMS alert as soon as an official answer is posted.</p>
+            `;
+            messagesArea.appendChild(waitingNotice);
+        }
+
+        // Handle Locked State when Resolved or Closed
+        const replyForm = document.getElementById('reply-ticket-form');
+        const lockedBanner = document.getElementById('ticket-locked-banner');
+        const resolveBtn = document.getElementById('resolve-ticket-btn');
+
+        if (status === 'resolved' || status === 'closed') {
+            replyForm.classList.add('hidden');
+            lockedBanner.classList.remove('hidden');
+            if (resolveBtn) resolveBtn.classList.add('hidden');
+        } else {
+            replyForm.classList.remove('hidden');
+            lockedBanner.classList.add('hidden');
+            if (resolveBtn) resolveBtn.classList.remove('hidden');
+        }
     }
 
-    function scrollToBottom() {
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+    function openNewTicketModal() {
+        document.getElementById('new-ticket-modal').classList.remove('hidden');
     }
 
-    resetToBotChat();
+    function closeNewTicketModal() {
+        document.getElementById('new-ticket-modal').classList.add('hidden');
+    }
+
+    function openFaqModal(q, a) {
+        document.getElementById('faq-modal-q').textContent = 'Q: ' + q;
+        document.getElementById('faq-modal-a').textContent = a;
+        document.getElementById('faq-modal').classList.remove('hidden');
+    }
+
+    function closeFaqModal() {
+        document.getElementById('faq-modal').classList.add('hidden');
+    }
 </script>
 @endsection

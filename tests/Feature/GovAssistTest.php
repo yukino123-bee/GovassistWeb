@@ -75,6 +75,7 @@ test('resident can register, login, and access resident home', function () {
         'middle_name' => 'Santos',
         'last_name' => 'Cagatin',
         'email' => 'mark@resident.com',
+        'contact_number' => '09171234567',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -86,6 +87,7 @@ test('resident can register, login, and access resident home', function () {
         'first_name' => 'Mark',
         'middle_name' => 'Santos',
         'last_name' => 'Cagatin',
+        'contact_number' => '09171234567',
         'role' => 'resident',
     ]);
 
@@ -106,6 +108,7 @@ test('registration and profile fields enforce their displayed formats', function
         'first_name' => 'Juan123',
         'last_name' => 'Dela Cruz',
         'email' => 'juan@example.com',
+        'contact_number' => '09171234567',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ])->assertSessionHasErrors('first_name');
@@ -139,6 +142,13 @@ test('resident cannot access facilitator dashboard', function () {
 
     $response = $this->actingAs($resident)->get('/facilitator/dashboard');
     $response->assertStatus(403);
+});
+
+test('user with admin role can access facilitator dashboard', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $response = $this->actingAs($admin)->get('/facilitator/dashboard');
+    $response->assertSuccessful();
 });
 
 test('resident selects civil status from the supported options', function () {

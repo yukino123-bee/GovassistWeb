@@ -25,6 +25,11 @@ class RoleMiddleware
             $userRole = 'resident';
         }
 
+        // Treat 'admin' and 'administrator' as 'facilitator' for compatibility
+        if (in_array($userRole, ['admin', 'administrator'])) {
+            $userRole = 'facilitator';
+        }
+
         if (! in_array($userRole, $roles)) {
             abort(403, 'Unauthorized action.');
         }

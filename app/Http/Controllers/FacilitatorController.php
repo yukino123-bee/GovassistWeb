@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -352,6 +353,14 @@ class FacilitatorController extends Controller
                 ->delete();
         }
 
+        if ($reassessment->user) {
+            app(SmsService::class)->sendReassessmentUpdate(
+                $reassessment->user,
+                $reassessment->service?->service_name ?? 'Government Assistance Program',
+                $request->status
+            );
+        }
+
         return back()->with('success', 'Reassessment request '.$request->status.' successfully.');
     }
 
@@ -526,6 +535,15 @@ class FacilitatorController extends Controller
             }
         }
 
+        if ($checklist->user) {
+            app(SmsService::class)->sendApplicationUpdate(
+                $checklist->user,
+                $checklist->service?->service_name ?? 'Government Assistance Program',
+                $request->status,
+                $request->remarks
+            );
+        }
+
         return redirect()->route('facilitator.applications')->with('success', 'Application status updated.');
     }
 
@@ -634,6 +652,11 @@ class FacilitatorController extends Controller
             } catch (\Exception $e) {
                 Log::error('Failed to send manual inquiry reply email: '.$e->getMessage());
             }
+        }
+
+        // Send SMS reply alert to resident if contact number available
+        if ($inquiry->user) {
+            app(SmsService::class)->sendInquiryReply($inquiry->user, $request->message);
         }
 
         if ($request->wantsJson() || $request->ajax()) {

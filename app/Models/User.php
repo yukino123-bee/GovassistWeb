@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\VerifyOtpEmail;
+use App\Services\SmsService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -25,16 +26,20 @@ class User extends Authenticatable implements MustVerifyEmail
         Cache::put('verification_otp_'.$this->id, $otpCode, now()->addMinutes(15));
 
         Mail::to($this->email)->send(new VerifyOtpEmail($otpCode));
+
+        if (! empty($this->contact_number)) {
+            app(SmsService::class)->sendOtp($this, $otpCode);
+        }
     }
 
     public function isFacilitator(): bool
     {
-        return $this->role === 'facilitator';
+        return in_array($this->role, ['facilitator', 'admin', 'administrator']);
     }
 
     public function isResident(): bool
     {
-        return $this->role === 'resident';
+        return in_array($this->role, ['resident', 'citizen']);
     }
 
     public function assessments(): HasMany

@@ -12,6 +12,8 @@ class UserInquiry extends Model
     use HasFactory;
 
     protected $fillable = [
+        'ticket_number',
+        'subject',
         'user_id',
         'service_id',
         'guest_name',
@@ -19,6 +21,17 @@ class UserInquiry extends Model
         'inquiry_text',
         'status',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (UserInquiry $inquiry): void {
+            if (empty($inquiry->ticket_number)) {
+                $year = date('Y', strtotime((string) $inquiry->created_at));
+                $inquiry->ticket_number = 'TKT-'.$year.'-'.str_pad((string) $inquiry->id, 5, '0', STR_PAD_LEFT);
+                $inquiry->saveQuietly();
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
@@ -33,5 +46,15 @@ class UserInquiry extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(InquiryRequirense::class, 'inquiry_id');
+    }
+
+    public function isResolvedOrClosed(): bool
+    {
+        return in_array($this->status, ['resolved', 'closed'], true);
+    }
+
+    public function canResidentReply(): bool
+    {
+        return ! $this->isResolvedOrClosed();
     }
 }

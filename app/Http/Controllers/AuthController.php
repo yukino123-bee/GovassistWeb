@@ -117,6 +117,7 @@ class AuthController extends Controller
             'middle_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'last_name' => ['required', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'contact_number' => ['required', 'string', 'max:20', 'regex:/^(09|\+639|639)[0-9]{9}$/'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -133,6 +134,7 @@ class AuthController extends Controller
             'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
+            'contact_number' => $validated['contact_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'resident',
             'language' => $lang,
