@@ -33,8 +33,34 @@
 
         <div class="text-center sm:text-left">
             <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ Auth::user()->name }}</h2>
-            <span class="text-xs text-slate-500 mt-1 block">{{ Auth::user()->email }}</span>
+            <span class="text-xs text-slate-500 mt-1 block">{{ Auth::user()->email ?: Auth::user()->contact_number }}</span>
         </div>
+    </div>
+
+    <!-- My Details -->
+    @php($profileUser = Auth::user())
+    <div class="bg-white border border-slate-200 shadow-sm">
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ __('messages.details') }}</h3>
+            <span class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border {{ $profileUser->hasVerifiedEmail() ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800' }}">
+                {{ $profileUser->hasVerifiedEmail() ? __('messages.verified') : __('messages.not_verified') }}
+            </span>
+        </div>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-slate-100 text-xs">
+            @foreach([
+                ['contact_info', $profileUser->contact_number],
+                ['email_address', $profileUser->email],
+                ['dob', $profileUser->dob?->format('M d, Y')],
+                ['sex', $profileUser->sex ? __('messages.'.strtolower($profileUser->sex)) : null],
+                ['civil_status', $profileUser->civil_status],
+                ['address', $profileUser->address],
+            ] as [$detailLabel, $detailValue])
+                <div class="px-5 py-3 {{ $detailLabel === 'address' ? 'sm:col-span-2' : '' }}">
+                    <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ __('messages.'.$detailLabel) }}</dt>
+                    <dd class="mt-1 font-semibold {{ $detailValue ? 'text-slate-900' : 'text-slate-400 italic font-normal' }}">{{ $detailValue ?: __('messages.not_provided') }}</dd>
+                </div>
+            @endforeach
+        </dl>
     </div>
 
     <!-- Alert success -->

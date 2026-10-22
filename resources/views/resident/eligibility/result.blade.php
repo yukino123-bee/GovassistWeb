@@ -35,7 +35,7 @@
                 <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ $serviceName }}</h2>
                 <p class="text-sm font-bold text-emerald-700 uppercase tracking-wider">{{ __('messages.congrats_eligible') }}</p>
                 <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed pt-2">
-                    You meet the criteria for this program. You can now generate your document checklist and submit your official application file.
+                    {{ __('messages.result_eligible_desc') }}
                 </p>
             </div>
 
@@ -60,7 +60,7 @@
                 <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ $serviceName }}</h2>
                 <p class="text-sm font-bold text-rose-700 uppercase tracking-wider">{{ __('messages.sorry_ineligible') }}</p>
                 <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed pt-2">
-                    You do not meet the criteria for this program at this time. Please review the requirements or contact a facilitator.
+                    {{ __('messages.result_ineligible_desc') }}
                 </p>
             </div>
 

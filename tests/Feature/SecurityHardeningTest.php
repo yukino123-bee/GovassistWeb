@@ -28,13 +28,13 @@ test('migration execution is not exposed over HTTP', function () {
 test('login attempts are rate limited', function () {
     foreach (range(1, 5) as $attempt) {
         $this->post('/login', [
-            'email' => 'attacker@example.com',
+            'login' => 'attacker@example.com',
             'password' => 'invalid-password',
         ])->assertRedirect();
     }
 
     $this->post('/login', [
-        'email' => 'attacker@example.com',
+        'login' => 'attacker@example.com',
         'password' => 'invalid-password',
     ])->assertTooManyRequests();
 });
@@ -122,7 +122,7 @@ test('a requirement cannot be uploaded through another service', function () {
         'service' => $firstService,
         'requirement' => $requirement,
     ]), [
-        'document' => UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
+        'document' => UploadedFile::fake()->image('document.jpg'),
     ])->assertNotFound();
 
     expect(Storage::disk('public')->allFiles())->toBeEmpty();

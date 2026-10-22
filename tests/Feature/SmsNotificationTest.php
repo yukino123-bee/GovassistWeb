@@ -3,6 +3,7 @@
 use App\Models\GovernmentService;
 use App\Models\ReassessmentRequest;
 use App\Models\ServiceCategory;
+use App\Models\ServiceRequirement;
 use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserInquiry;
@@ -156,4 +157,71 @@ test('sms service enforces rate limiting per phone number to protect API credits
 
     // Bypassing rate limit should succeed
     expect($sms->send($phone, 'Message 5 (Bypass)', true))->toBeTrue();
+});
+
+test('a decided reassessment request cannot be decided again', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Medical']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance',
+        'description' => 'Desc',
+        'procedure' => 'Proc',
+    ]);
+    $reassessment = ReassessmentRequest::create([
+        'user_id' => $resident->id,
+        'service_id' => $service->id,
+        'reason' => 'Updated income details',
+        'status' => 'rejected',
+    ]);
+
+    $this->actingAs($admin)
+        ->from(route('facilitator.reassessments'))
+        ->post(route('facilitator.reassessments.update_status', $reassessment), ['status' => 'approved'])
+        ->assertRedirect(route('facilitator.reassessments'))
+        ->assertSessionHas('error');
+
+    expect($reassessment->fresh()->status)->toBe('rejected');
+});
+
+test('editing an application cannot approve it while required documents are missing', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Medical']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Medical Assistance',
+        'description' => 'Desc',
+        'procedure' => 'Proc',
+    ]);
+    ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Barangay Certificate', 'ceb' => 'x', 'fil' => 'x'],
+        'is_required' => true,
+    ]);
+    $checklist = UserChecklist::create([
+        'user_id' => $resident->id,
+        'service_id' => $service->id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('facilitator.applications.update', $checklist), [
+            'user_id' => $resident->id,
+            'service_id' => $service->id,
+            'status' => 'approved',
+        ])
+        ->assertSessionHasErrors('status');
+
+    expect($checklist->fresh()->status)->toBe('pending');
+});
+
+test('facilitator layout shows error flashes', function () {
+    $admin = User::factory()->create(['role' => 'facilitator']);
+
+    $this->actingAs($admin)
+        ->withSession(['error' => 'Something specific went wrong'])
+        ->get(route('facilitator.dashboard'))
+        ->assertSee('Something specific went wrong');
 });

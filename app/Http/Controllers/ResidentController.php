@@ -13,6 +13,7 @@ use App\Models\InquiryRequirense;
 use App\Models\ReassessmentRequest;
 use App\Models\ServiceCategory;
 use App\Models\ServiceRequirement;
+use App\Models\User;
 use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -37,7 +39,7 @@ class ResidentController extends Controller
             $categories = ServiceCategory::with(['governmentServices' => function ($q) use ($search) {
                 $q->where('service_name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
-            }])->get();
+            }, 'governmentServices.translations'])->get();
         } else {
             $categories = ServiceCategory::with('governmentServices.translations')->get();
         }
@@ -80,7 +82,7 @@ class ResidentController extends Controller
             ->first();
 
         if ($existingAssessment) {
-            return redirect()->route('resident.eligibility')->with('error', 'You have already taken the assessment for this program. You can request a reassessment if necessary.');
+            return redirect()->route('resident.eligibility')->with('error', __('messages.flash_already_assessed'));
         }
 
         $questions = $service->eligibilityQuestions;
@@ -93,7 +95,7 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         if (EligibilityAssessment::where('user_id', $user->id)->where('service_id', $service->id)->exists()) {
-            return redirect()->route('resident.eligibility')->with('error', 'You have already taken the assessment for this program.');
+            return redirect()->route('resident.eligibility')->with('error', __('messages.flash_already_assessed'));
         }
 
         $questions = $service->eligibilityQuestions;
@@ -139,6 +141,10 @@ class ResidentController extends Controller
                 $actual = filter_var($userAnswer, FILTER_VALIDATE_BOOLEAN);
 
                 if (($q->operator === 'equals' || $q->operator === '==') && $actual !== $expected) {
+                    $isEligible = false;
+                }
+            } elseif ($q->type === 'text') {
+                if (! $q->textAnswerPasses($userAnswer)) {
                     $isEligible = false;
                 }
             } elseif ($q->type === 'number') {
@@ -187,9 +193,11 @@ class ResidentController extends Controller
 
     public function showAssessResult($refNo)
     {
+        $id = is_numeric($refNo) ? $refNo : (int) preg_replace('/[^0-9]/', '', (string) $refNo);
+
         $assessment = EligibilityAssessment::with(['service', 'answers'])
             ->where('user_id', Auth::id())
-            ->where('id', $refNo)
+            ->where('id', $id)
             ->firstOrFail();
 
         return view('resident.eligibility.result', compact('assessment'));
@@ -201,13 +209,21 @@ class ResidentController extends Controller
             'reason' => 'required|string|max:1000',
         ]);
 
+        $hasAssessment = EligibilityAssessment::where('user_id', Auth::id())
+            ->where('service_id', $service->id)
+            ->exists();
+
+        if (! $hasAssessment) {
+            return back()->with('error', __('messages.flash_must_qualify'));
+        }
+
         $existingRequest = ReassessmentRequest::where('user_id', Auth::id())
             ->where('service_id', $service->id)
             ->where('status', 'pending')
             ->first();
 
         if ($existingRequest) {
-            return back()->with('error', 'You already have a pending reassessment request for this program.');
+            return back()->with('error', __('messages.flash_reassess_pending'));
         }
 
         ReassessmentRequest::create([
@@ -217,7 +233,7 @@ class ResidentController extends Controller
             'status' => 'pending',
         ]);
 
-        return back()->with('success', 'Your reassessment request has been submitted and is waiting for Admin approval.');
+        return back()->with('success', __('messages.flash_reassess_sent'));
     }
 
     public function checklist(GovernmentService $service)
@@ -225,11 +241,11 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         if (! $user->isProfileComplete()) {
-            return redirect()->route('resident.profile.edit')->with('error', 'Please complete your profile (Date of Birth, Address, Civil Status, Contact Number, and Valid ID) before availing a service.');
+            return redirect()->route('resident.profile.edit')->with('error', __('messages.profile_gate_flash', ['fields' => $this->missingProfileFieldNames($user)]));
         }
 
         if (! $user->isEligibleFor($service->id)) {
-            return redirect()->route('resident.eligibility')->with('error', 'You must first qualify through the Eligibility Assessment.');
+            return redirect()->route('resident.eligibility')->with('error', __('messages.flash_must_qualify'));
         }
 
         $checklist = UserChecklist::where('user_id', Auth::id())
@@ -269,7 +285,7 @@ class ResidentController extends Controller
         foreach ($requirements as $req) {
             if ($req->is_required) {
                 $item = $uploadedDocs[$req->id] ?? null;
-                if (! $item || ! $item->is_submitted || ! $item->file_path) {
+                if (! $this->isDocumentSatisfied($item)) {
                     $allMandatoryUploaded = false;
                     break;
                 }
@@ -279,6 +295,24 @@ class ResidentController extends Controller
         $alreadyApplied = $checklist && in_array($checklist->status, ['pending', 'approved', 'rejected']);
 
         return view('resident.eligibility.checklist', compact('service', 'requirements', 'uploadedDocs', 'allMandatoryUploaded', 'alreadyApplied', 'checklist'));
+    }
+
+    /**
+     * A required document counts once uploaded, unless a facilitator rejected it.
+     */
+    private function isDocumentSatisfied(?UserChecklistItem $item): bool
+    {
+        return $item !== null
+            && $item->is_submitted
+            && ! empty($item->file_path)
+            && $item->status !== 'rejected';
+    }
+
+    private function missingProfileFieldNames(User $user): string
+    {
+        return collect($user->missingProfileFields())
+            ->map(fn (string $labelKey): string => __('messages.'.$labelKey))
+            ->implode(', ');
     }
 
     public function setApplicationType(Request $request, GovernmentService $service)
@@ -312,10 +346,10 @@ class ResidentController extends Controller
                 }
             }
 
-            return back()->with('success', 'Application type updated successfully.');
+            return back()->with('success', __('messages.flash_type_updated'));
         }
 
-        return back()->with('error', 'Cannot change application type after submission.');
+        return back()->with('error', __('messages.flash_type_locked'));
     }
 
     public function uploadDocument(
@@ -325,10 +359,18 @@ class ResidentController extends Controller
         DocumentOcrVerifier $documentOcrVerifier,
     ) {
         $request->validate([
-            'document' => ['required', 'file', 'mimes:pdf,jpg,png,jpeg,doc,docx', 'max:5120'],
+            'document' => ['required', 'file', 'mimes:jpg,png,jpeg', 'max:5120'],
         ]);
 
         abort_unless($requirement->service_id === $service->id, 404);
+
+        $existingChecklist = UserChecklist::where('user_id', Auth::id())
+            ->where('service_id', $service->id)
+            ->first();
+
+        if ($existingChecklist && $existingChecklist->status !== 'draft') {
+            return back()->with('error', __('messages.flash_submitted_locked'));
+        }
 
         if ($file = $request->file('document')) {
             $disk = config('filesystems.default');
@@ -341,6 +383,7 @@ class ResidentController extends Controller
                 ->first();
 
             $status = 'pending';
+            $review = ['review_result' => null, 'review_score' => null, 'review_note' => null];
 
             if ($template) {
                 $verification = $documentOcrVerifier->verify(
@@ -350,13 +393,18 @@ class ResidentController extends Controller
                     $template->name_en ?: $template->name_ceb,
                 );
 
-                if (! $verification['matched']) {
+                if ($verification['status'] === 'mismatch') {
                     Storage::disk($disk)->delete($path);
 
                     return back()->with('error', $verification['message']);
                 }
 
-                $status = 'approved';
+                $status = $verification['status'] === 'verified' ? 'approved' : 'pending';
+                $review = [
+                    'review_result' => $verification['status'],
+                    'review_score' => $verification['score'],
+                    'review_note' => $documentOcrVerifier->describe($verification),
+                ];
             }
 
             $checklist = UserChecklist::firstOrCreate([
@@ -379,6 +427,7 @@ class ResidentController extends Controller
                 'file_path' => $path,
                 'submitted_at' => now(),
                 'status' => $status,
+                ...$review,
             ]);
 
             if ($existingChecklistItem?->file_path && $existingChecklistItem->file_path !== $path) {
@@ -386,9 +435,13 @@ class ResidentController extends Controller
             }
         }
 
-        return back()->with('success', $template
-            ? 'Document verified against the template and uploaded successfully.'
-            : 'Document uploaded successfully and is pending facilitator review.');
+        if ($template && $review['review_result'] === 'verified') {
+            return back()->with('success', __('messages.flash_doc_verified'));
+        }
+
+        $qualityTips = $template && $verification['issues'] ? ' '.implode(' ', $verification['issues']) : '';
+
+        return back()->with('success', __('messages.flash_doc_pending').$qualityTips);
     }
 
     public function apply(GovernmentService $service)
@@ -396,11 +449,11 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         if (! $user->isProfileComplete()) {
-            return redirect()->route('resident.profile.edit')->with('error', 'Please complete your profile (Date of Birth, Address, Civil Status, Contact Number, and Valid ID) before submitting an application.');
+            return redirect()->route('resident.profile.edit')->with('error', __('messages.profile_gate_flash', ['fields' => $this->missingProfileFieldNames($user)]));
         }
 
         if (! $user->isEligibleFor($service->id)) {
-            return back()->with('error', 'You must be eligible for this service before you can apply.');
+            return back()->with('error', __('messages.flash_must_be_eligible'));
         }
 
         $checklist = UserChecklist::where('user_id', Auth::id())
@@ -408,7 +461,7 @@ class ResidentController extends Controller
             ->first();
 
         if (! $checklist) {
-            return back()->with('error', 'No checklist found. Please upload documents first.');
+            return back()->with('error', __('messages.flash_no_checklist'));
         }
 
         $requirements = $service->requirements;
@@ -427,10 +480,9 @@ class ResidentController extends Controller
             if ($req->is_required) {
                 $item = UserChecklistItem::where('checklist_id', $checklist->id)
                     ->where('requirement_id', $req->id)
-                    ->where('is_submitted', true)
                     ->first();
-                if (! $item || ! $item->file_path) {
-                    return back()->with('error', 'Please upload all mandatory documents.');
+                if (! $this->isDocumentSatisfied($item)) {
+                    return back()->with('error', __('messages.flash_upload_all'));
                 }
             }
         }
@@ -439,13 +491,13 @@ class ResidentController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('resident.home')->with('success', 'Application submitted successfully!');
+        return redirect()->route('resident.home')->with('success', __('messages.flash_app_submitted'));
     }
 
     public function inquiry(Request $request)
     {
         if (Auth::check()) {
-            $inquiries = UserInquiry::with(['service', 'responses.responder'])
+            $inquiries = UserInquiry::with(['service.translations', 'responses.responder'])
                 ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -454,7 +506,7 @@ class ResidentController extends Controller
         }
 
         $services = GovernmentService::query()
-            ->with(['commonQuestions' => fn ($query) => $query
+            ->with(['translations', 'commonQuestions' => fn ($query) => $query
                 ->whereNotNull('answer_text')
                 ->oldest()
                 ->limit(5)])
@@ -521,7 +573,8 @@ class ResidentController extends Controller
                 'responded_by' => Auth::check() ? Auth::id() : null,
             ]);
 
-            $inquiry->update(['status' => 'pending', 'updated_at' => now()]);
+            $inquiry->update(['status' => 'pending']);
+            $inquiry->touch();
         } else {
             $subject = $request->input('subject') ?: Str::limit($request->input('inquiry_text'), 50);
 
@@ -679,17 +732,25 @@ class ResidentController extends Controller
     {
         $user = Auth::user();
 
+        $request->merge([
+            'contact_number' => User::normalizeContactNumber((string) $request->input('contact_number')) ?? $request->input('contact_number'),
+            'email' => $request->filled('email') ? strtolower(trim((string) $request->input('email'))) : null,
+        ]);
+
         $request->validate([
             'first_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'middle_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'last_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
             'name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'dob' => ['nullable', 'date', 'before_or_equal:today'],
             'address' => ['nullable', 'string', 'max:500'],
-            'civil_status' => ['nullable', Rule::in(['Single', 'Married', 'Widowed', 'Divorced', 'Live-in'])],
-            'contact_number' => ['nullable', 'string', 'regex:/^(?:\+63|0)9\d{9}$/'],
-            'valid_id' => ['nullable', 'file', 'mimes:pdf,jpg,png,jpeg', 'max:5120'],
+            'civil_status' => ['nullable', Rule::in(User::CIVIL_STATUSES)],
+            'sex' => ['nullable', Rule::in(User::SEXES)],
+            'barangay' => ['nullable', 'string', 'max:255'],
+            'street_address' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['required', 'string', 'regex:/^09\d{9}$/', 'unique:users,contact_number,'.$user->id],
+            'valid_id' => ['nullable', 'file', 'mimes:jpg,png,jpeg', 'max:5120'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -704,7 +765,12 @@ class ResidentController extends Controller
 
         $user->email = $request->email;
         $user->dob = $request->dob;
-        $user->address = $request->address;
+        $user->sex = $request->sex;
+        $user->barangay = $request->barangay;
+        $user->street_address = $request->street_address;
+        $user->address = $request->filled('street_address') || $request->filled('barangay')
+            ? collect([$request->street_address, $request->barangay])->filter()->implode(', ')
+            : $request->address;
         $user->civil_status = $request->civil_status;
         $user->contact_number = $request->contact_number;
 
@@ -716,10 +782,6 @@ class ResidentController extends Controller
             $disk = config('filesystems.default');
             $path = $file->store('valid_ids', $disk);
 
-            // Automation: check if user name components match the ID
-            $idPath = storage_path('app/public/'.$path);
-            $scriptPath = base_path('scripts/verify_id.py');
-
             $firstName = $user->first_name ?: $request->first_name;
             $middleName = $user->middle_name ?: $request->middle_name;
             $lastName = $user->last_name ?: $request->last_name;
@@ -730,26 +792,18 @@ class ResidentController extends Controller
                 $lastName = end($nameParts) ?? '';
             }
 
-            $idMatches = true;
-            if (file_exists($idPath)) {
-                $command = 'python3 '.escapeshellarg($scriptPath).' '.escapeshellarg($idPath).' '.escapeshellarg($firstName ?: '').' '.escapeshellarg($middleName ?: '').' '.escapeshellarg($lastName ?: '');
-                $output = shell_exec($command);
-
-                if ($output) {
-                    $result = json_decode($output, true);
-                    if (is_array($result) && isset($result['match']) && $result['match'] === false) {
-                        $idMatches = false;
-                    }
-                }
-            }
-
-            if (! $idMatches) {
+            if (! $this->validIdMatchesName($disk, $path, (string) $firstName, (string) $middleName, (string) $lastName)) {
                 Storage::disk($disk)->delete($path);
 
                 return back()->with('error', 'The uploaded ID does not match your registered account name.');
             }
 
+            $previousIdPath = $user->valid_id_path;
             $user->valid_id_path = $path;
+
+            if ($previousIdPath && $previousIdPath !== $path) {
+                Storage::disk($disk)->delete($previousIdPath);
+            }
         }
 
         $user->save();
@@ -774,6 +828,16 @@ class ResidentController extends Controller
         return back()->with('success', 'Avatar updated successfully.');
     }
 
+    public function viewDocument(UserChecklistItem $item)
+    {
+        abort_unless($item->checklist?->user_id === Auth::id() && $item->file_path, 404);
+
+        $disk = config('filesystems.default');
+        abort_unless(Storage::disk($disk)->exists($item->file_path), 404);
+
+        return Storage::disk($disk)->response($item->file_path);
+    }
+
     public function unlockChecklist(GovernmentService $service)
     {
         $checklist = UserChecklist::where('user_id', Auth::id())
@@ -783,10 +847,10 @@ class ResidentController extends Controller
         if ($checklist && $checklist->status === 'rejected') {
             $checklist->update(['status' => 'draft']);
 
-            return back()->with('success', 'Application unlocked. You can now edit your documents and resubmit.');
+            return back()->with('success', __('messages.flash_unlocked'));
         }
 
-        return back()->with('error', 'Cannot edit this application.');
+        return back()->with('error', __('messages.flash_cannot_edit'));
     }
 
     public function replyInquiry(Request $request, UserInquiry $inquiry)
@@ -799,6 +863,13 @@ class ResidentController extends Controller
             if (! $this->guestCanAccessInquiry($request, $inquiry->id)) {
                 abort(403);
             }
+        }
+
+        if (! $inquiry->canResidentReply()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
+            ], 422);
         }
 
         $request->validate([
@@ -853,6 +924,47 @@ class ResidentController extends Controller
         $response->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    private function validIdMatchesName(string $disk, string $path, string $firstName, string $middleName, string $lastName): bool
+    {
+        $source = Storage::disk($disk)->readStream($path);
+
+        if ($source === null) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'govassist-id-');
+        $localPath = $temporaryPath.($extension !== '' ? '.'.$extension : '');
+        rename($temporaryPath, $localPath);
+
+        try {
+            $destination = fopen($localPath, 'wb');
+            stream_copy_to_stream($source, $destination);
+            fclose($destination);
+
+            $result = Process::timeout(120)->run([
+                'python3',
+                base_path('scripts/verify_id.py'),
+                $localPath,
+                $firstName,
+                $middleName,
+                $lastName,
+            ]);
+
+            $decoded = json_decode($result->output(), true);
+
+            return ! (is_array($decoded) && ($decoded['match'] ?? null) === false);
+        } finally {
+            if (is_resource($source)) {
+                fclose($source);
+            }
+
+            if (is_file($localPath)) {
+                unlink($localPath);
+            }
+        }
     }
 
     private function guestCanAccessInquiry(Request $request, int $inquiryId): bool

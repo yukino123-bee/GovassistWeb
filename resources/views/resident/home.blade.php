@@ -31,6 +31,30 @@
         </div>
     </div>
 
+    @auth
+        @php
+            $missingFields = Auth::user()->missingProfileFields();
+            $completion = (int) round((App\Models\User::REQUIRED_PROFILE_FIELD_COUNT - count($missingFields)) / App\Models\User::REQUIRED_PROFILE_FIELD_COUNT * 100);
+        @endphp
+        @if(count($missingFields) > 0)
+            <div class="bg-amber-50 border border-amber-200 border-l-4 border-l-amber-500 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4" role="status">
+                <div class="min-w-0">
+                    <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-900">{{ __('messages.profile_incomplete_title') }} <span class="text-amber-700">&middot; {{ $completion }}%</span></h3>
+                    <p class="text-xs text-amber-800 mt-1.5">{{ __('messages.profile_incomplete_desc') }}</p>
+                    <ul class="mt-2.5 flex flex-wrap gap-1.5">
+                        @foreach($missingFields as $labelKey)
+                            <li class="px-2 py-0.5 bg-white border border-amber-200 text-[10px] font-bold text-amber-800 uppercase tracking-wider">{{ __('messages.'.$labelKey) }}</li>
+                        @endforeach
+                    </ul>
+                    <div class="mt-3 h-1.5 bg-amber-100 max-w-xs"><div class="h-full bg-amber-500" style="width: {{ $completion }}%"></div></div>
+                </div>
+                <a href="{{ route('resident.profile.edit') }}" class="shrink-0 text-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
+                    {{ __('messages.complete_profile_btn') }}
+                </a>
+            </div>
+        @endif
+    @endauth
+
     <!-- Search Form -->
     <form action="{{ route('resident.home') }}" method="GET" class="relative">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -114,6 +138,21 @@
                 </h3>
             </div>
 
+            @auth
+                <div class="grid grid-cols-3 gap-3">
+                    @foreach([
+                        ['stat_total', $applications->count(), 'text-slate-900'],
+                        ['stat_pending', $applications->where('status', 'pending')->count(), 'text-amber-700'],
+                        ['stat_approved', $applications->where('status', 'approved')->count(), 'text-emerald-700'],
+                    ] as [$statLabel, $statValue, $statColor])
+                        <div class="bg-white border border-slate-200 px-3 py-3 text-center shadow-sm">
+                            <span class="block text-xl font-extrabold {{ $statColor }}">{{ $statValue }}</span>
+                            <span class="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">{{ __('messages.'.$statLabel) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endauth
+
             <div class="bg-white border border-slate-200 p-5 shadow-sm">
                 @if($applications->isEmpty())
                     <div class="text-center py-8 text-slate-400 text-xs font-semibold uppercase tracking-wider">
@@ -161,6 +200,22 @@
                         @endforeach
                     </div>
                 @endif
+            </div>
+
+            <!-- How it works -->
+            <div class="bg-white border border-slate-200 p-5 shadow-sm">
+                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">{{ __('messages.how_it_works') }}</h4>
+                <ol class="space-y-4">
+                    @foreach([['step_check', 'step_check_desc'], ['step_docs', 'step_docs_desc'], ['step_track', 'step_track_desc']] as $i => [$stepTitle, $stepDesc])
+                        <li class="flex items-start gap-3">
+                            <span class="shrink-0 w-6 h-6 bg-red-700 text-white text-[11px] font-extrabold flex items-center justify-center">{{ $i + 1 }}</span>
+                            <div>
+                                <span class="block text-xs font-bold text-slate-900">{{ __('messages.'.$stepTitle) }}</span>
+                                <span class="block text-[11px] text-slate-500 mt-0.5 leading-relaxed">{{ __('messages.'.$stepDesc) }}</span>
+                            </div>
+                        </li>
+                    @endforeach
+                </ol>
             </div>
 
             <!-- Inquiry Quick Assist -->

@@ -18,6 +18,14 @@
         }
         .bottom-nav-active {
             color: var(--color-red-700);
+            box-shadow: inset 0 2px 0 var(--color-red-700);
+        }
+        :focus-visible {
+            outline: 2px solid var(--color-red-600);
+            outline-offset: 2px;
+        }
+        @media (max-width: 767px) {
+            nav.fixed { padding-bottom: env(safe-area-inset-bottom); height: calc(4rem + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -40,16 +48,16 @@
 
                 <!-- Desktop Navigation Links (Hidden on Mobile) -->
                 <nav class="hidden md:flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider">
-                    <a href="{{ route('resident.home') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.home') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.home') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.home') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_home') }}
                     </a>
-                    <a href="{{ route('resident.eligibility') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.eligibility*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.eligibility') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.eligibility*') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_eligibility') }}
                     </a>
-                    <a href="{{ route('resident.inquiry') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.inquiry') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.inquiry') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.inquiry') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_inquiry') }}
                     </a>
-                    <a href="{{ route('resident.profile') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.profile*') ? 'bg-white/15 text-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
+                    <a href="{{ route('resident.profile') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.profile*') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_profile') }}
                     </a>
                 </nav>
@@ -105,7 +113,8 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:bg-white focus:text-red-700 focus:px-3 focus:py-2 text-xs font-bold">Skip to content</a>
+        <main id="main-content" class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
             @if(session('success'))
                 <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-600 p-4 shadow-sm">
                     <div class="flex items-center">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\ApplicationApprovedEmail;
 use App\Models\EligibilityAssessment;
 use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
@@ -13,6 +14,8 @@ use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -236,7 +239,7 @@ test('resident can switch languages and complete full flow', function () {
     $checklistResponse->assertStatus(200);
 
     // 4. Upload Checklist Requirement File
-    $file = UploadedFile::fake()->create('id.pdf', 500);
+    $file = UploadedFile::fake()->image('id.jpg');
     $uploadResponse = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => $file,
     ]);
@@ -498,4 +501,78 @@ test('resident can edit and resubmit application if not approved', function () {
 
     $checklist->refresh();
     expect($checklist->status)->toBe('draft');
+});
+
+test('rejecting an application requires remarks and an unchanged decision does not renotify', function () {
+    Mail::fake();
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+    $resident = User::factory()->create(['role' => 'resident']);
+    $service = GovernmentService::create(['category_id' => ServiceCategory::create(['category_name' => 'Cat'])->id, 'service_name' => 'Aid', 'description' => 'Test', 'procedure' => 'Test']);
+    $checklist = UserChecklist::create(['user_id' => $resident->id, 'service_id' => $service->id, 'status' => 'pending']);
+
+    $this->actingAs($facilitator)
+        ->post(route('facilitator.applications.update_status', $checklist), ['status' => 'rejected'])
+        ->assertSessionHasErrors('remarks');
+
+    $payload = ['status' => 'approved', 'remarks' => 'Complete.'];
+    $this->actingAs($facilitator)->post(route('facilitator.applications.update_status', $checklist), $payload);
+    $this->actingAs($facilitator)->post(route('facilitator.applications.update_status', $checklist), $payload);
+
+    Mail::assertSent(ApplicationApprovedEmail::class, 1);
+});
+
+test('applications list filters by status and search, with pending first', function () {
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+    $alice = User::factory()->create(['role' => 'resident', 'name' => 'Alice Zed']);
+    $bob = User::factory()->create(['role' => 'resident', 'name' => 'Bob Quill']);
+    $service = GovernmentService::create(['category_id' => ServiceCategory::create(['category_name' => 'Cat'])->id, 'service_name' => 'Aid', 'description' => 'Test', 'procedure' => 'Test']);
+    UserChecklist::create(['user_id' => $alice->id, 'service_id' => $service->id, 'status' => 'approved']);
+    UserChecklist::create(['user_id' => $bob->id, 'service_id' => $service->id, 'status' => 'pending']);
+
+    $names = fn (array $query) => $this->actingAs($facilitator)
+        ->get(route('facilitator.applications', $query))
+        ->assertOk()
+        ->viewData('applications')
+        ->map(fn ($application) => $application->user->name)
+        ->all();
+
+    expect($names(['status' => 'pending']))->toBe(['Bob Quill']);
+    expect($names(['q' => 'Alice']))->toBe(['Alice Zed']);
+    expect($names([]))->toBe(['Bob Quill', 'Alice Zed']);
+});
+
+test('facilitator must confirm the current password to change it', function () {
+    $facilitator = User::factory()->create(['role' => 'facilitator', 'password' => 'old-password-1']);
+    $payload = ['name' => $facilitator->name, 'email' => $facilitator->email, 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1'];
+
+    $this->actingAs($facilitator)->post(route('facilitator.profile.update'), $payload)
+        ->assertSessionHasErrors('current_password');
+
+    $this->actingAs($facilitator)->post(route('facilitator.profile.update'), $payload + ['current_password' => 'old-password-1'])
+        ->assertSessionHasNoErrors();
+
+    expect(Hash::check('new-password-1', $facilitator->fresh()->password))->toBeTrue();
+
+    $this->actingAs($facilitator)->get(route('facilitator.profile.edit'))->assertOk()->assertSee('Password &amp; security', false);
+});
+
+test('resident cannot reply to a closed inquiry and facilitator can set in_progress', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+    $inquiry = UserInquiry::create(['user_id' => $resident->id, 'inquiry_text' => 'Help', 'status' => 'closed']);
+
+    $this->actingAs($resident)
+        ->postJson(route('resident.inquiry.reply', $inquiry->id), ['message' => 'Reopen please'])
+        ->assertStatus(422);
+    expect($inquiry->fresh()->status)->toBe('closed');
+
+    $this->actingAs($facilitator)
+        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), ['message' => 'Hi'])
+        ->assertStatus(422);
+
+    $inquiry->update(['status' => 'pending']);
+    $this->actingAs($facilitator)
+        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), ['message' => 'Need your ID', 'status' => 'in_progress'])
+        ->assertOk();
+    expect($inquiry->fresh()->status)->toBe('in_progress');
 });

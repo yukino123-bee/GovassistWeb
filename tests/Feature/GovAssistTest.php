@@ -76,11 +76,17 @@ test('resident can register, login, and access resident home', function () {
         'last_name' => 'Cagatin',
         'email' => 'mark@resident.com',
         'contact_number' => '09171234567',
+        'dob' => '1990-05-12',
+        'sex' => 'Male',
+        'civil_status' => 'Single',
+        'barangay' => 'Poblacion',
+        'street_address' => 'Purok 3, Rizal St.',
+        'privacy_consent' => '1',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
 
-    $registerResponse->assertRedirect('/resident/home');
+    $registerResponse->assertRedirect(route('verification.notice'));
     $this->assertDatabaseHas('users', [
         'email' => 'mark@resident.com',
         'name' => 'Mark Santos Cagatin',
@@ -88,6 +94,9 @@ test('resident can register, login, and access resident home', function () {
         'middle_name' => 'Santos',
         'last_name' => 'Cagatin',
         'contact_number' => '09171234567',
+        'barangay' => 'Poblacion',
+        'address' => 'Purok 3, Rizal St., Poblacion',
+        'sex' => 'Male',
         'role' => 'resident',
     ]);
 
@@ -96,7 +105,7 @@ test('resident can register, login, and access resident home', function () {
 
     // 2. Login
     $loginResponse = $this->post('/login', [
-        'email' => 'mark@resident.com',
+        'login' => 'mark@resident.com',
         'password' => 'password123',
     ]);
 
@@ -118,7 +127,7 @@ test('registration and profile fields enforce their displayed formats', function
     $this->actingAs($resident)
         ->get(route('resident.profile.edit'))
         ->assertSuccessful()
-        ->assertSee('House/Unit No., Street, Barangay, Municipality/City, Province')
+        ->assertSee('name="barangay"', false)
         ->assertSee('Use 09XXXXXXXXX or +639XXXXXXXXX.');
 
     $this->actingAs($resident)
@@ -166,6 +175,7 @@ test('resident selects civil status from the supported options', function () {
     $this->actingAs($resident)
         ->post(route('resident.profile.update'), [
             'email' => $resident->email,
+            'contact_number' => '09171234567',
             'civil_status' => 'Invalid status',
         ])
         ->assertSessionHasErrors('civil_status');
@@ -173,6 +183,7 @@ test('resident selects civil status from the supported options', function () {
     $this->actingAs($resident)
         ->post(route('resident.profile.update'), [
             'email' => $resident->email,
+            'contact_number' => '09171234567',
             'civil_status' => 'Live-in',
         ])
         ->assertRedirect();
@@ -437,15 +448,19 @@ test('facilitator can manage document templates by program', function () {
     ]);
 });
 
-test('document templates verification matches keywords for PDF uploads', function () {
+test('document templates verification matches keywords for image uploads', function () {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);
     Process::fake([
         '*' => Process::result(output: json_encode([
+            'status' => 'verified',
             'match' => true,
             'score' => 0.91,
-            'method' => 'pdf_text_template_and_keywords',
-            'note' => 'Document verified successfully.',
+            'method' => 'tesseract',
+            'found' => ['indigency'],
+            'missing' => [],
+            'issues' => [],
+            'message' => 'Document verified successfully.',
         ])),
     ]);
 
@@ -465,17 +480,17 @@ test('document templates verification matches keywords for PDF uploads', functio
         'is_required' => true,
     ]);
 
-    Storage::disk('public')->put('templates/mock_template.pdf', 'template');
+    Storage::disk('public')->put('templates/mock_template.jpg', 'template');
 
     $template = DocumentTemplate::create([
         'service_id' => $service->id,
         'requirement_id' => $requirement->id,
         'name_en' => 'Indigency',
         'name_ceb' => 'Indigency',
-        'file_path' => 'templates/mock_template.pdf',
+        'file_path' => 'templates/mock_template.jpg',
     ]);
 
-    $file = UploadedFile::fake()->create('document.pdf', 10);
+    $file = UploadedFile::fake()->image('document.jpg');
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => $file,
@@ -488,7 +503,7 @@ test('document templates verification matches keywords for PDF uploads', functio
         'status' => 'approved',
     ]);
 
-    Process::assertRan(fn ($process) => $process->command[4] === 'Indigency');
+    Process::assertRan(fn ($process) => $process->command[5] === 'Indigency');
 });
 
 test('document templates verification accepts an upload identical to the configured template', function () {
@@ -511,25 +526,25 @@ test('document templates verification accepts an upload identical to the configu
     ]);
 
     $documentContents = 'scanned medical certificate binary contents';
-    Storage::disk('public')->put('templates/medical-certificate.pdf', $documentContents);
+    Storage::disk('public')->put('templates/medical-certificate.jpg', $documentContents);
     DocumentTemplate::create([
         'service_id' => $service->id,
         'requirement_id' => $requirement->id,
         'name_en' => 'Medical Certificate,Patient Name,Physician',
         'name_ceb' => 'Medical Certificate,Patient Name,Physician',
-        'file_path' => 'templates/medical-certificate.pdf',
+        'file_path' => 'templates/medical-certificate.jpg',
     ]);
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
         $service->id,
         $requirement->id,
     ]), [
-        'document' => UploadedFile::fake()->createWithContent('medical-certificate.pdf', $documentContents),
+        'document' => UploadedFile::fake()->createWithContent('medical-certificate.jpg', $documentContents),
     ]);
 
     $response
         ->assertRedirect()
-        ->assertSessionHas('success', 'Document verified against the template and uploaded successfully.');
+        ->assertSessionHas('success', 'Document verified and uploaded successfully.');
     $this->assertDatabaseHas('user_checklist_items', [
         'requirement_id' => $requirement->id,
         'is_submitted' => true,
@@ -543,10 +558,14 @@ test('document template verification rejects a mismatched upload', function () {
     config(['filesystems.default' => 'public']);
     Process::fake([
         '*' => Process::result(output: json_encode([
+            'status' => 'mismatch',
             'match' => false,
             'score' => 0.08,
-            'method' => 'pdf_text_template_and_keywords',
-            'note' => 'The document does not match the configured template or all required keywords.',
+            'method' => 'tesseract',
+            'found' => [],
+            'missing' => ['medical certificate'],
+            'issues' => [],
+            'message' => 'The document does not match the configured template or all required keywords.',
         ])),
     ]);
 
@@ -564,20 +583,20 @@ test('document template verification rejects a mismatched upload', function () {
         'is_required' => true,
     ]);
 
-    Storage::disk('public')->put('templates/medical-certificate.pdf', 'template');
+    Storage::disk('public')->put('templates/medical-certificate.jpg', 'template');
     DocumentTemplate::create([
         'service_id' => $service->id,
         'requirement_id' => $requirement->id,
         'name_en' => 'Medical Certificate,Patient Name,Physician',
         'name_ceb' => 'Medical Certificate,Patient Name,Physician',
-        'file_path' => 'templates/medical-certificate.pdf',
+        'file_path' => 'templates/medical-certificate.jpg',
     ]);
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
         $service->id,
         $requirement->id,
     ]), [
-        'document' => UploadedFile::fake()->create('unrelated-document.pdf', 10),
+        'document' => UploadedFile::fake()->image('unrelated-document.jpg'),
     ]);
 
     $response->assertRedirect();

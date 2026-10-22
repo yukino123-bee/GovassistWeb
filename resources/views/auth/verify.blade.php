@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Verify Email - {{ __('messages.app_name') }}</title>
+    <title>Verify Account - {{ __('messages.app_name') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,12 +27,15 @@
                 </div>
                 <h2 class="text-3xl font-extrabold text-[#d5001c] tracking-tight">GovAssist</h2>
                 <p class="text-sm text-slate-500 font-medium mt-3 leading-relaxed">
-                    Verify Your Email Address
+                    Verify Your Account
                 </p>
             </div>
 
             <div class="text-sm text-slate-600 text-center leading-relaxed">
-                Thanks for signing up! We've sent a 6-digit One-Time Password (OTP) to your email address. Please enter it below to verify your account.
+                Thanks for signing up! We've sent a 6-digit One-Time Password (OTP) {{ collect([
+                    Auth::user()->contact_number ? 'by SMS to '.Auth::user()->contact_number : null,
+                    Auth::user()->email ? 'by email to '.Auth::user()->email : null,
+                ])->filter()->implode(' and ') }}. Please enter it below to verify your account.
             </div>
 
             @if (session('message'))
@@ -54,7 +57,7 @@
                     <input type="text" name="otp" id="otp" maxlength="6" class="w-full bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all text-center text-2xl font-bold tracking-[10px] text-slate-800" required autofocus>
                 </div>
                 <button type="submit" class="w-full py-4 bg-[#d5001c] hover:bg-[#b80010] text-white font-bold rounded-none transition-all shadow-lg shadow-red-600/10 text-sm">
-                    Verify Email
+                    Verify Account
                 </button>
             </form>
 

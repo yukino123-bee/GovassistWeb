@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -29,10 +31,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'login' => ['required', 'string', 'max:255'],
             'password' => ['required'],
         ]);
+
+        $identifier = trim((string) $request->input('login'));
+        $contactNumber = User::normalizeContactNumber($identifier);
+
+        $credentials = $contactNumber !== null
+            ? ['contact_number' => $contactNumber]
+            : ['email' => $identifier];
+        $credentials['password'] = $request->input('password');
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -44,8 +54,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => __('The provided credentials do not match our records.'),
-        ])->onlyInput('email');
+            'login' => __('The provided credentials do not match our records.'),
+        ])->onlyInput('login');
     }
 
     public function showRegister()
@@ -64,6 +74,14 @@ class AuthController extends Controller
 
     public function sendPasswordResetLink(Request $request): RedirectResponse
     {
+        $identifier = trim((string) $request->input('login', $request->input('email')));
+        $contactNumber = User::normalizeContactNumber($identifier);
+
+        if ($contactNumber !== null) {
+            return $this->sendPasswordResetCode($contactNumber);
+        }
+
+        $request->merge(['email' => $identifier]);
         $request->validate([
             'email' => ['required', 'email'],
         ]);
@@ -75,6 +93,86 @@ class AuthController extends Controller
         }
 
         return back()->withErrors(['email' => __($status)])->onlyInput('email');
+    }
+
+    protected function sendPasswordResetCode(string $contactNumber): RedirectResponse
+    {
+        $user = User::where('contact_number', $contactNumber)->first();
+
+        if ($user !== null) {
+            $code = (string) random_int(100000, 999999);
+            Cache::put('password_reset_code_'.$user->id, Hash::make($code), now()->addMinutes(15));
+            Cache::forget('password_reset_attempts_'.$user->id);
+
+            app(SmsService::class)->send(
+                $contactNumber,
+                "SSFO GovAssist: Your password reset code is {$code}. Valid for 15 minutes. Do not share this code."
+            );
+        }
+
+        return redirect()->route('password.code')
+            ->with('reset_contact_number', $contactNumber)
+            ->with('status', __('messages.password_reset_code_sent'));
+    }
+
+    public function showResetPasswordCode(Request $request): View
+    {
+        return view('auth.reset-password-code', [
+            'contactNumber' => session('reset_contact_number', old('contact_number')),
+        ]);
+    }
+
+    public function resetPasswordWithCode(Request $request): RedirectResponse
+    {
+        $request->merge([
+            'contact_number' => User::normalizeContactNumber((string) $request->input('contact_number'))
+                ?? $request->input('contact_number'),
+            'code' => preg_replace('/\s+/', '', (string) $request->input('code')),
+        ]);
+
+        $validated = $request->validate([
+            'contact_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
+            'code' => ['required', 'string', 'size:6'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $invalid = fn (): RedirectResponse => back()
+            ->withErrors(['code' => __('messages.password_reset_code_invalid')])
+            ->withInput($request->only('contact_number'))
+            ->with('reset_contact_number', $validated['contact_number']);
+
+        $user = User::where('contact_number', $validated['contact_number'])->first();
+        $hashedCode = $user ? Cache::get('password_reset_code_'.$user->id) : null;
+
+        if ($user === null || ! is_string($hashedCode)) {
+            return $invalid();
+        }
+
+        $attemptsKey = 'password_reset_attempts_'.$user->id;
+        $attempts = (int) Cache::get($attemptsKey, 0) + 1;
+        Cache::put($attemptsKey, $attempts, now()->addMinutes(15));
+
+        if ($attempts > 5) {
+            Cache::forget('password_reset_code_'.$user->id);
+
+            return $invalid();
+        }
+
+        if (! Hash::check($validated['code'], $hashedCode)) {
+            return $invalid();
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($validated['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Cache::forget('password_reset_code_'.$user->id);
+        Cache::forget($attemptsKey);
+
+        event(new PasswordReset($user));
+
+        return redirect()->route('login')->with('status', __('passwords.reset'));
     }
 
     public function showResetPassword(Request $request, string $token): View
@@ -112,16 +210,29 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
-            'middle_name' => ['nullable', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
-            'last_name' => ['required', 'string', 'max:255', "regex:/^[\pL\pM .'-]+$/u"],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'contact_number' => ['required', 'string', 'max:20', 'regex:/^(09|\+639|639)[0-9]{9}$/'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $request->merge([
+            'contact_number' => User::normalizeContactNumber((string) $request->input('contact_number'))
+                ?? $request->input('contact_number'),
+            'email' => $request->filled('email') ? strtolower(trim((string) $request->input('email'))) : null,
         ]);
 
-        $lang = session('locale', 'en');
+        $namePattern = "regex:/^[\pL\pM .'-]+$/u";
+
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255', $namePattern],
+            'middle_name' => ['nullable', 'string', 'max:255', $namePattern],
+            'last_name' => ['required', 'string', 'max:255', $namePattern],
+            'dob' => ['required', 'date', 'before:today', 'after:1900-01-01'],
+            'sex' => ['required', Rule::in(User::SEXES)],
+            'civil_status' => ['required', Rule::in(User::CIVIL_STATUSES)],
+            'barangay' => ['required', 'string', 'max:255'],
+            'street_address' => ['required', 'string', 'max:255'],
+            'contact_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/', 'unique:users,contact_number'],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'privacy_consent' => ['accepted'],
+        ]);
+
         $fullName = collect([
             $validated['first_name'],
             $validated['middle_name'] ?? null,
@@ -133,18 +244,24 @@ class AuthController extends Controller
             'first_name' => $validated['first_name'],
             'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
+            'dob' => $validated['dob'],
+            'sex' => $validated['sex'],
+            'civil_status' => $validated['civil_status'],
+            'barangay' => $validated['barangay'],
+            'street_address' => $validated['street_address'],
+            'address' => $validated['street_address'].', '.$validated['barangay'],
+            'email' => $validated['email'] ?? null,
             'contact_number' => $validated['contact_number'],
             'password' => Hash::make($validated['password']),
             'role' => 'resident',
-            'language' => $lang,
+            'language' => session('locale', 'en'),
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->route('resident.home');
+        return redirect()->route('verification.notice');
     }
 
     public function logout(Request $request)
@@ -184,6 +301,12 @@ class AuthController extends Controller
 
     public function verifyEmail(Request $request)
     {
+        if ($request->has('otp')) {
+            $request->merge([
+                'otp' => preg_replace('/\s+/', '', (string) $request->input('otp')),
+            ]);
+        }
+
         $request->validate([
             'otp' => 'required|string|size:6',
         ]);
@@ -210,7 +333,9 @@ class AuthController extends Controller
     {
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('message', 'A new OTP has been sent to your email!');
+        $channels = $request->user()->email ? 'mobile number and email' : 'mobile number';
+
+        return back()->with('message', "A new verification code has been sent to your {$channels}.");
     }
 
     protected function redirectBasedOnRole($user)

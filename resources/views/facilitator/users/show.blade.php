@@ -2,148 +2,180 @@
 
 @section('title', 'View Resident - GovAssist')
 
-@section('page_title', 'Residents Registry')
+@section('page_title', 'Resident Profile')
 
 @section('content')
-<div class="bg-white border border-slate-200 shadow-sm">
-    <!-- Section Header -->
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
-            <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-            Resident Details
-        </h3>
-        <a href="{{ route('facilitator.users') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest transition-colors rounded-none flex items-center">
-            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Back to Registry
+<div class="space-y-5 max-w-5xl mx-auto">
+
+    <!-- Top Navigation -->
+    <div>
+        <a href="{{ route('facilitator.users') }}" class="text-xs font-bold text-slate-500 hover:text-red-700 transition-colors inline-flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Back to Residents Registry</span>
         </a>
     </div>
 
-    <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Profile Column -->
-        <div class="col-span-1 md:border-r border-slate-100 pr-0 md:pr-8 flex flex-col items-center text-center">
-            @if($user->avatar)
-                <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="{{ $user->name }}" class="w-32 h-32 object-cover border-4 border-slate-50 mb-4 shadow-sm">
-            @else
-                <div class="w-32 h-32 bg-slate-100 border-4 border-slate-50 mb-4 shadow-sm flex items-center justify-center text-slate-400">
-                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+        
+        <!-- Profile Summary Card (4/12) -->
+        <div class="md:col-span-4 bg-white border border-slate-200 rounded-lg p-6 shadow-sm flex flex-col items-center text-center space-y-4">
+            <div class="relative">
+                @if($user->avatar)
+                    <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-md">
+                @else
+                    <div class="w-24 h-24 rounded-full bg-red-50 border-4 border-slate-100 shadow-sm flex items-center justify-center text-red-700 font-bold text-3xl">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                @endif
+                @if($user->valid_id_path)
+                    <span class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px]" title="ID Verified">✓</span>
+                @endif
+            </div>
+
+            <div class="space-y-1">
+                <h2 class="text-base font-bold text-slate-850 leading-tight">{{ $user->name }}</h2>
+                <p class="text-xs font-mono text-slate-500">{{ $user->email ?: $user->contact_number }}</p>
+                <div class="pt-1">
+                    <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-extrabold text-[10px] uppercase tracking-wider rounded-full border border-blue-200">
+                        Registered Resident
+                    </span>
                 </div>
-            @endif
-            
-            <h2 class="text-xl font-bold text-slate-800">{{ $user->name }}</h2>
-            <p class="text-sm font-mono text-slate-500 mt-1">{{ $user->email }}</p>
-            
-            <div class="mt-2 text-xs text-slate-400">
+            </div>
+
+            <div class="text-[11px] text-slate-400 font-medium">
                 Registered on {{ $user->created_at->format('M d, Y') }}
             </div>
-            
-            <div class="mt-6 flex flex-col space-y-2 w-full">
-                <a href="{{ route('facilitator.users.edit', $user) }}" class="w-full py-2 bg-red-50 text-red-700 text-[10px] font-extrabold uppercase tracking-widest hover:bg-red-100 transition-colors text-center border border-red-100">
+
+            <div class="w-full pt-4 border-t border-slate-100 flex flex-col space-y-2">
+                <a href="{{ route('facilitator.users.edit', $user) }}" class="w-full py-2 bg-red-50 text-red-700 hover:bg-red-700 hover:text-white text-xs font-extrabold uppercase tracking-wider rounded-md transition-all border border-red-100 text-center shadow-3xs">
                     Edit Profile
                 </a>
                 <form action="{{ route('facilitator.users.destroy', $user) }}" method="POST" class="w-full" id="delete-user-{{ $user->id }}">
                     @csrf
                     @method('DELETE')
-                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this resident?', () => document.getElementById('delete-user-{{ $user->id }}').submit())" class="w-full py-2 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest hover:text-red-600 hover:bg-slate-50 transition-colors text-center">
+                    <button type="button" onclick="showConfirmModal('Are you sure you want to delete this resident record?', () => document.getElementById('delete-user-{{ $user->id }}').submit(), 'Delete Resident')" class="w-full py-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs font-extrabold uppercase tracking-wider rounded-md transition-all border border-transparent hover:border-rose-100 text-center">
                         Delete Resident
                     </button>
                 </form>
             </div>
         </div>
 
-        <!-- Details Column -->
-        <div class="col-span-2 space-y-8">
-            <div>
-                <h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
-                    Personal Information
-                </h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50 p-6 border border-slate-100">
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Contact Number</span>
-                        <p class="text-sm text-slate-800 font-medium">{{ $user->contact_number ?? 'Not provided' }}</p>
+        <!-- Detailed Information (8/12) -->
+        <div class="md:col-span-8 space-y-4">
+            
+            <!-- Personal Info Card -->
+            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4">
+                <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                        <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                        Personal Information
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                    <div class="border border-slate-200 bg-slate-50/60 p-3.5 rounded-md">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Contact Number</span>
+                        <span class="font-bold text-slate-850 mt-0.5 block">{{ $user->contact_number ?? 'Not provided' }}</span>
                     </div>
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date of Birth</span>
-                        <p class="text-sm text-slate-800 font-medium">{{ $user->dob ? $user->dob->format('F j, Y') : 'Not provided' }}</p>
+
+                    <div class="border border-slate-200 bg-slate-50/60 p-3.5 rounded-md">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Date of Birth</span>
+                        <span class="font-bold text-slate-850 mt-0.5 block">{{ $user->dob ? $user->dob->format('F j, Y') : 'Not provided' }}</span>
                     </div>
-                    <div>
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Civil Status</span>
-                        <p class="text-sm text-slate-800 font-medium capitalize">{{ $user->civil_status ?? 'Not provided' }}</p>
+
+                    <div class="border border-slate-200 bg-slate-50/60 p-3.5 rounded-md">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Civil Status</span>
+                        <span class="font-bold text-slate-850 mt-0.5 block capitalize">{{ $user->civil_status ?? 'Not provided' }}</span>
                     </div>
-                    <div class="sm:col-span-2">
-                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Address</span>
-                        <p class="text-sm text-slate-800 font-medium">{{ $user->address ?? 'Not provided' }}</p>
+
+                    <div class="border border-slate-200 bg-slate-50/60 p-3.5 rounded-md">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email Verification</span>
+                        <span class="font-bold mt-0.5 block {{ $user->email_verified_at ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ $user->email_verified_at ? 'Verified' : 'Unverified' }}
+                        </span>
+                    </div>
+
+                    <div class="sm:col-span-2 border border-slate-200 bg-slate-50/60 p-3.5 rounded-md">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Residential Address</span>
+                        <span class="font-bold text-slate-850 mt-0.5 block">{{ $user->address ?? 'Not provided' }}</span>
                     </div>
                 </div>
             </div>
 
-            <hr class="border-slate-100">
+            <!-- Documents Card -->
+            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4">
+                <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                        <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                        Government Identification
+                    </h3>
+                </div>
 
-            <div>
-                <h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    Documents
-                </h4>
                 @if($user->valid_id_path)
-                    <div class="flex items-start bg-white p-4 border border-slate-200 shadow-sm">
-                        <div class="mr-4 text-red-700 bg-red-50 p-2 border border-red-100">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                            </svg>
-                        </div>
-                        <div class="flex-1 flex justify-between items-center">
-                            <div>
-                                <h5 class="text-sm font-bold text-slate-800">Valid Identification</h5>
-                                <p class="text-xs text-slate-500 mt-0.5">Primary identification document</p>
+                    <div class="flex items-center justify-between p-4 bg-slate-50/60 border border-slate-200 rounded-md">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-md bg-red-50 text-red-700 border border-red-100 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
                             </div>
-                            <a href="{{ route('facilitator.users.valid_id', $user) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-extrabold uppercase tracking-widest hover:border-red-300 hover:text-red-700 transition-all">
-                                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                View
-                            </a>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800 uppercase">Valid Government ID</h5>
+                                <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5">✓ Uploaded Document Available</span>
+                            </div>
                         </div>
+
+                        <a href="{{ route('facilitator.users.valid_id', $user) }}" target="_blank" class="px-3.5 py-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold uppercase tracking-wider rounded-md shadow-xs transition-all flex items-center space-x-1">
+                            <span>View Document</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </a>
                     </div>
                 @else
-                    <div class="bg-yellow-50 border border-yellow-100 p-4 flex items-start text-yellow-800">
-                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <p class="text-xs font-medium leading-relaxed">No valid ID has been uploaded by this resident yet. Some services might require identification.</p>
+                    <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-md flex items-center space-x-3 text-amber-800">
+                        <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <p class="text-xs font-medium">No valid government ID has been uploaded by this resident yet.</p>
                     </div>
                 @endif
             </div>
 
-            <!-- Applications -->
+            <!-- Applications History -->
             @if(isset($user->checklists) && $user->checklists->count() > 0)
-            <hr class="border-slate-100">
-            <div>
-                <h4 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    Recent Applications
-                </h4>
-                <div class="space-y-3">
-                    @foreach($user->checklists as $application)
-                        <div class="flex items-center justify-between p-4 border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
-                            <div>
-                                <h5 class="text-sm font-bold text-slate-800">{{ $application->service->service_name ?? 'Unknown Service' }}</h5>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{{ $application->created_at->format('M d, Y') }}</p>
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-3.5">
+                    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                            <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                            Assistance Applications History
+                        </h3>
+                        <span class="text-xs font-bold text-slate-500">{{ $user->checklists->count() }} Submission(s)</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        @foreach($user->checklists as $application)
+                            <div class="flex items-center justify-between p-3.5 border border-slate-200 bg-slate-50/60 rounded-md hover:bg-white hover:border-red-200 hover:shadow-xs transition-all">
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-800">{{ $application->service->name_en ?? 'Unknown Service' }}</h5>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{{ $application->created_at->format('M d, Y h:i A') }}</p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    @if($application->status === 'approved')
+                                        <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200 uppercase tracking-wider">Approved</span>
+                                    @elseif($application->status === 'rejected')
+                                        <span class="px-2.5 py-0.5 bg-rose-50 text-rose-700 text-xs font-extrabold rounded-full border border-rose-200 uppercase tracking-wider">Rejected</span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 text-xs font-extrabold rounded-full border border-amber-200 uppercase tracking-wider">Pending</span>
+                                    @endif
+
+                                    <a href="{{ route('facilitator.applications.show', $application) }}" class="inline-flex items-center text-xs font-extrabold text-red-700 hover:text-white uppercase tracking-wider bg-red-50 hover:bg-red-700 px-2.5 py-1 rounded-lg border border-red-100 transition-all shadow-3xs">
+                                        Review &rarr;
+                                    </a>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-4">
-                                <span class="px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-widest
-                                    {{ $application->status === 'approved' ? 'bg-green-100 text-green-700 border border-green-200' : 
-                                      ($application->status === 'rejected' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200') }}">
-                                    {{ $application->status }}
-                                </span>
-                                <a href="{{ route('facilitator.applications.show', $application) }}" class="p-1 text-slate-400 hover:text-red-700 transition-colors bg-white border border-slate-200">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
-            </div>
             @endif
 
         </div>
+
     </div>
+
 </div>
 @endsection

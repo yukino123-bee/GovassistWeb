@@ -5,7 +5,7 @@
 @section('page_title', 'Resident Uploaded Documents')
 
 @section('content')
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+<div class="bg-white rounded-lg border border-slate-100 shadow-sm p-6">
     <h3 class="text-base font-bold text-slate-800 mb-6 flex items-center">
         <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
@@ -44,7 +44,7 @@
                             @endif
                         </td>
                         <td class="py-4 text-right">
-                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-red-100 transition-colors inline-block">
+                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="px-3 py-1.5 bg-red-50 text-red-700 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-red-100 transition-colors inline-block">
                                 View File
                             </a>
                         </td>

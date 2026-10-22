@@ -29,6 +29,62 @@ class EligibilityQuestion extends Model
         return $this->$field ?? $this->question_text_en;
     }
 
+    public function getPassingRuleLabelAttribute(): string
+    {
+        if ($this->type === 'boolean') {
+            return $this->expected_value === 'true' ? 'Answers Yes' : 'Answers No';
+        }
+
+        if ($this->type === 'number') {
+            $words = [
+                '<=' => 'No more than',
+                '>=' => 'At least',
+                '<' => 'Less than',
+                '>' => 'More than',
+                '=' => 'Exactly',
+                '==' => 'Exactly',
+            ];
+
+            return ($words[$this->operator] ?? $this->operator).' '.$this->expected_value;
+        }
+
+        $accepted = $this->acceptedTextAnswers();
+
+        return $accepted === [] ? 'Not checked' : 'Mentions '.implode(' / ', $accepted);
+    }
+
+    /**
+     * Keywords a written answer may contain to pass; empty means the answer is not checked.
+     *
+     * @return array<int, string>
+     */
+    public function acceptedTextAnswers(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (string $keyword) => mb_strtolower(trim($keyword)),
+            explode(',', (string) $this->expected_value),
+        ), fn (string $keyword) => $keyword !== ''));
+    }
+
+    public function textAnswerPasses(?string $answer): bool
+    {
+        $accepted = $this->acceptedTextAnswers();
+
+        if ($accepted === []) {
+            return true;
+        }
+
+        $normalizedAnswer = mb_strtolower(trim((string) $answer));
+
+        foreach ($accepted as $keyword) {
+            if (str_contains($normalizedAnswer, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @return array<string, string>
      */

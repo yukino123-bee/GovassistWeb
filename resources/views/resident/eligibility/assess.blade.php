@@ -5,9 +5,9 @@
     $serviceName = $serviceTrans ? $serviceTrans->service_name : $service->service_name;
 @endphp
 
-@section('title', 'Assess: ' . $serviceName)
+@section('title', __('messages.assess_service_header').': '.$serviceName)
 
-@section('header_title', 'Assess Service')
+@section('header_title', __('messages.assess_service_header'))
 
 @section('back_button')
 <a href="{{ route('resident.eligibility') }}" class="text-white hover:text-red-100 p-2 transition-colors mr-2 flex items-center justify-center rounded-full hover:bg-white/10">
@@ -23,7 +23,7 @@
     <!-- Service Card -->
     <div class="bg-white border-l-4 border-l-red-600 border-t border-r border-b border-slate-200 p-6 shadow-sm">
         <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ $serviceName }}</h2>
-        <p class="text-xs text-slate-500 mt-1.5">Please answer all questions below honestly to check your qualification status.</p>
+        <p class="text-xs text-slate-500 mt-1.5">{{ __('messages.assess_intro') }}</p>
     </div>
 
     <!-- Questions Form -->
@@ -38,7 +38,7 @@
                     </label>
                     @unless($q->is_required)
                         <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-extrabold uppercase tracking-wider">
-                            Optional
+                            {{ __('messages.optional') }}
                         </span>
                     @endunless
                 </div>
@@ -47,11 +47,11 @@
                     <div class="flex items-center space-x-6">
                         <label class="flex items-center cursor-pointer text-sm font-semibold text-slate-800 hover:text-red-700 transition-colors">
                             <input type="radio" name="question_{{ $q->id }}" value="true" class="w-4 h-4 text-red-700 border-slate-300 focus:ring-red-600 mr-2 rounded-none" {{ $q->is_required ? 'required' : '' }}>
-                            <span>Yes</span>
+                            <span>{{ __('messages.yes') }}</span>
                         </label>
                         <label class="flex items-center cursor-pointer text-sm font-semibold text-slate-800 hover:text-red-700 transition-colors">
                             <input type="radio" name="question_{{ $q->id }}" value="false" class="w-4 h-4 text-red-700 border-slate-300 focus:ring-red-600 mr-2 rounded-none" {{ $q->is_required ? 'required' : '' }}>
-                            <span>No</span>
+                            <span>{{ __('messages.no') }}</span>
                         </label>
                     </div>
                 @elseif($q->type === 'number')
@@ -63,16 +63,16 @@
                     <input
                         type="number"
                         name="question_{{ $q->id }}"
-                        placeholder="{{ $isHouseholdIncome ? 'Enter an amount from 2,000 to 15,000' : 'Enter numeric value...' }}"
+                        placeholder="{{ $isHouseholdIncome ? __('messages.income_placeholder') : __('messages.enter_number') }}"
                         @if($isHouseholdIncome) min="2000" max="15000" @endif
                         class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm"
                         {{ $q->is_required ? 'required' : '' }}
                     >
                     @if($isHouseholdIncome)
-                        <p class="text-[11px] font-semibold text-slate-500">Valid household income range: ₱2,000–₱15,000.</p>
+                        <p class="text-[11px] font-semibold text-slate-500">{{ __('messages.income_range_hint') }}</p>
                     @endif
                 @elseif($q->type === 'text')
-                    <textarea name="question_{{ $q->id }}" rows="3" placeholder="Enter your response..." class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" {{ $q->is_required ? 'required' : '' }}></textarea>
+                    <textarea name="question_{{ $q->id }}" rows="3" placeholder="{{ __('messages.enter_response') }}" class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" {{ $q->is_required ? 'required' : '' }}></textarea>
                 @endif
             </div>
         @endforeach
@@ -90,7 +90,7 @@
         if (form.checkValidity()) {
             showConfirmModal('{{ __('messages.confirm_submit_assessment') }}', () => {
                 form.submit();
-            }, 'Submit Assessment');
+            }, '{{ __('messages.submit_assessment_title') }}');
         } else {
             form.reportValidity();
         }

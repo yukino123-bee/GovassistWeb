@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FacilitatorController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResidentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->middleware('throttle:6,1')->name('password.email');
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:6,1')->name('password.update');
+    Route::get('/reset-password-code', [AuthController::class, 'showResetPasswordCode'])->name('password.code');
+    Route::post('/reset-password-code', [AuthController::class, 'resetPasswordWithCode'])->middleware('throttle:6,1')->name('password.code.update');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration');
 });
@@ -66,6 +69,7 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
     Route::post('/eligibility/checklist/{service}/upload/{requirement}', [ResidentController::class, 'uploadDocument'])->name('resident.eligibility.upload');
     Route::post('/eligibility/checklist/{service}/type', [ResidentController::class, 'setApplicationType'])->name('resident.eligibility.set_type');
     Route::post('/eligibility/apply/{service}', [ResidentController::class, 'apply'])->name('resident.eligibility.apply');
+    Route::get('/eligibility/document/{item}', [ResidentController::class, 'viewDocument'])->name('resident.eligibility.document');
     Route::post('/eligibility/checklist/{service}/edit', [ResidentController::class, 'unlockChecklist'])->name('resident.eligibility.checklist.edit');
 
     // Profile Settings
@@ -159,10 +163,10 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     Route::delete('/templates/{template}', [FacilitatorController::class, 'destroyTemplate'])->name('facilitator.templates.destroy');
 
     // Reports & Data Export Center
-    Route::get('/reports', [FacilitatorController::class, 'reports'])->name('facilitator.reports');
-    Route::get('/reports/export/applications', [FacilitatorController::class, 'exportApplications'])->name('facilitator.reports.export.applications');
-    Route::get('/reports/export/residents', [FacilitatorController::class, 'exportResidents'])->name('facilitator.reports.export.residents');
-    Route::get('/reports/export/assessments', [FacilitatorController::class, 'exportAssessments'])->name('facilitator.reports.export.assessments');
-    Route::get('/reports/export/inquiries', [FacilitatorController::class, 'exportInquiries'])->name('facilitator.reports.export.inquiries');
-    Route::get('/reports/export/all', [FacilitatorController::class, 'exportAllMasterReport'])->name('facilitator.reports.export.all');
+    Route::get('/reports', [ReportController::class, 'index'])->name('facilitator.reports');
+    Route::get('/reports/export/applications', [ReportController::class, 'exportApplications'])->name('facilitator.reports.export.applications');
+    Route::get('/reports/export/residents', [ReportController::class, 'exportResidents'])->name('facilitator.reports.export.residents');
+    Route::get('/reports/export/assessments', [ReportController::class, 'exportAssessments'])->name('facilitator.reports.export.assessments');
+    Route::get('/reports/export/inquiries', [ReportController::class, 'exportInquiries'])->name('facilitator.reports.export.inquiries');
+    Route::get('/reports/export/all', [ReportController::class, 'exportAllMasterReport'])->name('facilitator.reports.export.all');
 });

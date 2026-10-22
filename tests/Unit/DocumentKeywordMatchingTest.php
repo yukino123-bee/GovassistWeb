@@ -3,13 +3,13 @@
 use Symfony\Component\Process\Process;
 
 test('document keyword matching accepts all configured keywords across OCR variations', function () {
-    $scriptPath = dirname(__DIR__, 2).'/scripts/compare_images.py';
+    $scriptPath = dirname(__DIR__, 2).'/scripts/document_review.py';
     $python = <<<'PYTHON'
 import importlib.util
 import json
 import sys
 
-spec = importlib.util.spec_from_file_location("compare_images", sys.argv[1])
+spec = importlib.util.spec_from_file_location("document_review", sys.argv[1])
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 

@@ -5,235 +5,183 @@
 @section('page_title', 'Eligibility Questions')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="space-y-5">
 
-    <!-- Questions List (2/3 width) -->
-    <div class="lg:col-span-2 bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/40">
-            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-                Existing Assessment Questions
-            </h3>
+    @php
+        $totalQuestions = $questions->count();
+        $requiredQuestions = $questions->where('is_required', true)->count();
+        $coveredPrograms = $questions->pluck('service_id')->unique()->count();
+    @endphp
+
+    <!-- Overview Metrics Bar -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <!-- Total Questions -->
+        <div class="group bg-blue-50/70 border border-blue-200 p-3.5 rounded-lg flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-blue-300">
+            <div>
+                <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider block leading-tight">Total Assessment Questions</span>
+                <span class="text-2xl font-bold text-slate-850 block mt-1 leading-none group-hover:text-blue-700 transition-colors">{{ $totalQuestions }}</span>
+            </div>
+            <div class="w-9 h-9 rounded-md bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-blue-200/40">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
         </div>
 
-        <div class="overflow-x-auto p-6 space-y-8">
-            @php
-                $groupedQuestions = $questions->groupBy(function($q) { return $q->service->service_name; });
-            @endphp
-            
-            @forelse($groupedQuestions as $serviceName => $serviceQuestions)
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
-                    <div class="bg-slate-50 border-b border-slate-200 px-4 py-3.5 flex items-center justify-between">
-                        <h4 class="font-extrabold text-sm text-red-700 uppercase tracking-wide flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                            {{ $serviceName }}
-                        </h4>
-                        <span class="text-xs font-bold text-slate-500 bg-white px-2.5 py-1 border border-slate-200 rounded-xl shadow-3xs">{{ $serviceQuestions->count() }} Question(s)</span>
-                    </div>
-                    <table class="w-full text-left text-xs text-slate-600">
-                        <thead>
-                            <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
-                                <th class="px-6 py-3.5 w-1/2">Assessment Question</th>
-                                <th class="px-6 py-3.5">Expected Answer</th>
-                                <th class="px-6 py-3.5 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            @foreach($serviceQuestions as $q)
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="px-6 py-4">
-                                        @php
-                                            $locale = app()->getLocale();
-                                            $mainQuestion = $q->{'question_text_' . $locale} ?: $q->question_text_en;
-                                        @endphp
-                                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                                            <div class="text-sm font-extrabold text-slate-800 leading-snug">{{ $mainQuestion }}</div>
-                                            <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-xl border {{ $q->is_required ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200' }}">
-                                                {{ $q->is_required ? 'Required' : 'Optional' }}
-                                            </span>
-                                        </div>
-                                        <div class="text-xs text-slate-500 mt-1.5 space-y-1">
-                                            @if($locale !== 'en' && $q->question_text_en)<p>EN: {{ $q->question_text_en }}</p>@endif
-                                            @if($locale !== 'ceb' && $q->question_text_ceb)<p>CEB: {{ $q->question_text_ceb }}</p>@endif
-                                            @if($locale !== 'fil' && $q->question_text_fil)<p>FIL: {{ $q->question_text_fil }}</p>@endif
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($q->type === 'boolean')
-                                            <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold border border-emerald-200 uppercase tracking-wider rounded-xl">
-                                                {{ $q->expected_value === 'true' ? 'Yes' : 'No' }}
-                                            </span>
-                                        @else
-                                            <span class="text-xs font-bold text-slate-700">
-                                                {{ $q->operator }} {{ $q->expected_value }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end space-x-2">
-                                            <a href="{{ route('facilitator.eligibility.edit', $q->id) }}" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </a>
-                                            <form action="{{ route('facilitator.eligibility.destroy', $q->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this question?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @empty
-                <div class="px-6 py-10 text-center text-slate-400 font-medium text-xs">No assessment questions defined yet.</div>
-            @endforelse
+        <!-- Mandatory Rules -->
+        <div class="group bg-amber-50/70 border border-amber-200 p-3.5 rounded-lg flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-amber-300">
+            <div>
+                <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider block leading-tight">Required Rules</span>
+                <span class="text-2xl font-bold text-slate-850 block mt-1 leading-none group-hover:text-amber-700 transition-colors">{{ $requiredQuestions }}</span>
+            </div>
+            <div class="w-9 h-9 rounded-md bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-200/40">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Programs Covered -->
+        <div class="group bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-lg flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-emerald-300">
+            <div>
+                <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block leading-tight">Configured Programs</span>
+                <span class="text-2xl font-bold text-slate-850 block mt-1 leading-none group-hover:text-emerald-700 transition-colors">{{ $coveredPrograms }}</span>
+            </div>
+            <div class="w-9 h-9 rounded-md bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-200/40">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            </div>
         </div>
     </div>
 
-    <!-- Add Rule Form (1/3 width) -->
-    <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden h-fit">
-        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/40">
-            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
-                <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-                Add Eligibility Question
-            </h3>
+    <!-- Main Content: Left Questions List + Right Add Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Questions List (8/12) -->
+        <div class="lg:col-span-8 space-y-4">
+            @php
+                $groupedQuestions = $questions->groupBy(function($q) { return $q->service?->service_name ?? 'Other'; });
+            @endphp
+            
+            @forelse($groupedQuestions as $serviceName => $serviceQuestions)
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-3.5">
+                    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                        <h4 class="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center">
+                            <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                            {{ $serviceName }}
+                        </h4>
+                        <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 border border-slate-200 rounded-md">
+                            {{ $serviceQuestions->count() }} Question(s)
+                        </span>
+                    </div>
+
+                    <div class="overflow-hidden bg-white border border-slate-200 rounded-md shadow-2xs">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-650">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50">
+                                        <th class="px-5 py-3 w-1/2">Assessment Question</th>
+                                        <th class="px-5 py-3">Applicant Passes If</th>
+                                        <th class="px-5 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($serviceQuestions as $q)
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="px-5 py-3.5">
+                                                @php
+                                                    $locale = app()->getLocale();
+                                                    $mainQuestion = $q->{'question_text_' . $locale} ?: $q->question_text_en;
+                                                @endphp
+                                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                    <span class="text-xs font-bold text-slate-850 leading-snug">{{ $mainQuestion }}</span>
+                                                    <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full border {{ $q->is_required ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200' }}">
+                                                        {{ $q->is_required ? 'Required' : 'Optional' }}
+                                                    </span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 space-y-0.5">
+                                                    @if($locale !== 'en' && $q->question_text_en)<p>EN: {{ $q->question_text_en }}</p>@endif
+                                                    @if($locale !== 'ceb' && $q->question_text_ceb)<p>CEB: {{ $q->question_text_ceb }}</p>@endif
+                                                    @if($locale !== 'fil' && $q->question_text_fil)<p>FIL: {{ $q->question_text_fil }}</p>@endif
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                                <span class="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200">
+                                                    {{ $q->passing_rule_label }}
+                                                </span>
+                                            </td>
+                                            <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                                                <div class="flex items-center justify-end space-x-2">
+                                                    <a href="{{ route('facilitator.eligibility.edit', $q) }}" class="inline-flex items-center text-xs font-extrabold text-red-700 hover:text-white uppercase tracking-wider bg-red-50 hover:bg-red-700 px-2.5 py-1 rounded-lg border border-red-100 transition-all shadow-3xs">
+                                                        Edit
+                                                    </a>
+                                                    <form action="{{ route('facilitator.eligibility.destroy', $q) }}" method="POST" class="inline" id="delete-q-{{ $q->id }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" onclick="showConfirmModal('Are you sure you want to delete this eligibility question?', () => document.getElementById('delete-q-{{ $q->id }}').submit(), 'Delete Question')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100" title="Delete Question">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white border border-slate-200 rounded-lg p-8 text-center text-slate-400 text-xs italic">
+                    No assessment questions configured yet.
+                </div>
+            @endforelse
         </div>
 
-        <form action="{{ route('facilitator.eligibility.store') }}" method="POST" class="p-6 space-y-4">
-            @csrf
-
-            <div class="space-y-1.5">
-                <label for="service_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Link</label>
-                <select name="service_id" id="service_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
-                    @foreach($services as $svc)
-                        <option value="{{ $svc->id }}">{{ $svc->service_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="question_text" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Question</label>
-                <textarea name="question_text" id="question_text" rows="2" placeholder="e.g. Is your monthly income less than Php 15,000?" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required></textarea>
-                <p class="text-xs text-slate-400 mt-1">The system will automatically translate this into Cebuano and Filipino.</p>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="type" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Question Type</label>
-                <select name="type" id="type" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
-                    <option value="boolean">Yes / No Question</option>
-                    <option value="number">Number / Amount / Count</option>
-                    <option value="text">Text / Answer</option>
-                </select>
-            </div>
-
-            <input type="hidden" name="operator" id="operator_hidden" value="==">
-
-            <div class="space-y-1.5">
-                <label id="expected_val_label" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Expected Answer to Pass</label>
-                
-                <!-- Dropdown choice for Boolean type -->
-                <select id="expected_value_boolean" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold">
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                </select>
-
-                <!-- Input for numeric/text types -->
-                <input type="text" id="expected_value_text" placeholder="e.g. 15000" class="hidden w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800">
-                
-                <!-- Real hidden input submitted -->
-                <input type="hidden" name="expected_value" id="expected_value" value="true">
-            </div>
-
-            <label class="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
-                <input type="hidden" name="is_required" value="0">
-                <input type="checkbox" name="is_required" value="1" checked class="mt-0.5 w-4 h-4 text-red-700 border-slate-300 rounded focus:ring-red-600">
-                <span>
-                    <span class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Required eligibility criterion</span>
-                    <span class="block mt-1 text-xs text-slate-500">Uncheck this for supporting questions that must not disqualify a resident.</span>
+        <!-- Add Question Form (4/12) -->
+        <div class="lg:col-span-4 bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4 sticky top-4">
+            <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                    <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                    Add Question
+                </h3>
+                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-extrabold rounded-full border border-emerald-200 uppercase">
+                    ✨ Translated for you
                 </span>
-            </label>
+            </div>
 
-            <button type="submit" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all shadow-xs">
-                Save Eligibility Question
-            </button>
-        </form>
+            <form action="{{ route('facilitator.eligibility.store') }}" method="POST" class="space-y-3.5">
+                @csrf
+
+                <div class="space-y-1">
+                    <label for="service_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Program</label>
+                    <select name="service_id" id="service_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold cursor-pointer" required>
+                        <option value="">-- Select Service --</option>
+                        @foreach($services as $svc)
+                            <option value="{{ $svc->id }}">{{ $svc->name_en }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="question_text" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Question (write it in English)</label>
+                    <textarea name="question_text" id="question_text" rows="2" placeholder="e.g. Is your monthly household income below 15,000 PHP?" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-medium" required></textarea>
+                </div>
+
+                @include('facilitator.eligibility._rule-fields', ['question' => null])
+
+                <button type="submit" class="w-full py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold uppercase tracking-wider rounded-md shadow-xs transition-all flex items-center justify-center space-x-1.5 mt-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Save Question</span>
+                </button>
+            </form>
+        </div>
+
     </div>
 
 </div>
 
-<script>
-    function toggleInputs(type) {
-        const opHidden = document.getElementById('operator_hidden');
-        const valReal = document.getElementById('expected_value');
-        const valBool = document.getElementById('expected_value_boolean');
-        const valText = document.getElementById('expected_value_text');
-        const label = document.getElementById('expected_val_label');
-        
-        if (type === 'boolean') {
-            opHidden.value = '==';
-            if (valBool) valBool.classList.remove('hidden');
-            if (valText) valText.classList.add('hidden');
-            if (valReal && valBool) valReal.value = valBool.value;
-            if (label) label.innerText = 'Expected Answer to Pass';
-        } else if (type === 'number') {
-            opHidden.value = '<'; // Math behind the scene
-            if (valBool) valBool.classList.add('hidden');
-            if (valText) {
-                valText.classList.remove('hidden');
-                valText.placeholder = 'e.g. 15000';
-                valText.readOnly = false;
-                if (valReal) valReal.value = valText.value;
-            }
-            if (label) label.innerText = 'Expected Limit (Less than this value passes)';
-        } else if (type === 'text') {
-            opHidden.value = '==';
-            if (valBool) valBool.classList.add('hidden');
-            if (valText) {
-                valText.classList.remove('hidden');
-                valText.value = 'N/A';
-                valText.readOnly = true;
-                if (valReal) valReal.value = 'N/A';
-            }
-            if (label) label.innerText = 'Expected Answer';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const valBool = document.getElementById('expected_value_boolean');
-        const valText = document.getElementById('expected_value_text');
-        const valReal = document.getElementById('expected_value');
-        const typeSelect = document.getElementById('type');
-        
-        if (valBool && valReal) {
-            valBool.addEventListener('change', () => {
-                if (typeSelect && typeSelect.value === 'boolean') {
-                    valReal.value = valBool.value;
-                }
-            });
-        }
-        
-        if (valText && valReal) {
-            valText.addEventListener('input', () => {
-                if (typeSelect && typeSelect.value !== 'boolean') {
-                    valReal.value = valText.value;
-                }
-            });
-        }
-
-        if (typeSelect) {
-            toggleInputs(typeSelect.value);
-            typeSelect.addEventListener('change', (e) => {
-                toggleInputs(e.target.value);
-            });
-        }
-    });
-</script>
 @endsection

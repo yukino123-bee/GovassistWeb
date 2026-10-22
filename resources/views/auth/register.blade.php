@@ -19,7 +19,7 @@
     <!-- Centered Register Box -->
     <div class="flex flex-col items-center justify-center w-full">
         <!-- Sharp Container Card -->
-        <div class="w-full max-w-[440px] bg-white p-8 sm:p-10 shadow-xl rounded-none border border-red-100 space-y-6 relative">
+        <div class="w-full max-w-[520px] bg-white p-8 sm:p-10 shadow-xl rounded-none border border-red-100 space-y-6 relative">
             
             <!-- Dialect Switcher in Upper Right Corner -->
             <div class="absolute top-4 right-4 flex items-center space-x-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -78,15 +78,46 @@
                     <p class="text-[10px] text-slate-400 sm:col-span-2">Use letters, spaces, apostrophes, periods, or hyphens only.</p>
                 </div>
 
-                <!-- Email Input -->
-                <div class="space-y-1">
-                    <label for="email" class="block text-sm font-bold text-slate-700">{{ __('messages.email') }}</label>
-                    <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
-                        <!-- Mail Icon -->
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}" placeholder="{{ __('messages.register_email_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div class="space-y-1">
+                        <label for="dob" class="block text-sm font-bold text-slate-700">{{ __('messages.date_of_birth') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="date" name="dob" id="dob" value="{{ old('dob') }}" max="{{ now()->subDay()->toDateString() }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" autocomplete="bday" required>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="sex" class="block text-sm font-bold text-slate-700">{{ __('messages.sex') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <select name="sex" id="sex" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" required>
+                                <option value="">{{ __('messages.select_option') }}</option>
+                                <option value="Male" @selected(old('sex') === 'Male')>{{ __('messages.male') }}</option>
+                                <option value="Female" @selected(old('sex') === 'Female')>{{ __('messages.female') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="civil_status" class="block text-sm font-bold text-slate-700">{{ __('messages.civil_status') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <select name="civil_status" id="civil_status" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" required>
+                                <option value="">{{ __('messages.select_option') }}</option>
+                                <option value="Single" @selected(old('civil_status') === 'Single')>Single</option><option value="Married" @selected(old('civil_status') === 'Married')>Married</option><option value="Widowed" @selected(old('civil_status') === 'Widowed')>Widowed</option><option value="Divorced" @selected(old('civil_status') === 'Divorced')>Divorced</option><option value="Live-in" @selected(old('civil_status') === 'Live-in')>Live-in</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="space-y-1">
+                        <label for="barangay" class="block text-sm font-bold text-slate-700">{{ __('messages.barangay') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="text" name="barangay" id="barangay" value="{{ old('barangay') }}" maxlength="255" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" required>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="street_address" class="block text-sm font-bold text-slate-700">{{ __('messages.street_address') }}</label>
+                        <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                            <input type="text" name="street_address" id="street_address" value="{{ old('street_address') }}" maxlength="255" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm" autocomplete="address-line1" required>
+                        </div>
                     </div>
                 </div>
 
@@ -98,8 +129,21 @@
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
-                        <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number') }}" placeholder="{{ __('messages.contact_number_placeholder') }}" pattern="^(09|\+639|639)[0-9]{9}$" title="Please enter a valid Philippine mobile number (e.g. 09171234567)" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
+                        <input type="tel" inputmode="numeric" name="contact_number" id="contact_number" value="{{ old('contact_number') }}" placeholder="{{ __('messages.contact_number_placeholder') }}" pattern="^(09|\+639|639)[0-9]{9}$" title="Please enter a valid Philippine mobile number (e.g. 09171234567)" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" autocomplete="tel" required>
                     </div>
+                <p class="text-[10px] text-slate-400">{{ __('messages.contact_number_hint') }}</p>
+                </div>
+
+                <!-- Email Input (optional) -->
+                <div class="space-y-1">
+                    <label for="email" class="block text-sm font-bold text-slate-700">{{ __('messages.email_optional') }}</label>
+                    <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}" placeholder="{{ __('messages.register_email_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" autocomplete="email">
+                    </div>
+                    <p class="text-[10px] text-slate-400">{{ __('messages.email_optional_hint') }}</p>
                 </div>
 
                 <!-- Password Input -->
@@ -139,6 +183,11 @@
                         </button>
                     </div>
                 </div>
+
+                <label class="flex items-start gap-2.5 text-[11px] leading-relaxed text-slate-600">
+                    <input type="checkbox" name="privacy_consent" value="1" class="mt-0.5 h-4 w-4 accent-[#d5001c]" @checked(old('privacy_consent')) required>
+                    <span>{{ __('messages.privacy_consent') }}</span>
+                </label>
 
                 <!-- Sharp Submit Button -->
                 <button type="submit" class="w-full py-4 bg-[#d5001c] hover:bg-[#b80010] text-white font-bold rounded-none transition-all shadow-lg shadow-red-600/10 text-sm mt-2">

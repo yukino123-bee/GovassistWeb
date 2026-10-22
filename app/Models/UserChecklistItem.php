@@ -10,7 +10,7 @@ class UserChecklistItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['checklist_id', 'requirement_id', 'is_submitted', 'file_path', 'submitted_at', 'status'];
+    protected $fillable = ['checklist_id', 'requirement_id', 'is_submitted', 'file_path', 'submitted_at', 'status', 'review_result', 'review_score', 'review_note'];
 
     protected $casts = [
         'is_submitted' => 'boolean',

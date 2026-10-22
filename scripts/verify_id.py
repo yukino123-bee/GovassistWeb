@@ -1,147 +1,80 @@
-import sys
+#!/usr/bin/env python3
+"""
+Checks that the name on an uploaded valid ID matches the resident's name.
+
+Only rejects when the ID was clearly readable and neither the first nor the
+last name appears on it. Anything unclear (blurry photo, no OCR engine on the
+server) is accepted so genuine residents are never blocked.
+
+Usage: verify_id.py <image> <first_name> [middle_name] [last_name]
+"""
 import json
 import os
-import subprocess
-import shutil
+import sys
 
-def clean_text(text):
-    if not text:
-        return ""
-    cleaned = "".join([c.lower() if c.isalnum() else " " for c in text])
-    return " ".join(cleaned.split())
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def check_name_components(cleaned_text, first_name, middle_name, last_name):
-    if not cleaned_text:
-        return True
-        
-    ocr_words = set(cleaned_text.split())
-    
-    # 1. First Name Match
-    first_words = [clean_text(w) for w in (first_name or "").split() if clean_text(w)]
-    first_match = True if not first_words else any(w in ocr_words or w in cleaned_text for w in first_words)
-    
-    # 2. Last Name Match
-    last_words = [clean_text(w) for w in (last_name or "").split() if clean_text(w)]
-    last_match = True if not last_words else any(w in ocr_words or w in cleaned_text for w in last_words)
-    
-    # 3. Middle Name / Initial Match
-    mid_clean = clean_text(middle_name or "")
-    if not mid_clean:
-        mid_match = True
-    else:
-        initial = mid_clean[0]
-        mid_match = (mid_clean in cleaned_text) or any(w.startswith(initial) for w in ocr_words)
-        
-    return first_match and last_match and mid_match
+from document_review import (  # noqa: E402
+    MIN_CONFIDENT_OCR,
+    MIN_READABLE_WORDS,
+    clean_text,
+    extract_any,
+    word_matches,
+)
 
-def extract_text(image_path):
-    extracted_text = ""
 
-    # Method 1: Try PaddleOCR if available
-    try:
-        from paddleocr import PaddleOCR
-        ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
-        result = ocr.ocr(image_path, cls=True)
-        if result:
-            text_lines = []
-            for res in result:
-                if res:
-                    for line in res:
-                        if line and len(line) > 1 and line[1]:
-                            text_lines.append(line[1][0])
-            if text_lines:
-                return " ".join(text_lines), "paddleocr"
-    except Exception:
-        pass
+def name_present(name, document_words):
+    parts = [p for p in clean_text(name).split() if p]
 
-    # Method 2: Try EasyOCR if available
-    try:
-        import easyocr
-        reader = easyocr.Reader(['en'], gpu=False)
-        results = reader.readtext(image_path, detail=0)
-        if results:
-            return " ".join(results), "easyocr"
-    except Exception:
-        pass
+    return bool(parts) and any(word_matches(p, document_words) or p in document_words for p in parts)
 
-    # Method 2: Try pytesseract + PIL
-    try:
-        import pytesseract
-        from PIL import Image
-        
-        img = Image.open(image_path)
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-            
-        w, h = img.size
-        if max(w, h) > 1800:
-            scale = 1800 / max(w, h)
-            img = img.resize((int(w * scale), int(h * scale)))
-            
-        for angle in [0, 90, 180, 270]:
-            rotated = img.rotate(angle, expand=True)
-            t = pytesseract.image_to_string(rotated)
-            if t:
-                extracted_text += t + " "
-                
-        if extracted_text.strip():
-            return extracted_text, "pytesseract"
-    except Exception:
-        pass
 
-    # Method 3: Try CLI tesseract binary
-    if shutil.which("tesseract"):
-        try:
-            res = subprocess.run(["tesseract", image_path, "stdout"], capture_output=True, text=True, timeout=15)
-            if res.returncode == 0 and res.stdout.strip():
-                return res.stdout, "tesseract_cli"
-        except Exception:
-            pass
+def verify_id(path, first_name, middle_name="", last_name=""):
+    if not os.path.exists(path):
+        return {"match": True, "method": "missing_file", "note": "File could not be read, accepted."}
 
-    # Method 4: If PDF, try pdftotext
-    ext = os.path.splitext(image_path)[1].lower()
-    if ext == ".pdf" and shutil.which("pdftotext"):
-        try:
-            res = subprocess.run(["pdftotext", image_path, "-"], capture_output=True, text=True, timeout=15)
-            if res.returncode == 0 and res.stdout.strip():
-                return res.stdout, "pdftotext_cli"
-        except Exception:
-            pass
+    extraction = extract_any(path)
+    words = extraction["words"]
+    confidence = extraction["confidence"]
 
-    return None, "none"
+    readable = words >= MIN_READABLE_WORDS and (confidence is None or confidence >= MIN_CONFIDENT_OCR)
+    if not readable:
+        return {
+            "match": True,
+            "method": extraction["engine"] or "unreadable",
+            "readable": False,
+            "issues": extraction["issues"],
+            "note": "The ID could not be read automatically, so it was accepted for staff review.",
+        }
 
-def verify_id(image_path, first_name, middle_name="", last_name=""):
-    if not os.path.exists(image_path):
-        return {"match": True, "note": f"File path not on local disk: {image_path}"}
-        
-    text, method = extract_text(image_path)
-    
-    # If OCR engine produces text, check component matching
-    if text and text.strip() and method != "none":
-        cleaned_text = clean_text(text)
-        matched = check_name_components(cleaned_text, first_name, middle_name, last_name)
-        if matched:
-            return {"match": True, "method": method}
+    document_words = set(clean_text(extraction["text"]).split())
+    first_ok = name_present(first_name, document_words) if clean_text(first_name) else True
+    last_ok = name_present(last_name, document_words) if clean_text(last_name) else True
+    middle_ok = name_present(middle_name, document_words) if clean_text(middle_name) else True
 
-    # Accept the uploaded valid ID file to ensure legitimate users are never blocked
-    return {"match": True, "method": "accepted", "note": "ID uploaded successfully"}
+    # A single missing part can be an OCR slip or a formatting difference; both missing is a real mismatch.
+    match = first_ok or last_ok
+    note = "Name found on the ID." if first_ok and last_ok else "Only part of the name was found on the ID."
+    if not match:
+        note = "Neither the first nor the last name was found on the ID."
+
+    return {
+        "match": match,
+        "method": extraction["engine"],
+        "readable": True,
+        "name_parts": {"first": first_ok, "middle": middle_ok, "last": last_ok},
+        "note": note,
+    }
+
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    arguments = sys.argv[1:]
+    if not arguments:
         print(json.dumps({"match": True, "note": "Missing arguments, accepting"}))
         sys.exit(0)
-        
-    image_path = sys.argv[1]
-    
-    first_name = sys.argv[2] if len(sys.argv) > 2 else ""
-    middle_name = sys.argv[3] if len(sys.argv) > 3 else ""
-    last_name = sys.argv[4] if len(sys.argv) > 4 else ""
-    
-    if ',' in first_name and not last_name:
-        parts = [p.strip() for p in first_name.split(',') if p.strip()]
-        first_name = parts[0] if len(parts) > 0 else ""
-        middle_name = parts[1] if len(parts) > 1 else ""
-        last_name = parts[2] if len(parts) > 2 else (parts[1] if len(parts) > 1 else "")
 
-    result = verify_id(image_path, first_name, middle_name, last_name)
-    print(json.dumps(result))
+    first_name = arguments[1] if len(arguments) > 1 else ""
+    middle_name = arguments[2] if len(arguments) > 2 else ""
+    last_name = arguments[3] if len(arguments) > 3 else ""
+
+    print(json.dumps(verify_id(arguments[0], first_name, middle_name, last_name)))

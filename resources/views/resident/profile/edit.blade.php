@@ -84,6 +84,16 @@
                     <p class="text-[10px] text-slate-400">Format: MM/DD/YYYY. Future dates are not allowed.</p>
                 </div>
 
+                <!-- Sex -->
+                <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
+                    <label for="sex" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.sex') }}</label>
+                    <select name="sex" id="sex" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                        <option value="">{{ __('messages.select_option') }}</option>
+                        <option value="Male" @selected(old('sex', Auth::user()->sex) === 'Male')>{{ __('messages.male') }}</option>
+                        <option value="Female" @selected(old('sex', Auth::user()->sex) === 'Female')>{{ __('messages.female') }}</option>
+                    </select>
+                </div>
+
                 <!-- Civil Status -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="civil_status" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.civil_status') }}</label>
@@ -106,14 +116,14 @@
 
                 <!-- Email Address -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
-                    <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.email_address') }}</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" placeholder="e.g. juan@example.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="email" required>
+                    <label for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.email_optional') }}</label>
+                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" placeholder="e.g. juan@example.com" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="email">
                 </div>
 
                 <!-- Contact Info -->
                 <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
                     <label for="contact_number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.contact_info') }}</label>
-                    <input type="tel" name="contact_number" id="contact_number" value="{{ old('contact_number', Auth::user()->contact_number) }}" placeholder="e.g. 09171234567" pattern="(?:\+63|0)9[0-9]{9}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="tel">
+                    <input type="tel" name="contact_number" id="contact_number" value="{{ old('contact_number', Auth::user()->contact_number) }}" placeholder="e.g. 09171234567" pattern="(?:\+63|0)9[0-9]{9}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="tel" required>
                     <p class="text-[10px] text-slate-400">Use 09XXXXXXXXX or +639XXXXXXXXX.</p>
                 </div>
 
@@ -128,7 +138,7 @@
                             <span>{{ __('messages.id_uploaded_status') }}</span>
                         </div>
                     @endif
-                    <input type="file" name="valid_id" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:border file:border-slate-200 file:text-[10px] file:font-bold file:uppercase file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 cursor-pointer">
+                    <input type="file" name="valid_id" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:border file:border-slate-200 file:text-[10px] file:font-bold file:uppercase file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 cursor-pointer">
                 </div>
             </div>
 
@@ -141,10 +151,22 @@
             </div>
 
             <!-- Complete Address -->
-            <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-2">
-                <label for="address" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.address') }}</label>
-                <textarea name="address" id="address" rows="2" maxlength="500" placeholder="House/Unit No., Street, Barangay, Municipality/City, Province" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="street-address">{{ old('address', Auth::user()->address) }}</textarea>
-                <p class="text-[10px] text-slate-400">Include house or unit number, street, barangay, city or municipality, and province.</p>
+            <div class="bg-white border border-slate-200 p-5 shadow-sm space-y-4">
+                <span class="block text-xs font-bold text-slate-700 uppercase tracking-wider">{{ __('messages.address') }}</span>
+                @if(Auth::user()->address && ! Auth::user()->barangay && ! Auth::user()->street_address)
+                    <p class="text-[10px] text-slate-500 bg-slate-50 border border-slate-200 px-3 py-2">{{ Auth::user()->address }}</p>
+                    <input type="hidden" name="address" value="{{ old('address', Auth::user()->address) }}">
+                @endif
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label for="barangay" class="block text-[11px] font-bold text-slate-600">{{ __('messages.barangay') }}</label>
+                        <input type="text" name="barangay" id="barangay" value="{{ old('barangay', Auth::user()->barangay) }}" maxlength="255" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="street_address" class="block text-[11px] font-bold text-slate-600">{{ __('messages.street_address') }}</label>
+                        <input type="text" name="street_address" id="street_address" value="{{ old('street_address', Auth::user()->street_address) }}" maxlength="255" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800" autocomplete="address-line1">
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -34,7 +34,7 @@
                     @endphp
                     <div class="bg-white border-l-4 border-l-red-600 border-t border-r border-b border-slate-200 p-6 flex flex-col justify-between hover:border-red-600 hover:shadow-md transition-all duration-300 shadow-sm">
                         <div class="mb-4">
-                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Government Program</span>
+                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">{{ __('messages.gov_program') }}</span>
                             <h4 class="text-sm font-extrabold text-slate-900 mt-1.5">{{ $serviceName }}</h4>
                         </div>
                         
@@ -59,7 +59,7 @@
             
             @if($assessments->isEmpty())
                 <div class="bg-white border border-slate-200 p-6 text-center text-slate-400 text-xs font-semibold uppercase tracking-wider shadow-sm">
-                    No past assessments found.
+                    {{ __('messages.no_assessments') }}
                 </div>
             @else
                 <div class="space-y-4">
@@ -85,19 +85,19 @@
                             <div>
                                 <span class="text-[9px] font-bold text-red-700 block uppercase tracking-wider">REF-ASST-{{ $assess->id }}</span>
                                 <h4 class="text-xs font-bold text-slate-900 mt-1 max-w-[70%]">{{ $assessName }}</h4>
-                                <span class="text-[10px] text-slate-400 block mt-2">Assessed: {{ $assess->created_at->format('M d, Y h:i A') }}</span>
+                                <span class="text-[10px] text-slate-400 block mt-2">{{ __('messages.assessed_on') }} {{ $assess->created_at->format('M d, Y h:i A') }}</span>
                             </div>
 
                             <div class="mt-4 pt-3.5 border-t border-slate-100 flex justify-between items-center">
                                 @if(isset($reassessmentRequests) && isset($reassessmentRequests[$assess->service->id]))
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center space-x-1 bg-amber-50 px-2 py-1 border border-amber-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        <span>Reassessment Requested</span>
+                                        <span>{{ __('messages.reassessment_requested') }}</span>
                                     </span>
                                 @else
-                                    <button type="button" onclick="openReassessmentModal({{ $assess->service->id }}, '{{ addslashes($assessName) }}')" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 flex items-center space-x-1 transition-colors">
+                                    <button type="button" onclick="openReassessmentModal({{ $assess->service->id }}, @js($assessName))" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 flex items-center space-x-1 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        <span>Request Reassessment</span>
+                                        <span>{{ __('messages.request_reassessment') }}</span>
                                     </button>
                                 @endif
 
@@ -120,12 +120,12 @@
 </div>
 
 <!-- Reassessment Request Modal -->
-<div id="reassessmentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+<div id="reassessmentModal" role="dialog" aria-modal="true" aria-labelledby="reassessmentModalTitle" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="bg-white border border-slate-200 shadow-xl w-full max-w-md transform scale-95 transition-transform duration-300" id="reassessmentModalContent">
         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
+            <h3 id="reassessmentModalTitle" class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
                 <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-                Request Reassessment
+                {{ __('messages.request_reassessment') }}
             </h3>
             <button type="button" onclick="closeReassessmentModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -134,15 +134,15 @@
         <form id="reassessmentForm" method="POST" action="">
             @csrf
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-600">You are requesting a reassessment for <strong id="reassessmentServiceName" class="text-slate-900"></strong>. Please provide a valid reason why you need to retake the eligibility assessment.</p>
+                <p class="text-xs text-slate-600">{!! str_replace('§', '<strong id="reassessmentServiceName" class="text-slate-900"></strong>', e(__('messages.reassess_modal_desc', ['service' => '§']))) !!}</p>
                 <div class="space-y-1.5">
-                    <label for="reason" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Reason</label>
-                    <textarea name="reason" id="reason" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required placeholder="e.g. My circumstances have changed since my last assessment..."></textarea>
+                    <label for="reason" class="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">{{ __('messages.reason') }}</label>
+                    <textarea name="reason" id="reason" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-none focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required placeholder="{{ __('messages.reason_placeholder') }}"></textarea>
                 </div>
             </div>
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
-                <button type="button" onclick="closeReassessmentModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-none font-extrabold text-[10px] uppercase tracking-widest transition-all">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-none font-extrabold text-[10px] uppercase tracking-widest transition-all">Submit Request</button>
+                <button type="button" onclick="closeReassessmentModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-none font-extrabold text-[10px] uppercase tracking-widest transition-all">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-none font-extrabold text-[10px] uppercase tracking-widest transition-all">{{ __('messages.submit_request') }}</button>
             </div>
         </form>
     </div>
@@ -160,6 +160,10 @@
         modalContent.classList.remove('scale-95');
         modalContent.classList.add('scale-100');
     }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeReassessmentModal();
+    });
 
     function closeReassessmentModal() {
         const modal = document.getElementById('reassessmentModal');

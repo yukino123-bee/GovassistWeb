@@ -5,85 +5,78 @@
 @section('page_title', 'Edit Government Service')
 
 @section('content')
-<div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-    <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest flex items-center">
-            <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
-            Edit Government Service Details
-        </h3>
-        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wider rounded-xl border border-emerald-200 shadow-3xs">
-            ✨ Tagalog & Cebuano Auto-Generated
-        </span>
+<div class="space-y-4 max-w-3xl mx-auto">
+    <div>
+        <a href="{{ route('facilitator.services') }}" class="text-xs font-bold text-slate-500 hover:text-red-700 transition-colors inline-flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Back to Services</span>
+        </a>
     </div>
 
-    <form action="{{ route('facilitator.services.update', $service->id) }}" method="POST" class="space-y-6">
-        @csrf
-        @method('PUT')
-
-        <!-- Category Select -->
-        <div class="space-y-1.5">
-            <label for="category_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Category</label>
-            <select name="category_id" id="category_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
-                <option value="">-- Select Category --</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ $service->category_id == $category->id ? 'selected' : '' }}>{{ $category->category_name }}</option>
-                @endforeach
-            </select>
+    <div class="bg-white rounded-lg border border-slate-200 p-6 shadow-sm space-y-5">
+        <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center">
+                <span class="w-2.5 h-2.5 bg-red-700 mr-2 block"></span>
+                Edit Service: {{ $service->name_en }}
+            </h3>
+            <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-extrabold text-xs uppercase tracking-wider rounded-full border border-emerald-200">
+                ✨ Auto-Translation Active
+            </span>
         </div>
 
-        <!-- Service Titles -->
-        <div class="space-y-3">
-            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">1. Service Title</h4>
-            
+        <form action="{{ route('facilitator.services.update', $service->id) }}" method="POST" class="space-y-5">
+            @csrf
+            @method('PUT')
+
+            <!-- Category Select -->
+            <div class="space-y-1.5">
+                <label for="category_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Category</label>
+                <select name="category_id" id="category_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold cursor-pointer">
+                    <option value="">-- Select Category --</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ $service->category_id == $category->id ? 'selected' : '' }}>{{ $category->category_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Service Title -->
             <div class="space-y-1.5">
                 <label for="name_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Name (English)</label>
-                <input type="text" name="name_en" id="name_en" value="{{ old('name_en', $service->name_en) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>
-                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
+                <input type="text" name="name_en" id="name_en" value="{{ old('name_en', $service->name_en) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
+                <p class="text-[10px] text-slate-400 font-medium">Cebuano & Tagalog translations will be re-synchronized automatically upon saving.</p>
             </div>
-        </div>
 
-        <!-- Descriptions -->
-        <div class="space-y-3">
-            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">2. Service Description</h4>
-
+            <!-- Description -->
             <div class="space-y-1.5">
                 <label for="description_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description (English)</label>
-                <textarea name="description_en" id="description_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('description_en', $service->description_en) }}</textarea>
-                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
+                <textarea name="description_en" id="description_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-medium" required>{{ old('description_en', $service->description_en) }}</textarea>
+                <p class="text-[10px] text-slate-400 font-medium">Cebuano & Tagalog translations will be re-synchronized automatically upon saving.</p>
             </div>
-        </div>
 
-        <!-- Application Procedures -->
-        <div class="space-y-3">
-            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">3. Application Procedure</h4>
-
+            <!-- Application Procedure -->
             <div class="space-y-1.5">
-                <label for="procedure_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Procedure (English)</label>
-                <textarea name="procedure_en" id="procedure_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800" required>{{ old('procedure_en', $service->procedure_en) }}</textarea>
-                <p class="text-[10px] text-slate-400">Tagalog & Cebuano will be translated automatically upon saving.</p>
+                <label for="procedure_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Application Procedure (English)</label>
+                <textarea name="procedure_en" id="procedure_en" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-medium" required>{{ old('procedure_en', $service->procedure_en) }}</textarea>
+                <p class="text-[10px] text-slate-400 font-medium">Cebuano & Tagalog translations will be re-synchronized automatically upon saving.</p>
             </div>
-        </div>
 
-        <!-- Icon selection -->
-        <div class="space-y-1.5">
-            <label for="icon" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Icon Label</label>
-            <select name="icon" id="icon" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold">
-                <option value="academic-cap" {{ $service->icon === 'academic-cap' ? 'selected' : '' }}>Academic Cap (Education)</option>
-                <option value="heart" {{ $service->icon === 'heart' ? 'selected' : '' }}>Heart (Medical)</option>
-                <option value="shield-exclamation" {{ $service->icon === 'shield-exclamation' ? 'selected' : '' }}>Shield Exclamation (Burial)</option>
-                <option value="truck" {{ $service->icon === 'truck' ? 'selected' : '' }}>Truck (Transportation)</option>
-                <option value="briefcase" {{ $service->icon === 'briefcase' ? 'selected' : '' }}>Briefcase (Employment)</option>
-            </select>
-        </div>
+            <!-- Icon Selection -->
+            <div class="space-y-1.5">
+                <label for="icon" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Icon Symbol</label>
+                <select name="icon" id="icon" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold cursor-pointer">
+                    <option value="academic-cap" {{ $service->icon === 'academic-cap' ? 'selected' : '' }}>🎓 Academic Cap (Education)</option>
+                    <option value="heart" {{ $service->icon === 'heart' ? 'selected' : '' }}>❤️ Heart (Medical / Health)</option>
+                    <option value="briefcase" {{ $service->icon === 'briefcase' ? 'selected' : '' }}>💼 Briefcase (Employment / General)</option>
+                </select>
+            </div>
 
-        <div class="flex items-center space-x-3 pt-4 border-t border-slate-100">
-            <button type="submit" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold rounded-xl uppercase tracking-widest transition-all shadow-xs">
-                Update Service
-            </button>
-            <a href="{{ route('facilitator.services') }}" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl uppercase tracking-widest transition-all border border-slate-200">
-                Cancel
-            </a>
-        </div>
-    </form>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <a href="{{ route('facilitator.services') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase tracking-wider rounded-md transition-all">Cancel</a>
+                <button type="submit" class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold uppercase tracking-wider rounded-md shadow-xs transition-all">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

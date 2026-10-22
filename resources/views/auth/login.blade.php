@@ -56,13 +56,13 @@
 
                 <!-- Email Input -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-bold text-slate-700">{{ __('messages.email') }}</label>
+                    <label for="login" class="block text-sm font-bold text-slate-700">{{ __('messages.login_identifier') }}</label>
                     <div class="relative flex items-center bg-white border border-slate-200 rounded-none px-4 py-3.5 focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500 transition-all">
                         <!-- Mail Icon -->
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}" placeholder="{{ __('messages.login_email_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" required>
+                        <input type="text" name="login" id="login" value="{{ old('login') }}" placeholder="{{ __('messages.login_identifier_placeholder') }}" class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 text-sm ml-3" autocomplete="username" required>
                     </div>
                 </div>
 

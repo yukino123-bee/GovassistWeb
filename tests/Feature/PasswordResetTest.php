@@ -15,7 +15,7 @@ test('login page links to the password reset request form', function () {
 
     $this->get(route('password.request'))
         ->assertSuccessful()
-        ->assertSee('Send Password Reset Link');
+        ->assertSee('Send Reset Instructions');
 });
 
 test('user can request a password reset link', function () {

@@ -20,7 +20,7 @@
         <p>Your privacy is critically important to us. This Privacy Policy outlines how the GovAssist platform collects, uses, and protects your personal data in accordance with data protection laws.</p>
         
         <h3 class="text-sm font-bold mt-6 mb-2">1. Data Collection</h3>
-        <p>We collect personal information such as your name, address, contact details, date of birth, and demographic data when you register and apply for government services through our platform. We also securely store submitted documents such as valid IDs.</p>
+        <p>We collect personal information such as your name, mobile number, optional email address, date of birth, sex, civil status, and home address (street and barangay) when you register and apply for government services through our platform. Your mobile number is used to log in, to send one-time verification codes, and to notify you about your applications and inquiries. We also securely store submitted documents such as valid IDs.</p>
 
         <h3 class="text-sm font-bold mt-6 mb-2">2. Data Usage</h3>
         <p>Your data is used strictly for the purpose of processing your applications, assessing your eligibility for government services, and communicating with you regarding your requests. We do not use your data for commercial marketing purposes.</p>
