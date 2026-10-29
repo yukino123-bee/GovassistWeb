@@ -99,7 +99,6 @@ test('a resident cannot see another resident results, documents or inquiries', f
 
     $this->actingAs($intruder)->get(route('resident.inquiry.messages', $inquiry))->assertForbidden();
     $this->actingAs($intruder)->post(route('resident.inquiry.reply', $inquiry), ['message' => 'hi'])->assertForbidden();
-    $this->actingAs($intruder)->post(route('resident.inquiry.resolve', $inquiry))->assertForbidden();
     $this->actingAs($intruder)->delete(route('resident.inquiry.delete_inquiry', $inquiry))->assertForbidden();
     $this->actingAs($intruder)->delete(route('resident.inquiry.delete_reply', $reply))->assertForbidden();
 
@@ -210,8 +209,8 @@ test('written eligibility answers are scored against accepted keywords', functio
     $this->actingAs($failer)->post(route('resident.eligibility.assess.submit', $service), ['question_'.$question->id => 'Mandaue'])
         ->assertRedirect();
 
-    expect(EligibilityAssessment::where('user_id', $passer->id)->value('status'))->toBe('eligible')
-        ->and(EligibilityAssessment::where('user_id', $failer->id)->value('status'))->toBe('ineligible');
+    expect(EligibilityAssessment::where('user_id', $passer->id)->value('status'))->toBe('pending')
+        ->and(EligibilityAssessment::where('user_id', $failer->id)->value('status'))->toBe('pending');
 });
 
 test('written questions without keywords stay informational', function () {
@@ -225,7 +224,7 @@ test('written questions without keywords stay informational', function () {
     $resident = residentUser();
     $this->actingAs($resident)->post(route('resident.eligibility.assess.submit', $service), ['question_'.$question->id => 'nothing'])->assertRedirect();
 
-    expect(EligibilityAssessment::where('user_id', $resident->id)->value('status'))->toBe('eligible');
+    expect(EligibilityAssessment::where('user_id', $resident->id)->value('status'))->toBe('pending');
 });
 
 test('residents, assessments and applications lists are paginated and searchable on the server', function () {

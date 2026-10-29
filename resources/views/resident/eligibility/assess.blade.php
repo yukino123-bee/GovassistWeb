@@ -55,22 +55,13 @@
                         </label>
                     </div>
                 @elseif($q->type === 'number')
-                    @php
-                        $isHouseholdIncome = Illuminate\Support\Str::of($q->question_text_en)
-                            ->lower()
-                            ->containsAll(['household', 'income']);
-                    @endphp
                     <input
                         type="number"
                         name="question_{{ $q->id }}"
-                        placeholder="{{ $isHouseholdIncome ? __('messages.income_placeholder') : __('messages.enter_number') }}"
-                        @if($isHouseholdIncome) min="2000" max="15000" @endif
+                        placeholder="{{ __('messages.enter_number') }}"
                         class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm"
                         {{ $q->is_required ? 'required' : '' }}
                     >
-                    @if($isHouseholdIncome)
-                        <p class="text-[11px] font-semibold text-slate-500">{{ __('messages.income_range_hint') }}</p>
-                    @endif
                 @elseif($q->type === 'text')
                     <textarea name="question_{{ $q->id }}" rows="3" placeholder="{{ __('messages.enter_response') }}" class="w-full px-4 py-3 bg-white border border-slate-200 focus:outline-none focus:border-red-700 transition-all text-sm text-slate-800 rounded-none shadow-sm" {{ $q->is_required ? 'required' : '' }}></textarea>
                 @endif

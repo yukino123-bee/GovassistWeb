@@ -7,7 +7,6 @@ use App\Models\AssessmentAnswer;
 use App\Models\CommonQuestion;
 use App\Models\DocumentTemplate;
 use App\Models\EligibilityAssessment;
-use App\Models\EligibilityQuestion;
 use App\Models\GovernmentService;
 use App\Models\InquiryRequirense;
 use App\Models\ReassessmentRequest;
@@ -101,94 +100,43 @@ class ResidentController extends Controller
         $questions = $service->eligibilityQuestions;
 
         $rules = [];
-        $messages = [];
 
         foreach ($questions as $question) {
-            $inputName = 'question_'.$question->id;
             $presenceRule = $question->is_required ? 'required' : 'nullable';
 
-            $rules[$inputName] = match ($question->type) {
+            $rules['question_'.$question->id] = match ($question->type) {
                 'boolean' => [$presenceRule, 'in:true,false'],
-                'number' => $this->isHouseholdIncomeQuestion($question)
-                    ? [$presenceRule, 'numeric', 'between:2000,15000']
-                    : [$presenceRule, 'numeric'],
+                'number' => [$presenceRule, 'numeric'],
                 default => [$presenceRule, 'string', 'max:5000'],
             };
-
-            if ($this->isHouseholdIncomeQuestion($question)) {
-                $messages[$inputName.'.between'] = 'Household income must be between ₱2,000 and ₱15,000.';
-            }
         }
 
-        $validated = $request->validate($rules, $messages);
+        $validated = $request->validate($rules);
         $answers = [];
-        $isEligible = true;
 
         foreach ($questions as $q) {
-            $inputName = 'question_'.$q->id;
-            $userAnswer = $validated[$inputName] ?? null;
-
-            $questionText = $q->question_text;
-            $answers[$questionText] = $userAnswer ?? 'No Answer';
-
-            if (! $q->is_required) {
-                continue;
-            }
-
-            // Check eligibility rule
-            if ($q->type === 'boolean') {
-                $expected = filter_var($q->expected_value, FILTER_VALIDATE_BOOLEAN);
-                $actual = filter_var($userAnswer, FILTER_VALIDATE_BOOLEAN);
-
-                if (($q->operator === 'equals' || $q->operator === '==') && $actual !== $expected) {
-                    $isEligible = false;
-                }
-            } elseif ($q->type === 'text') {
-                if (! $q->textAnswerPasses($userAnswer)) {
-                    $isEligible = false;
-                }
-            } elseif ($q->type === 'number') {
-                $expected = floatval($q->expected_value);
-                $actual = floatval($userAnswer);
-
-                if ($this->isHouseholdIncomeQuestion($q)) {
-                    $isEligible = $isEligible && $actual >= 2000 && $actual <= 15000;
-                } elseif (($q->operator === 'less_than_or_equal' || $q->operator === '<=') && $actual > $expected) {
-                    $isEligible = false;
-                } elseif (($q->operator === 'less_than' || $q->operator === '<') && $actual >= $expected) {
-                    $isEligible = false;
-                } elseif (($q->operator === 'greater_than_or_equal' || $q->operator === '>=') && $actual < $expected) {
-                    $isEligible = false;
-                } elseif (($q->operator === 'greater_than' || $q->operator === '>') && $actual <= $expected) {
-                    $isEligible = false;
-                } elseif (($q->operator === 'equals' || $q->operator === '==') && $actual != $expected) {
-                    $isEligible = false;
-                }
-            }
+            $answers[$q->question_text] = [
+                'answer' => $validated['question_'.$q->id] ?? 'No Answer',
+                'is_required' => (bool) $q->is_required,
+            ];
         }
 
         $assessment = EligibilityAssessment::create([
             'user_id' => $user->id,
             'service_id' => $service->id,
-            'status' => $isEligible ? 'eligible' : 'ineligible',
+            'status' => 'pending',
         ]);
 
-        foreach ($answers as $qText => $ansText) {
+        foreach ($answers as $qText => $entry) {
             AssessmentAnswer::create([
                 'assessment_id' => $assessment->id,
                 'question' => $qText,
-                'answer' => $ansText ?? 'No Answer',
+                'answer' => $entry['answer'],
+                'is_required' => $entry['is_required'],
             ]);
         }
 
         return redirect()->route('resident.eligibility.result', ['refNo' => $assessment->id]);
-    }
-
-    private function isHouseholdIncomeQuestion(EligibilityQuestion $question): bool
-    {
-        return Str::of($question->question_text_en)
-            ->lower()
-            ->containsAll(['household', 'income']);
     }
 
     public function showAssessResult($refNo)
@@ -545,19 +493,6 @@ class ResidentController extends Controller
                     ->where('guest_email', $request->input('guest_email'))
                     ->first();
             }
-
-            if ($inquiry && $inquiry->isResolvedOrClosed()) {
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
-                    ], 422);
-                }
-
-                return back()->withErrors([
-                    'inquiry_text' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
-                ]);
-            }
         }
 
         if ($inquiry) {
@@ -573,7 +508,7 @@ class ResidentController extends Controller
                 'responded_by' => Auth::check() ? Auth::id() : null,
             ]);
 
-            $inquiry->update(['status' => 'pending']);
+            $inquiry->update(['status' => 'pending', 'awaiting_reply_since' => null]);
             $inquiry->touch();
         } else {
             $subject = $request->input('subject') ?: Str::limit($request->input('inquiry_text'), 50);
@@ -606,20 +541,7 @@ class ResidentController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Your inquiry ticket #'.($inquiry->ticket_number ?? $inquiry->id).' has been submitted.');
-    }
-
-    public function resolveInquiry(Request $request, UserInquiry $inquiry)
-    {
-        $canAccess = Auth::check()
-            ? $inquiry->user_id === Auth::id()
-            : $this->guestCanAccessInquiry($request, $inquiry->id);
-
-        abort_unless($canAccess, 403);
-
-        $inquiry->update(['status' => 'resolved']);
-
-        return back()->with('success', 'Inquiry ticket #'.($inquiry->ticket_number ?? $inquiry->id).' has been marked as resolved.');
+        return back()->with('success', 'Your message has been sent. Staff will reply here.');
     }
 
     public function answerCommonInquiryQuestion(AnswerCommonInquiryQuestionRequest $request)
@@ -671,6 +593,7 @@ class ResidentController extends Controller
 
             $inquiry->update([
                 'status' => 'resolved',
+                'awaiting_reply_since' => now(),
                 'updated_at' => now(),
             ]);
 
@@ -865,13 +788,6 @@ class ResidentController extends Controller
             }
         }
 
-        if (! $inquiry->canResidentReply()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This inquiry ticket has been resolved and closed. Please open a new inquiry ticket for new questions.',
-            ], 422);
-        }
-
         $request->validate([
             'message' => ['required', 'string', 'max:5000'],
         ]);
@@ -882,7 +798,7 @@ class ResidentController extends Controller
             'responded_by' => Auth::check() ? Auth::id() : null,
         ]);
 
-        $inquiry->update(['status' => 'pending']);
+        $inquiry->update(['status' => 'pending', 'awaiting_reply_since' => null]);
 
         return response()->json([
             'success' => true,

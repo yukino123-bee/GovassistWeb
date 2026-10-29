@@ -10,7 +10,15 @@ class AssessmentAnswer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['assessment_id', 'question', 'answer'];
+    protected $fillable = ['assessment_id', 'question', 'answer', 'is_eligible', 'is_required'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return ['is_eligible' => 'boolean', 'is_required' => 'boolean'];
+    }
 
     public function assessment(): BelongsTo
     {

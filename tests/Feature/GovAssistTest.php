@@ -259,13 +259,13 @@ test('eligibility assessment logic works correctly', function () {
         "question_{$q2->id}" => 'true',
     ]);
 
-    // Assert that the assessment created is eligible
+    // The system never decides: every submission waits for facilitator review
     $assessment = EligibilityAssessment::where('user_id', $resident->id)->where('service_id', $service->id)->first();
     expect($assessment)->not->toBeNull();
-    expect($assessment->status)->toBe('eligible');
+    expect($assessment->status)->toBe('pending');
     $passResponse->assertRedirect(route('resident.eligibility.result', $assessment->id));
 
-    // 2. Submit failing inputs (income = 16000, senior = true) -> should calculate as ineligible
+    // 2. Even answers that would fail the old rules are only recorded as pending
     $resident2 = User::factory()->create(['role' => 'resident']);
     $failResponse = $this->actingAs($resident2)->post(route('resident.eligibility.assess.submit', $service->id), [
         "question_{$q1->id}" => '16000',
@@ -274,8 +274,46 @@ test('eligibility assessment logic works correctly', function () {
 
     $failAssessment = EligibilityAssessment::where('user_id', $resident2->id)->where('service_id', $service->id)->first();
     expect($failAssessment)->not->toBeNull();
-    expect($failAssessment->status)->toBe('ineligible');
+    expect($failAssessment->status)->toBe('pending');
     $failResponse->assertRedirect(route('resident.eligibility.result', $failAssessment->id));
+
+    // 3. A facilitator reviews and decides
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+    $this->actingAs($facilitator)->get(route('facilitator.assessments.show', $assessment))->assertOk()->assertSee('Not Eligible')->assertSee('Confirm Eligible')->assertSee('passing 100%')->assertSee('minimum 60%');
+
+    $flag = fn ($assessment, array $values, string $decision) => ['decision' => $decision, 'flags' => $assessment->answers()->orderBy('id')->pluck('id')->combine($values)->all()];
+
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $assessment), $flag($assessment, ['eligible', 'eligible'], 'eligible'))->assertSessionHas('success');
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $failAssessment), $flag($failAssessment, ['ineligible', 'eligible'], 'ineligible'))->assertSessionHas('success');
+    expect($failAssessment->answers()->orderBy('id')->pluck('is_eligible')->all())->toBe([false, true]);
+
+    // Every response must be flagged, with valid values
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $failAssessment), ['decision' => 'eligible', 'flags' => [$failAssessment->answers()->first()->id => 'eligible']])->assertSessionHasErrors();
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $failAssessment), $flag($failAssessment, ['bogus', 'eligible'], 'eligible'))->assertSessionHasErrors();
+
+    expect($assessment->fresh()->status)->toBe('eligible')
+        ->and($failAssessment->fresh()->status)->toBe('ineligible')
+        ->and($resident->isEligibleFor($service->id))->toBeTrue()
+        ->and($resident2->isEligibleFor($service->id))->toBeFalse();
+
+    // Passing 80 / minimum 60: 50% can never be eligible
+    $service->update(['passing_percentage' => 80, 'minimum_percentage' => 60]);
+    expect($failAssessment->fresh()->scorePercentage())->toBe(50);
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $failAssessment), $flag($failAssessment, ['ineligible', 'eligible'], 'eligible'))->assertSessionHasErrors('decision');
+    expect($failAssessment->fresh()->status)->toBe('ineligible');
+
+    // Between minimum and passing the reviewer may still approve
+    $service->update(['minimum_percentage' => 50]);
+    $this->actingAs($facilitator)->post(route('facilitator.assessments.decide', $failAssessment), $flag($failAssessment, ['ineligible', 'eligible'], 'eligible'))->assertSessionHas('success');
+    expect($failAssessment->fresh()->status)->toBe('eligible');
+    $failAssessment->update(['status' => 'ineligible']);
+
+    // Optional questions are not scored
+    $failAssessment->answers()->orderBy('id')->first()->update(['is_required' => false]);
+    expect($failAssessment->fresh()->scorePercentage())->toBe(100);
+
+    // Residents cannot decide
+    $this->actingAs($resident2)->post(route('facilitator.assessments.decide', $failAssessment), $flag($failAssessment, ['eligible', 'eligible'], 'eligible'))->assertForbidden();
 });
 
 test('optional assessment questions do not disqualify residents', function () {
@@ -324,7 +362,7 @@ test('optional assessment questions do not disqualify residents', function () {
         ->whereBelongsTo($service, 'service')
         ->firstOrFail();
 
-    expect($assessment->status)->toBe('eligible');
+    expect($assessment->status)->toBe('pending');
     $response->assertRedirect(route('resident.eligibility.result', $assessment));
 
     $secondResident = User::factory()->create(['role' => 'resident']);
@@ -338,10 +376,10 @@ test('optional assessment questions do not disqualify residents', function () {
             ->whereBelongsTo($service, 'service')
             ->firstOrFail()
             ->status,
-    )->toBe('eligible');
+    )->toBe('pending');
 });
 
-test('household income eligibility accepts only amounts from 2000 through 15000', function () {
+test('household income answers are recorded for review without an automatic range check', function () {
     $category = ServiceCategory::create(['category_name' => 'Medical Services']);
     $service = GovernmentService::create([
         'category_id' => $category->id,
@@ -361,38 +399,19 @@ test('household income eligibility accepts only amounts from 2000 through 15000'
 
     $resident = User::factory()->create(['role' => 'resident']);
 
-    $this->actingAs($resident)
-        ->get(route('resident.eligibility.assess', $service))
-        ->assertSuccessful()
-        ->assertSee('min="2000"', false)
-        ->assertSee('max="15000"', false)
-        ->assertSee('Valid household income range: ₱2,000–₱15,000.');
+    foreach ([1999, 2000, 15000, 15001] as $income) {
+        $submitter = User::factory()->create(['role' => 'resident']);
 
-    foreach ([1999, 15001] as $invalidIncome) {
-        $this->actingAs($resident)
+        $this->actingAs($submitter)
             ->post(route('resident.eligibility.assess.submit', $service), [
-                "question_{$question->id}" => $invalidIncome,
-            ])
-            ->assertSessionHasErrors([
-                "question_{$question->id}" => 'Household income must be between ₱2,000 and ₱15,000.',
-            ]);
-    }
-
-    expect(EligibilityAssessment::query()->where('user_id', $resident->id)->exists())->toBeFalse();
-
-    foreach ([2000, 15000] as $validIncome) {
-        $eligibleResident = User::factory()->create(['role' => 'resident']);
-
-        $this->actingAs($eligibleResident)
-            ->post(route('resident.eligibility.assess.submit', $service), [
-                "question_{$question->id}" => $validIncome,
+                "question_{$question->id}" => $income,
             ])
             ->assertRedirect();
 
         expect(EligibilityAssessment::query()
-            ->where('user_id', $eligibleResident->id)
+            ->where('user_id', $submitter->id)
             ->where('service_id', $service->id)
-            ->value('status'))->toBe('eligible');
+            ->value('status'))->toBe('pending');
     }
 });
 

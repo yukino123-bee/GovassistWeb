@@ -54,7 +54,6 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
     // Inquiries Reply & Unsend
     Route::get('/inquiry/{inquiry}/messages', [ResidentController::class, 'getMessages'])->name('resident.inquiry.messages');
     Route::post('/inquiry/{inquiry}/reply', [ResidentController::class, 'replyInquiry'])->name('resident.inquiry.reply');
-    Route::post('/inquiry/{inquiry}/resolve', [ResidentController::class, 'resolveInquiry'])->name('resident.inquiry.resolve');
     Route::delete('/inquiry/{inquiry}', [ResidentController::class, 'deleteInquiry'])->name('resident.inquiry.delete_inquiry');
     Route::delete('/inquiry/replies/{response}', [ResidentController::class, 'deleteReply'])->name('resident.inquiry.delete_reply');
 
@@ -130,6 +129,7 @@ Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(fu
     // Assessments history & CRUD
     Route::get('/assessments', [FacilitatorController::class, 'assessments'])->name('facilitator.assessments');
     Route::get('/assessments/{assessment}', [FacilitatorController::class, 'showAssessment'])->name('facilitator.assessments.show');
+    Route::post('/assessments/{assessment}/decision', [FacilitatorController::class, 'decideAssessment'])->name('facilitator.assessments.decide');
     Route::delete('/assessments/{assessment}', [FacilitatorController::class, 'destroyAssessment'])->name('facilitator.assessments.destroy');
 
     // Reassessments

@@ -166,6 +166,8 @@ class FacilitatorController extends Controller
             'procedure_fil' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
+            'passing_percentage' => ['nullable', 'integer', 'between:1,100'],
+            'minimum_percentage' => ['nullable', 'integer', 'between:0,100', 'lte:passing_percentage'],
         ]);
 
         $nameCeb = $request->name_ceb ?: $this->autoTranslateText($request->name_en, 'ceb');
@@ -181,6 +183,8 @@ class FacilitatorController extends Controller
             'description' => $request->description_en,
             'procedure' => $request->procedure_en,
             'icon' => $request->icon,
+            'passing_percentage' => $request->integer('passing_percentage', 100),
+            'minimum_percentage' => $request->integer('minimum_percentage', 60),
         ]);
 
         // Save Translations: English
@@ -237,6 +241,8 @@ class FacilitatorController extends Controller
             'procedure_fil' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:service_categories,id'],
             'icon' => ['nullable', 'string', 'max:255'],
+            'passing_percentage' => ['nullable', 'integer', 'between:1,100'],
+            'minimum_percentage' => ['nullable', 'integer', 'between:0,100', 'lte:passing_percentage'],
         ]);
 
         $nameCeb = $request->name_ceb ?: $this->autoTranslateText($request->name_en, 'ceb');
@@ -252,6 +258,8 @@ class FacilitatorController extends Controller
             'description' => $request->description_en,
             'procedure' => $request->procedure_en,
             'icon' => $request->icon,
+            'passing_percentage' => $request->integer('passing_percentage', $service->passing_percentage),
+            'minimum_percentage' => $request->integer('minimum_percentage', $service->minimum_percentage),
         ]);
 
         // Update/create English translation
@@ -536,6 +544,7 @@ class FacilitatorController extends Controller
 
         $stats = [
             'total' => EligibilityAssessment::count(),
+            'pending' => EligibilityAssessment::where('status', 'pending')->count(),
             'eligible' => EligibilityAssessment::where('status', 'eligible')->count(),
             'ineligible' => EligibilityAssessment::where('status', 'ineligible')->count(),
         ];
@@ -775,23 +784,16 @@ class FacilitatorController extends Controller
             'status' => ['nullable', 'in:in_progress,resolved'],
         ]);
 
-        if ($inquiry->status === 'closed') {
-            $message = 'This inquiry ticket is closed. Reopen it before replying.';
-
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['success' => false, 'message' => $message], 422);
-            }
-
-            return back()->withErrors(['message' => $message]);
-        }
-
         $reply = InquiryRequirense::create([
             'inquiry_id' => $inquiry->id,
             'requireent_text' => $request->message,
             'responded_by' => auth()->id(),
         ]);
 
-        $inquiry->update(['status' => $request->input('status', 'resolved')]);
+        $inquiry->update([
+            'status' => $request->input('status', 'in_progress'),
+            'awaiting_reply_since' => now(),
+        ]);
 
         // Send email reply to resident
         $email = $inquiry->user ? $inquiry->user->email : $inquiry->guest_email;
@@ -986,6 +988,49 @@ class FacilitatorController extends Controller
         $assessment->load(['user', 'service', 'answers']);
 
         return view('facilitator.assessments.show', compact('assessment'));
+    }
+
+    public function decideAssessment(Request $request, EligibilityAssessment $assessment)
+    {
+        $answerIds = $assessment->answers()->pluck('id');
+
+        $rules = [
+            'decision' => ['required', Rule::in(['eligible', 'ineligible'])],
+            'flags' => ['required', 'array'],
+        ];
+        foreach ($answerIds as $answerId) {
+            $rules['flags.'.$answerId] = ['required', Rule::in(['eligible', 'ineligible'])];
+        }
+
+        $validated = $request->validate($rules, [
+            'flags.*.required' => 'Flag every response as eligible or not eligible before saving.',
+        ]);
+
+        foreach ($answerIds as $answerId) {
+            $assessment->answers()->whereKey($answerId)->update(['is_eligible' => $validated['flags'][$answerId] === 'eligible']);
+        }
+
+        $decision = $validated['decision'];
+        $minimum = $assessment->service?->minimum_percentage ?? 0;
+        $score = $assessment->load('answers')->scorePercentage();
+
+        if ($decision === 'eligible' && $score < $minimum) {
+            return back()->withErrors([
+                'decision' => "Score is {$score}%, below the {$minimum}% minimum. This resident cannot be marked eligible.",
+            ]);
+        }
+
+        $assessment->update(['status' => $decision]);
+
+        if ($assessment->user) {
+            app(SmsService::class)->sendAssessmentDecision(
+                $assessment->user,
+                $assessment->service?->service_name ?? 'Government Assistance Program',
+                $decision
+            );
+        }
+
+        return back()->with('success', 'Review saved. Assessment marked as '.$decision.'.');
     }
 
     public function destroyAssessment(EligibilityAssessment $assessment)

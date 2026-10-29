@@ -71,7 +71,11 @@
                         <div class="bg-white border border-slate-200 p-5 shadow-sm relative">
                             <!-- Status Badge -->
                             <div class="absolute top-4 right-4">
-                                @if($assess->status === 'eligible')
+                                @if($assess->status === 'pending')
+                                    <span class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-bold uppercase tracking-wider">
+                                        {{ __('messages.pending_review') }}
+                                    </span>
+                                @elseif($assess->status === 'eligible')
                                     <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[9px] font-bold uppercase tracking-wider">
                                         {{ __('messages.eligible') }}
                                     </span>

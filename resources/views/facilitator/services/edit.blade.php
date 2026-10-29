@@ -70,6 +70,20 @@
                 </select>
             </div>
 
+            <!-- Percentages -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label for="passing_percentage" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Passing Percentage</label>
+                    <input type="number" name="passing_percentage" id="passing_percentage" min="1" max="100" value="{{ old('passing_percentage', $service->passing_percentage) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
+                    <p class="text-[10px] text-slate-400 font-medium">Score that clearly qualifies a resident.</p>
+                </div>
+                <div class="space-y-1.5">
+                    <label for="minimum_percentage" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Minimum Percentage</label>
+                    <input type="number" name="minimum_percentage" id="minimum_percentage" min="0" max="100" value="{{ old('minimum_percentage', $service->minimum_percentage) }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold" required>
+                    <p class="text-[10px] text-slate-400 font-medium">Below this score, a resident cannot be marked eligible. Between minimum and passing, the reviewer decides.</p>
+                </div>
+            </div>
+
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
                 <a href="{{ route('facilitator.services') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase tracking-wider rounded-md transition-all">Cancel</a>
                 <button type="submit" class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-extrabold uppercase tracking-wider rounded-md shadow-xs transition-all">

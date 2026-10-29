@@ -231,7 +231,8 @@ test('resident can switch languages and complete full flow', function () {
     ]);
 
     $assessment = EligibilityAssessment::first();
-    expect($assessment->status)->toBe('eligible');
+    expect($assessment->status)->toBe('pending');
+    $assessment->update(['status' => 'eligible']);
     $assessResponse->assertRedirect(route('resident.eligibility.result', $assessment->id));
 
     // 3. View Checklist
@@ -556,23 +557,43 @@ test('facilitator must confirm the current password to change it', function () {
     $this->actingAs($facilitator)->get(route('facilitator.profile.edit'))->assertOk()->assertSee('Password &amp; security', false);
 });
 
-test('resident cannot reply to a closed inquiry and facilitator can set in_progress', function () {
+test('both sides can keep chatting and a facilitator reply defaults to in_progress', function () {
     $resident = User::factory()->create(['role' => 'resident']);
     $facilitator = User::factory()->create(['role' => 'facilitator']);
-    $inquiry = UserInquiry::create(['user_id' => $resident->id, 'inquiry_text' => 'Help', 'status' => 'closed']);
-
-    $this->actingAs($resident)
-        ->postJson(route('resident.inquiry.reply', $inquiry->id), ['message' => 'Reopen please'])
-        ->assertStatus(422);
-    expect($inquiry->fresh()->status)->toBe('closed');
+    $inquiry = UserInquiry::create(['user_id' => $resident->id, 'inquiry_text' => 'Help', 'status' => 'pending']);
 
     $this->actingAs($facilitator)
-        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), ['message' => 'Hi'])
-        ->assertStatus(422);
-
-    $inquiry->update(['status' => 'pending']);
-    $this->actingAs($facilitator)
-        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), ['message' => 'Need your ID', 'status' => 'in_progress'])
+        ->postJson(route('facilitator.inquiries.reply', $inquiry->id), ['message' => 'Need your ID'])
         ->assertOk();
     expect($inquiry->fresh()->status)->toBe('in_progress');
+
+    $this->actingAs($resident)
+        ->postJson(route('resident.inquiry.reply', $inquiry->id), ['message' => 'Here it is'])
+        ->assertOk();
+    expect($inquiry->fresh()->status)->toBe('pending');
+});
+
+test('inquiry conversations are deleted when the resident ignores a staff reply past the timeout', function () {
+    $resident = User::factory()->create(['role' => 'resident']);
+    $facilitator = User::factory()->create(['role' => 'facilitator']);
+    $inquiry = UserInquiry::create(['user_id' => $resident->id, 'inquiry_text' => 'Hello', 'status' => 'pending']);
+    InquiryRequirense::create(['inquiry_id' => $inquiry->id, 'requireent_text' => 'Hello', 'responded_by' => $resident->id]);
+
+    $this->actingAs($facilitator)->postJson(route('facilitator.inquiries.reply', $inquiry), ['message' => 'Hi, how can we help?'])->assertOk();
+    expect($inquiry->fresh()->awaiting_reply_since)->not->toBeNull();
+
+    $this->travel(7)->hours();
+    $this->artisan('inquiries:prune-inactive')->assertSuccessful();
+    expect(UserInquiry::find($inquiry->id))->not->toBeNull();
+
+    $this->actingAs($resident)->postJson(route('resident.inquiry.reply', $inquiry), ['message' => 'Need requirements'])->assertOk();
+    expect($inquiry->fresh()->awaiting_reply_since)->toBeNull();
+
+    $this->actingAs($facilitator)->postJson(route('facilitator.inquiries.reply', $inquiry), ['message' => 'Bring your ID.'])->assertOk();
+
+    $this->travel(8)->hours();
+    $this->artisan('inquiries:prune-inactive')->assertSuccessful();
+
+    expect(UserInquiry::find($inquiry->id))->toBeNull();
+    expect(InquiryRequirense::where('inquiry_id', $inquiry->id)->count())->toBe(0);
 });

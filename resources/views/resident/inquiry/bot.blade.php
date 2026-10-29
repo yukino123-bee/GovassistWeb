@@ -9,20 +9,14 @@
     $serviceLabel = fn ($service) => $service
         ? ($service->translations->firstWhere('language_code', $locale)?->service_name ?? $service->service_name)
         : null;
-    $statusLabels = [
-        'pending' => __('messages.inq_status_pending'),
-        'in_progress' => __('messages.inq_status_in_progress'),
-        'resolved' => __('messages.inq_status_resolved'),
-        'closed' => __('messages.inq_status_closed'),
-    ];
     $ticketPayload = isset($inquiries) ? $inquiries->mapWithKeys(fn ($inq) => [$inq->id => [
         'id' => $inq->id,
-        'ticket_number' => $inq->ticket_number ?? 'TKT-'.str_pad($inq->id, 5, '0', STR_PAD_LEFT),
+        'expires_at' => $inq->expires_at,
         'subject' => $inq->subject ?: ($serviceLabel($inq->service) ?: __('messages.inq_general')),
-        'status' => strtolower($inq->status ?? 'pending'),
         'inquiry_text' => $inq->inquiry_text,
         'created_at' => $inq->created_at?->toIso8601String(),
         'responses' => $inq->responses->map(fn ($response) => [
+            'id' => $response->id,
             'text' => $response->requireent_text,
             'created_at' => $response->created_at?->toIso8601String(),
             'is_staff' => in_array($response->responder?->role, ['facilitator', 'admin', 'administrator'], true),
@@ -43,7 +37,7 @@
             </div>
             <h2 class="text-xl font-extrabold mt-1.5 tracking-tight">{{ __('messages.inq_title') }}</h2>
             <p class="text-xs text-red-100/90 mt-1 max-w-xl">
-                {{ __('messages.inq_intro') }}
+                {{ __('messages.inq_intro', ['hours' => config('inquiries.reply_timeout_hours')]) }}
             </p>
         </div>
 
@@ -70,37 +64,14 @@
                 <span class="text-[10px] font-bold text-slate-400">{{ __('messages.inq_total') }}: {{ isset($inquiries) ? $inquiries->count() : 0 }}</span>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="flex border-b border-slate-100 text-[10px] font-bold text-slate-500 bg-slate-50/50">
-                <button type="button" onclick="filterTickets('all')" id="tab-all" class="flex-1 py-2 text-center border-b-2 border-red-700 text-red-700 font-extrabold cursor-pointer">{{ __('messages.inq_all') }}</button>
-                <button type="button" onclick="filterTickets('pending')" id="tab-pending" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 cursor-pointer">{{ __('messages.inq_status_pending') }}</button>
-                <button type="button" onclick="filterTickets('resolved')" id="tab-resolved" class="flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 cursor-pointer">{{ __('messages.inq_status_resolved') }}</button>
-            </div>
-
             <!-- Ticket List Items -->
             <div class="flex-grow overflow-y-auto p-3 space-y-2 divide-y divide-slate-50">
                 @if(isset($inquiries) && $inquiries->count() > 0)
                     @foreach($inquiries as $inq)
                         <div id="ticket-item-{{ $inq->id }}" 
-                             data-status="{{ strtolower($inq->status) }}"
                              onclick="selectTicket({{ $inq->id }})" 
                              class="ticket-list-item pt-2 first:pt-0 p-3 rounded-xl border border-slate-100 hover:border-red-300 bg-white transition-all cursor-pointer group">
                             
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="font-mono text-[10px] font-extrabold text-slate-900 group-hover:text-red-700 transition-colors">
-                                    {{ $inq->ticket_number ?? 'TKT-'.str_pad($inq->id, 5, '0', STR_PAD_LEFT) }}
-                                </span>
-                                @if($inq->status === 'resolved')
-                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{{ $statusLabels['resolved'] }}</span>
-                                @elseif($inq->status === 'closed')
-                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-slate-100 text-slate-600 border border-slate-200">{{ $statusLabels['closed'] }}</span>
-                                @elseif($inq->status === 'in_progress')
-                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200">{{ $statusLabels['in_progress'] }}</span>
-                                @else
-                                    <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200">{{ $statusLabels['pending'] }}</span>
-                                @endif
-                            </div>
-
                             <h4 class="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-slate-900">
                                 {{ $inq->subject ?: ($serviceLabel($inq->service) ?: __('messages.inq_general')) }}
                             </h4>
@@ -164,20 +135,10 @@
                 <div class="p-4 border-b border-slate-200 bg-slate-50/80 flex flex-wrap items-center justify-between gap-3 shrink-0">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span id="detail-ticket-number" class="font-mono text-xs font-extrabold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-lg">TKT-00000</span>
-                            <span id="detail-ticket-status" class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+                            <span id="detail-ticket-status" class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200"></span>
                         </div>
                         <h3 id="detail-ticket-subject" class="text-sm font-extrabold text-slate-900 mt-1">Inquiry Subject</h3>
                     </div>
-
-                    <!-- Mark as Resolved Action -->
-                    <form id="resolve-ticket-form" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" id="resolve-ticket-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-lg uppercase tracking-wider transition-colors shadow-xs flex items-center space-x-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>{{ __('messages.inq_resolve') }}</span>
-                        </button>
-                    </form>
                 </div>
 
                 <!-- Ticket Thread Messages Area -->
@@ -200,20 +161,6 @@
                             </button>
                         </div>
                     </form>
-
-                    <!-- Resolved / Closed Ticket Banner -->
-                    <div id="ticket-locked-banner" class="hidden p-3.5 bg-slate-100 border border-slate-200 rounded-xl text-center space-y-1">
-                        <div class="flex items-center justify-center space-x-2 text-slate-700 font-extrabold text-xs uppercase tracking-wider">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <span>{{ __('messages.inq_locked_title') }}</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500">
-                            {{ __('messages.inq_locked_desc') }}
-                            <button type="button" onclick="openNewTicketModal()" class="text-red-700 font-bold hover:underline cursor-pointer">{{ __('messages.inq_open_new') }}</button>.
-                        </p>
-                    </div>
 
                 </div>
             </div>
@@ -290,20 +237,20 @@
 <script>
     const inquiriesData = @js($ticketPayload);
     const i18n = @js([
-        'statuses' => $statusLabels,
         'initial' => __('messages.inq_initial'),
         'staff' => __('messages.inq_staff_resp'),
         'followup' => __('messages.inq_followup'),
         'awaiting' => __('messages.inq_awaiting'),
         'awaitingDesc' => __('messages.inq_awaiting_desc'),
         'facilitator' => __('messages.nav_inquiry'),
+        'expiresIn' => __('messages.inq_expires_in'),
+        'live' => __('messages.inq_live'),
     ]);
-    const statusClasses = {
-        resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        closed: 'bg-slate-100 text-slate-600 border-slate-200',
-        in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
-        pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    };
+    const csrfToken = @js(csrf_token());
+    const staffRoles = ['facilitator', 'admin', 'administrator'];
+    let activeInquiryId = null;
+    let pollTimer = null;
+    let renderedKey = '';
 
     function escapeHtml(value) {
         const div = document.createElement('div');
@@ -311,119 +258,173 @@
         return div.innerHTML;
     }
 
-    function filterTickets(status) {
-        document.querySelectorAll('.ticket-list-item').forEach(item => {
-            if (status === 'all' || item.dataset.status === status) {
-                item.style.display = 'block';
+    function normalizeInquiry(raw) {
+        return {
+            id: raw.id,
+            subject: raw.subject,
+            inquiry_text: raw.inquiry_text,
+            created_at: raw.created_at,
+            expires_at: raw.expires_at,
+            responses: (raw.responses || []).map(r => ({
+                id: r.id,
+                text: r.text ?? r.requireent_text,
+                created_at: r.created_at,
+                is_staff: r.is_staff ?? staffRoles.includes(r.responder?.role),
+                responder: r.responder?.name ?? r.responder,
+            })),
+        };
+    }
+
+    function formatRemaining(expiresAt) {
+        const ms = new Date(expiresAt) - Date.now();
+        if (ms <= 0) return '0m';
+        const minutes = Math.floor(ms / 60000);
+        return Math.floor(minutes / 60) + 'h ' + (minutes % 60) + 'm';
+    }
+
+    function updateStatusBadge(ticket) {
+        const badge = document.getElementById('detail-ticket-status');
+        if (ticket.expires_at) {
+            badge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full border bg-amber-50 text-amber-700 border-amber-200';
+            badge.textContent = i18n.expiresIn.replace(':time', formatRemaining(ticket.expires_at));
+        } else {
+            badge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200';
+            badge.textContent = i18n.live;
+        }
+    }
+
+    function renderMessages(ticket) {
+        const messagesArea = document.getElementById('detail-messages-area');
+        const key = ticket.responses.map(r => r.id).join(',');
+        if (key === renderedKey) return;
+        renderedKey = key;
+
+        const nearBottom = messagesArea.scrollHeight - messagesArea.scrollTop - messagesArea.clientHeight < 80;
+        messagesArea.innerHTML = '';
+
+        const bubble = (cls, header, text, time) => {
+            const box = document.createElement('div');
+            box.className = cls;
+            box.innerHTML = `
+                <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                    <span class="font-extrabold">${escapeHtml(header)}</span>
+                    <span class="text-[10px] opacity-70">${new Date(time).toLocaleString()}</span>
+                </div>
+                <p class="text-xs leading-relaxed whitespace-pre-line">${escapeHtml(text)}</p>`;
+            messagesArea.appendChild(box);
+        };
+
+        const hasOpeningResponse = ticket.responses.length > 0 && ticket.responses[0].text === ticket.inquiry_text && !ticket.responses[0].is_staff;
+        if (!hasOpeningResponse) {
+            bubble('bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2 text-slate-800', i18n.initial, ticket.inquiry_text, ticket.created_at);
+        }
+
+        ticket.responses.forEach((resp, index) => {
+            if (resp.is_staff) {
+                bubble('bg-red-50/60 border border-red-200 p-4 rounded-xl shadow-xs space-y-2 text-red-900', `${i18n.staff} (${resp.responder || i18n.facilitator})`, resp.text, resp.created_at);
             } else {
-                item.style.display = 'none';
+                bubble('bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2 ml-4 text-slate-700', index === 0 && hasOpeningResponse ? i18n.initial : i18n.followup, resp.text, resp.created_at);
             }
         });
 
-        // Toggle active tab style
-        ['all', 'pending', 'resolved'].forEach(t => {
-            const btn = document.getElementById('tab-' + t);
-            if (t === status) {
-                btn.className = 'flex-1 py-2 text-center border-b-2 border-red-700 text-red-700 font-extrabold cursor-pointer';
-            } else {
-                btn.className = 'flex-1 py-2 text-center border-b-2 border-transparent hover:text-slate-700 text-slate-500 font-bold cursor-pointer';
-            }
-        });
+        if (!ticket.responses.some(r => r.is_staff)) {
+            const waitingNotice = document.createElement('div');
+            waitingNotice.className = 'p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center space-y-1';
+            waitingNotice.innerHTML = `
+                <span class="text-xs font-bold text-amber-800 uppercase tracking-wider block">${escapeHtml(i18n.awaiting)}</span>
+                <p class="text-[11px] text-amber-700">${escapeHtml(i18n.awaitingDesc)}</p>`;
+            messagesArea.appendChild(waitingNotice);
+        }
+
+        if (nearBottom || messagesArea.dataset.fresh === '1') {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        messagesArea.dataset.fresh = '0';
+    }
+
+    function showTicket(ticket) {
+        inquiriesData[ticket.id] = ticket;
+        document.getElementById('detail-ticket-subject').textContent = ticket.subject;
+        updateStatusBadge(ticket);
+        renderMessages(ticket);
     }
 
     function selectTicket(id) {
         const ticket = inquiriesData[id];
         if (!ticket) return;
 
+        activeInquiryId = id;
+        renderedKey = '';
+        document.getElementById('detail-messages-area').dataset.fresh = '1';
         document.getElementById('ticket-empty-state').classList.add('hidden');
         const detailView = document.getElementById('ticket-detail-view');
         detailView.classList.remove('hidden');
         detailView.classList.add('flex');
+        document.getElementById('reply-inquiry-id').value = id;
 
-        // Populate Header Info
-        document.getElementById('detail-ticket-number').textContent = ticket.ticket_number;
-        document.getElementById('detail-ticket-subject').textContent = ticket.subject;
-        
-        const statusBadge = document.getElementById('detail-ticket-status');
-        const status = ticket.status in statusClasses ? ticket.status : 'pending';
-        statusBadge.className = 'px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full border ' + statusClasses[status];
-        statusBadge.textContent = i18n.statuses[status];
-
-        // Set Resolve Form Action
-        document.getElementById('resolve-ticket-form').action = '/resident/inquiry/' + ticket.id + '/resolve';
-        document.getElementById('reply-inquiry-id').value = ticket.id;
-
-        // Render Thread Messages
-        const messagesArea = document.getElementById('detail-messages-area');
-        messagesArea.innerHTML = '';
-
-        // Original Resident Inquiry Entry
-        const origBox = document.createElement('div');
-        origBox.className = 'bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2';
-        origBox.innerHTML = `
-            <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                <span class="font-extrabold text-slate-800">${escapeHtml(i18n.initial)}</span>
-                <span class="text-[10px] text-slate-400 font-medium">${new Date(ticket.created_at).toLocaleString()}</span>
-            </div>
-            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${escapeHtml(ticket.inquiry_text)}</p>
-        `;
-        messagesArea.appendChild(origBox);
-
-        // Staff Responses or Follow-ups
-        if (ticket.responses && ticket.responses.length > 0) {
-            ticket.responses.forEach(resp => {
-                const isStaff = resp.is_staff;
-                const respBox = document.createElement('div');
-                
-                if (isStaff) {
-                    respBox.className = 'bg-red-50/60 border border-red-200 p-4 rounded-xl shadow-xs space-y-2 relative';
-                    respBox.innerHTML = `
-                        <div class="flex items-center justify-between text-xs border-b border-red-100 pb-2">
-                            <span class="font-extrabold text-red-900 flex items-center">
-                                <span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
-                                ${escapeHtml(i18n.staff)} (${escapeHtml(resp.responder || i18n.facilitator)})
-                            </span>
-                            <span class="text-[10px] text-red-700 font-semibold">${new Date(resp.created_at).toLocaleString()}</span>
-                        </div>
-                        <p class="text-xs text-slate-800 leading-relaxed whitespace-pre-line">${escapeHtml(resp.text)}</p>
-                    `;
-                } else {
-                    respBox.className = 'bg-white p-4 border border-slate-200 rounded-xl shadow-xs space-y-2 ml-4';
-                    respBox.innerHTML = `
-                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                            <span class="font-bold text-slate-700">${escapeHtml(i18n.followup)}</span>
-                            <span class="text-[10px] text-slate-400">${new Date(resp.created_at).toLocaleString()}</span>
-                        </div>
-                        <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${escapeHtml(resp.text)}</p>
-                    `;
-                }
-                messagesArea.appendChild(respBox);
-            });
-        } else {
-            const waitingNotice = document.createElement('div');
-            waitingNotice.className = 'p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-center space-y-1';
-            waitingNotice.innerHTML = `
-                <span class="text-xs font-bold text-amber-800 uppercase tracking-wider block">${escapeHtml(i18n.awaiting)}</span>
-                <p class="text-[11px] text-amber-700">${escapeHtml(i18n.awaitingDesc)}</p>
-            `;
-            messagesArea.appendChild(waitingNotice);
-        }
-
-        // Handle Locked State when Resolved or Closed
-        const replyForm = document.getElementById('reply-ticket-form');
-        const lockedBanner = document.getElementById('ticket-locked-banner');
-        const resolveBtn = document.getElementById('resolve-ticket-btn');
-
-        if (status === 'resolved' || status === 'closed') {
-            replyForm.classList.add('hidden');
-            lockedBanner.classList.remove('hidden');
-            if (resolveBtn) resolveBtn.classList.add('hidden');
-        } else {
-            replyForm.classList.remove('hidden');
-            lockedBanner.classList.add('hidden');
-            if (resolveBtn) resolveBtn.classList.remove('hidden');
-        }
+        showTicket(ticket);
+        clearInterval(pollTimer);
+        pollTimer = setInterval(pollMessages, 4000);
     }
+
+    function pollMessages() {
+        if (!activeInquiryId || document.hidden) return;
+        const id = activeInquiryId;
+
+        fetch(`/resident/inquiry/${id}/messages`, { headers: { 'Accept': 'application/json' } })
+            .then(res => {
+                if (res.status === 404 || res.status === 403) {
+                    window.location.reload();
+                    return null;
+                }
+                return res.ok ? res.json() : null;
+            })
+            .then(data => {
+                if (data && data.success && id === activeInquiryId) {
+                    showTicket(normalizeInquiry(data.inquiry));
+                }
+            })
+            .catch(() => {});
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('reply-ticket-form');
+        const input = document.getElementById('reply-inquiry-input');
+        if (!form) return;
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            const text = input.value.trim();
+            if (!text || !activeInquiryId) return;
+
+            const button = document.getElementById('reply-submit-btn');
+            button.disabled = true;
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({ inquiry_id: activeInquiryId, inquiry_text: text }),
+            })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && data.success) {
+                        input.value = '';
+                        document.getElementById('detail-messages-area').dataset.fresh = '1';
+                        showTicket(normalizeInquiry(data.inquiry));
+                    }
+                })
+                .finally(() => { button.disabled = false; input.focus(); });
+        });
+
+        setInterval(() => {
+            const ticket = inquiriesData[activeInquiryId];
+            if (ticket) updateStatusBadge(ticket);
+        }, 60000);
+    });
 
     function openNewTicketModal() {
         document.getElementById('new-ticket-modal').classList.remove('hidden');

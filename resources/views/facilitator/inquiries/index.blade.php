@@ -526,7 +526,12 @@
 
         const statusBadge = document.getElementById('inq-status-badge');
         if (statusBadge) {
-            statusBadge.innerText = 'STATUS: ' + (inq.status || 'PENDING').toUpperCase();
+            if (inq.expires_at) {
+                const minutes = Math.max(0, Math.floor((new Date(inq.expires_at) - Date.now()) / 60000));
+                statusBadge.innerText = `AWAITING RESIDENT · AUTO-DELETES IN ${Math.floor(minutes / 60)}H ${minutes % 60}M`;
+            } else {
+                statusBadge.innerText = 'RESIDENT REPLIED · AWAITING YOUR REPLY';
+            }
         }
     }
 

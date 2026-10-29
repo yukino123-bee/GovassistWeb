@@ -22,7 +22,28 @@
 
     <div class="bg-white border border-slate-200 p-8 shadow-sm text-center space-y-6">
         
-        @if($assessment->status === 'eligible')
+        @if($assessment->status === 'pending')
+            <div class="w-16 h-16 bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-200">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+
+            <div class="space-y-2">
+                <span class="text-[9px] font-bold text-red-700 uppercase tracking-widest block">REF-ASST-{{ $assessment->id }}</span>
+                <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ $serviceName }}</h2>
+                <p class="text-sm font-bold text-amber-700 uppercase tracking-wider">{{ __('messages.pending_review') }}</p>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed pt-2">
+                    {{ __('messages.result_pending_desc') }}
+                </p>
+            </div>
+
+            <div class="pt-4">
+                <a href="{{ route('resident.eligibility') }}" class="w-full block py-3.5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-xs">
+                    {{ __('messages.back_to_eligibility') }}
+                </a>
+            </div>
+        @elseif($assessment->status === 'eligible')
             <!-- Success Icon -->
             <div class="w-16 h-16 bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-200">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

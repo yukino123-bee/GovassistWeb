@@ -249,7 +249,7 @@ class ReportController extends Controller
      */
     private function inquiryHeaders(): array
     {
-        return ['Ticket No.', 'Sender', 'Email', 'Program', 'Subject', 'Message', 'Status', 'Replies', 'Opened', 'Last Activity'];
+        return ['Ref. No.', 'Sender', 'Email', 'Program', 'Subject', 'Message', 'Status', 'Replies', 'Opened', 'Last Activity'];
     }
 
     /**
@@ -271,7 +271,7 @@ class ReportController extends Controller
         $query->orderByDesc('created_at')->chunkById(500, function ($inquiries) use ($workbook): void {
             foreach ($inquiries as $inquiry) {
                 $workbook->addRow([
-                    $inquiry->ticket_number ?? $inquiry->id,
+                    $inquiry->id,
                     $inquiry->user?->name ?? $inquiry->guest_name ?? 'Guest',
                     $inquiry->user?->email ?? $inquiry->guest_email,
                     $inquiry->service?->name_en ?? 'General inquiry',

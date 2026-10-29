@@ -11,7 +11,7 @@ class GovernmentService extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['category_id', 'service_name', 'description', 'procedure', 'icon'];
+    protected $fillable = ['category_id', 'service_name', 'description', 'procedure', 'icon', 'passing_percentage', 'minimum_percentage'];
 
     protected static function booted(): void
     {

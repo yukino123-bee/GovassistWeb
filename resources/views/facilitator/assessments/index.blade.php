@@ -11,11 +11,13 @@
         $totalAssessments = $stats['total'];
         $eligibleCount = $stats['eligible'];
         $ineligibleCount = $stats['ineligible'];
-        $passRate = $totalAssessments > 0 ? round(($eligibleCount / $totalAssessments) * 100) : 0;
+        $pendingCount = $stats['pending'];
+        $decidedCount = $eligibleCount + $ineligibleCount;
+        $passRate = $decidedCount > 0 ? round(($eligibleCount / $decidedCount) * 100) : 0;
     @endphp
 
     <!-- Overview Metrics Bar -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
         <!-- Total Assessments -->
         <div class="group bg-blue-50/70 border border-blue-200 p-3.5 rounded-lg flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-blue-300">
             <div>
@@ -26,6 +28,14 @@
                 <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
+            </div>
+        </div>
+
+        <!-- Pending Review -->
+        <div class="group bg-amber-50/70 border border-amber-200 p-3.5 rounded-lg flex items-center justify-between transition-all duration-300 hover:bg-white hover:shadow-md hover:border-amber-300">
+            <div>
+                <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider block leading-tight">Pending Review</span>
+                <span class="text-2xl font-bold text-slate-850 block mt-1 leading-none group-hover:text-amber-700 transition-colors">{{ $pendingCount }}</span>
             </div>
         </div>
 
@@ -118,7 +128,11 @@
                                     {{ $assess->service->name_en ?? 'Service' }}
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap">
-                                    @if($assess->status === 'eligible')
+                                    @if($assess->status === 'pending')
+                                        <span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 text-xs font-extrabold rounded-full border border-amber-200 uppercase tracking-wider">
+                                            Pending Review
+                                        </span>
+                                    @elseif($assess->status === 'eligible')
                                         <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200 uppercase tracking-wider">
                                             Eligible
                                         </span>

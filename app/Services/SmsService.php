@@ -176,6 +176,22 @@ class SmsService
         return $this->send($phone, $message);
     }
 
+    /**
+     * Send the facilitator's eligibility decision via SMS.
+     */
+    public function sendAssessmentDecision(User $user, string $serviceName, string $decision): bool
+    {
+        $phone = $this->resolvePhoneNumber($user);
+        if (! $phone) {
+            return false;
+        }
+
+        $outcome = $decision === 'eligible' ? 'ELIGIBLE' : 'NOT ELIGIBLE';
+        $message = "SSFO GovAssist: A facilitator reviewed your eligibility assessment for {$serviceName}: {$outcome}. Log in to view details.";
+
+        return $this->send($phone, $message);
+    }
+
     protected function sendViaLog(string $phoneNumber, string $message): bool
     {
         Log::info("SMS [LOG DRIVER] To: {$phoneNumber} | Message: {$message}");

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,6 @@ class UserInquiry extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ticket_number',
         'subject',
         'user_id',
         'service_id',
@@ -20,17 +20,16 @@ class UserInquiry extends Model
         'guest_email',
         'inquiry_text',
         'status',
+        'awaiting_reply_since',
     ];
 
-    protected static function booted(): void
+    protected $appends = ['expires_at'];
+
+    protected function casts(): array
     {
-        static::created(function (UserInquiry $inquiry): void {
-            if (empty($inquiry->ticket_number)) {
-                $year = date('Y', strtotime((string) $inquiry->created_at));
-                $inquiry->ticket_number = 'TKT-'.$year.'-'.str_pad((string) $inquiry->id, 5, '0', STR_PAD_LEFT);
-                $inquiry->saveQuietly();
-            }
-        });
+        return [
+            'awaiting_reply_since' => 'datetime',
+        ];
     }
 
     public function user(): BelongsTo
@@ -48,13 +47,19 @@ class UserInquiry extends Model
         return $this->hasMany(InquiryRequirense::class, 'inquiry_id');
     }
 
-    public function isResolvedOrClosed(): bool
+    /**
+     * Conversations where staff replied and the resident stayed silent past the timeout.
+     */
+    public function scopeExpired(Builder $query): Builder
     {
-        return in_array($this->status, ['resolved', 'closed'], true);
+        return $query->where('awaiting_reply_since', '<=', now()->subHours(config('inquiries.reply_timeout_hours')));
     }
 
-    public function canResidentReply(): bool
+    public function getExpiresAtAttribute(): ?string
     {
-        return ! $this->isResolvedOrClosed();
+        return $this->awaiting_reply_since
+            ?->copy()
+            ->addHours(config('inquiries.reply_timeout_hours'))
+            ->toIso8601String();
     }
 }
