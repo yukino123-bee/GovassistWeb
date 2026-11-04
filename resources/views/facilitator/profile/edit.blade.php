@@ -20,7 +20,7 @@
         <div class="px-6 pb-6 -mt-12 flex flex-col items-center text-center">
             <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow bg-white flex items-center justify-center">
                 @if($user->avatar)
-                    <img id="avatar-preview" src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="Your profile photo" class="w-full h-full object-cover">
+                    <img id="avatar-preview" src="{{ Storage::disk('public')->url($user->avatar) }}" alt="Your profile photo" class="w-full h-full object-cover">
                 @else
                     <img id="avatar-preview" src="" alt="Profile photo preview" class="w-full h-full object-cover hidden">
                     <div id="avatar-placeholder" class="w-full h-full bg-red-50 text-red-700 flex items-center justify-center text-3xl font-bold">{{ strtoupper(substr($user->name, 0, 1)) }}</div>

@@ -863,7 +863,7 @@ class FacilitatorController extends Controller
         $user->contact_number = $request->contact_number;
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', config('filesystems.default'));
+            $path = $file->store('avatars', 'public');
             $user->avatar = $path;
         }
 
@@ -971,10 +971,14 @@ class FacilitatorController extends Controller
             }
         }
 
-        foreach ([$user->valid_id_path, $user->avatar] as $storedPath) {
+        foreach ([$user->valid_id_path] as $storedPath) {
             if ($storedPath) {
                 Storage::disk($disk)->delete($storedPath);
             }
+        }
+
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
         }
 
         $user->delete();

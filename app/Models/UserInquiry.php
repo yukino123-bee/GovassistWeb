@@ -55,6 +55,25 @@ class UserInquiry extends Model
         return $query->where('awaiting_reply_since', '<=', now()->subHours(config('inquiries.reply_timeout_hours')));
     }
 
+    /**
+     * Conversations with no activity (thread update or new message) for the inactivity window.
+     */
+    public function scopeInactive(Builder $query): Builder
+    {
+        $cutoff = now()->subHours(config('inquiries.inactive_after_hours'));
+
+        return $query->where('updated_at', '<=', $cutoff)
+            ->whereDoesntHave('responses', fn (Builder $responses) => $responses->where('created_at', '>', $cutoff));
+    }
+
+    /**
+     * Conversations the prune job deletes: expired replies or inactive threads.
+     */
+    public function scopeStale(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $stale) => $stale->expired()->orWhere(fn (Builder $inactive) => $inactive->inactive()));
+    }
+
     public function getExpiresAtAttribute(): ?string
     {
         return $this->awaiting_reply_since

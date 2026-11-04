@@ -39,9 +39,24 @@
                         </div>
                         
                         <div>
-                            <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="inline-block w-full text-center px-4 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-extrabold uppercase tracking-widest">
-                                {{ __('messages.start_assessment') }}
-                            </a>
+                            @php $serviceAssessment = $assessments->firstWhere('service_id', $service->id); @endphp
+                            @if(! $serviceAssessment)
+                                <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="inline-block w-full text-center px-4 py-2.5 bg-red-700 hover:bg-red-800 transition-colors text-white text-[10px] font-extrabold uppercase tracking-widest">
+                                    {{ __('messages.start_assessment') }}
+                                </a>
+                            @elseif($serviceAssessment->status === 'pending')
+                                <span class="inline-block w-full text-center px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-extrabold uppercase tracking-widest">
+                                    {{ __('messages.pending_review') }}
+                                </span>
+                            @elseif($serviceAssessment->status === 'eligible')
+                                <span class="inline-block w-full text-center px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold uppercase tracking-widest">
+                                    {{ __('messages.eligible') }}
+                                </span>
+                            @else
+                                <span class="inline-block w-full text-center px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-[10px] font-extrabold uppercase tracking-widest">
+                                    {{ __('messages.ineligible') }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 @endforeach

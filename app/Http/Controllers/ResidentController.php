@@ -743,7 +743,7 @@ class ResidentController extends Controller
         $user = Auth::user();
 
         if ($file = $request->file('avatar')) {
-            $path = $file->store('avatars', config('filesystems.default'));
+            $path = $file->store('avatars', 'public');
             $user->avatar = $path;
             $user->save();
         }

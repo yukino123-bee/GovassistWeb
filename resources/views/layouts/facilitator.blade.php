@@ -198,7 +198,7 @@
                     </div>
                     <div class="w-9 h-9 rounded-full bg-[#96000e] text-white flex items-center justify-center font-bold text-sm overflow-hidden">
                         @if(Auth::user()->avatar)
-                            <img src="{{ Storage::disk(env('FILESYSTEM_DISK', 'public'))->url(Auth::user()->avatar) }}" alt="" class="w-full h-full object-cover">
+                            <img src="{{ Storage::disk('public')->url(Auth::user()->avatar) }}" alt="" class="w-full h-full object-cover">
                         @else
                             {{ substr(Auth::user()->name, 0, 1) }}
                         @endif

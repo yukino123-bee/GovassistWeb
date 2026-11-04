@@ -21,7 +21,7 @@
         <div class="md:col-span-4 bg-white border border-slate-200 rounded-lg p-6 shadow-sm flex flex-col items-center text-center space-y-4">
             <div class="relative">
                 @if($user->avatar)
-                    <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : Storage::disk(env('FILESYSTEM_DISK', 'public'))->url($user->avatar) }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-md">
+                    <img src="{{ Str::startsWith($user->avatar, 'http') ? $user->avatar : Storage::disk('public')->url($user->avatar) }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-md">
                 @else
                     <div class="w-24 h-24 rounded-full bg-red-50 border-4 border-slate-100 shadow-sm flex items-center justify-center text-red-700 font-bold text-3xl">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
