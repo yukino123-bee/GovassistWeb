@@ -39,17 +39,21 @@ jobs:
     - name: Create Production .env
       env:
         FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        PRODUCTION_DB_HOST: ${{ secrets.PRODUCTION_DB_HOST }}
+        PRODUCTION_DB_DATABASE: ${{ secrets.PRODUCTION_DB_DATABASE }}
+        PRODUCTION_DB_USERNAME: ${{ secrets.PRODUCTION_DB_USERNAME }}
+        PRODUCTION_DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
       run: |
         cp .env.example .env
         sed -i 's/APP_ENV=local/APP_ENV=production/' .env
         sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
         sed -i "s|APP_URL=http://localhost|APP_URL=http://${FTP_SERVER}|" .env
         sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
-        sed -i 's/DB_HOST=127.0.0.1/DB_HOST=db-a255f7a8-4b09-4119-88cc-67d68377c0fe.ap-northeast-1.public.db.laravel.cloud/' .env
+        sed -i "s|DB_HOST=127.0.0.1|DB_HOST=${PRODUCTION_DB_HOST}|" .env
         sed -i 's/DB_PORT=3306/DB_PORT=3306/' .env
-        sed -i 's/DB_DATABASE=laravel/DB_DATABASE=gov/' .env
-        sed -i 's/DB_USERNAME=root/DB_USERNAME=pw4hsxlm0kesnqpl/' .env
-        sed -i 's/DB_PASSWORD=/DB_PASSWORD=SZA7Y2WWgQHbk3xMRmXi/' .env
+        sed -i "s|DB_DATABASE=laravel|DB_DATABASE=${PRODUCTION_DB_DATABASE}|" .env
+        sed -i "s|DB_USERNAME=root|DB_USERNAME=${PRODUCTION_DB_USERNAME}|" .env
+        sed -i "s|DB_PASSWORD=|DB_PASSWORD=${PRODUCTION_DB_PASSWORD}|" .env
         php artisan key:generate
 
 
