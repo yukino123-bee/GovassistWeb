@@ -8,9 +8,9 @@
 <div class="max-w-2xl mx-auto space-y-6">
 
     <!-- User Header Panel -->
-    <div class="bg-white border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row items-center sm:space-x-6">
+    <div class="bg-white border border-slate-200 border-t-4 border-t-red-700 p-6 shadow-sm flex flex-col sm:flex-row items-center sm:space-x-6">
         <!-- Avatar Container -->
-        <div class="relative w-20 h-20 mb-4 sm:mb-0 flex-shrink-0">
+        <div class="relative w-24 h-24 mb-4 sm:mb-0 flex-shrink-0">
             <div class="w-full h-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-600 font-bold text-2xl overflow-hidden">
                 @if(Auth::user()->avatar)
                     <img src="{{ Storage::disk('public')->url(Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
@@ -31,9 +31,9 @@
             </form>
         </div>
 
-        <div class="text-center sm:text-left">
-            <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ Auth::user()->name }}</h2>
-            <span class="text-xs text-slate-500 mt-1 block">{{ Auth::user()->email ?: Auth::user()->contact_number }}</span>
+        <div class="text-center sm:text-left min-w-0">
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight truncate">{{ Auth::user()->name }}</h2>
+            <span class="text-xs text-slate-500 mt-1 block truncate">{{ Auth::user()->email ?: Auth::user()->contact_number }}</span>
         </div>
     </div>
 
@@ -55,7 +55,7 @@
                 ['civil_status', $profileUser->civil_status],
                 ['address', $profileUser->address],
             ] as [$detailLabel, $detailValue])
-                <div class="px-5 py-3 {{ $detailLabel === 'address' ? 'sm:col-span-2' : '' }}">
+                <div class="px-5 py-4 hover:bg-slate-50/60 transition-colors {{ $detailLabel === 'address' ? 'sm:col-span-2' : '' }}">
                     <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ __('messages.'.$detailLabel) }}</dt>
                     <dd class="mt-1 font-semibold {{ $detailValue ? 'text-slate-900' : 'text-slate-400 italic font-normal' }}">{{ $detailValue ?: __('messages.not_provided') }}</dd>
                 </div>
@@ -186,7 +186,10 @@
     <div class="pt-4">
         <form action="{{ route('logout') }}" method="POST" id="profile-logout-form">
             @csrf
-            <button type="button" onclick="showConfirmModal('{{ __('messages.confirm_logout') }}', () => document.getElementById('profile-logout-form').submit())" class="w-full py-3.5 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wider text-xs transition-colors rounded-none">
+            <button type="button" onclick="showConfirmModal('{{ __('messages.confirm_logout') }}', () => document.getElementById('profile-logout-form').submit())" class="w-full py-3.5 bg-red-700 hover:bg-red-800 active:bg-red-900 text-white font-bold uppercase tracking-wider text-xs transition-colors rounded-none flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 {{ __('messages.logout') }}
             </button>
         </form>
