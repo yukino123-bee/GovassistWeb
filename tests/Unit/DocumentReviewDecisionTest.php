@@ -39,6 +39,7 @@ out = {
     "newline_keywords": scenario(long_text, "Barangay\nIndigency"),
     "template_only_match": scenario(long_text, "", template_text=long_text),
     "template_only_wrong": scenario(unrelated, "", template_text=long_text),
+    "keywords_ok_template_wrong": scenario(long_text, "Barangay, Indigency", template_text=unrelated),
     "no_rules": scenario(long_text, ""),
 }
 
@@ -63,6 +64,7 @@ test('document review decides verified, review or mismatch', function () {
         'newline_keywords' => 'verified',
         'template_only_match' => 'verified',
         'template_only_wrong' => 'mismatch',
+        'keywords_ok_template_wrong' => 'mismatch',
         'no_rules' => 'review',
         'unreadable' => 'review',
     ]);

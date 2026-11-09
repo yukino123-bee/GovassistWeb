@@ -263,6 +263,38 @@ def run_tesseract(image_path):
     return " ".join(words), sum(confidences) / len(confidences), len(words)
 
 
+_rapidocr = None
+
+
+def rapidocr_engine():
+    """The pip-installed OCR engine (scripts/requirements-ocr.txt), or None when it is not installed."""
+    global _rapidocr
+    if _rapidocr is None:
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+
+            _rapidocr = RapidOCR()
+        except Exception:
+            _rapidocr = False
+
+    return _rapidocr or None
+
+
+def run_rapidocr(engine, image_path):
+    """Return (text, mean_confidence, word_count) in the same shape as run_tesseract."""
+    try:
+        lines, _ = engine(image_path)
+    except Exception:
+        return None
+    if not lines:
+        return "", 0.0, 0
+
+    text = " ".join(line[1] for line in lines)
+    confidence = 100.0 * sum(float(line[2]) for line in lines) / len(lines)
+
+    return text, confidence, len(text.split())
+
+
 def load_gray(path):
     import cv2
     import numpy as np
@@ -346,8 +378,12 @@ def extract_image(path):
         return empty
 
     issues = assess_quality(gray, cv2, np)
-    if not shutil.which("tesseract"):
+    rapid = rapidocr_engine()
+    if not rapid and not shutil.which("tesseract"):
         return {**empty, "issues": issues}
+
+    engine_name = "rapidocr" if rapid else "tesseract"
+    read = (lambda file_path: run_rapidocr(rapid, file_path)) if rapid else run_tesseract
 
     best = None
     with tempfile.TemporaryDirectory(prefix="govassist-ocr-") as directory:
@@ -356,7 +392,7 @@ def extract_image(path):
             for index, variant in enumerate(prepare_variants(oriented, cv2, np)):
                 file_path = os.path.join(directory, f"r{rotation}v{index}.png")
                 cv2.imwrite(file_path, variant)
-                result = run_tesseract(file_path)
+                result = read(file_path)
                 if result and (best is None or score_ocr(result) > score_ocr(best)):
                     best = result
             if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
@@ -365,7 +401,7 @@ def extract_image(path):
     if best is None:
         return {**empty, "issues": issues}
 
-    return {"text": best[0], "confidence": best[1], "words": best[2], "engine": "tesseract", "issues": issues}
+    return {"text": best[0], "confidence": best[1], "words": best[2], "engine": engine_name, "issues": issues}
 
 
 def extract_any(path):
@@ -445,6 +481,22 @@ def review(document_path, template_path=None, keywords=None):
         "text_snippet": text[:200],
     }
 
+    # Layer 1: OCR compare of the submitted document against the blank template.
+    template_verdict = None
+    if template_score is not None:
+        if template_score >= 0.6:
+            template_verdict = "verified"
+        elif template_score >= 0.3 or not readable:
+            template_verdict = "review"
+        else:
+            template_verdict = "mismatch"
+
+    if template_verdict == "mismatch":
+        return outcome("mismatch", "This does not look like the requested form. Please upload the correct document.", **details)
+    if template_verdict == "review":
+        return outcome("review", "The document only partly matches the template. A facilitator will check it.", **details)
+
+    # Layer 2: the keywords the administrator set for this requirement.
     if wanted:
         if not missing:
             return outcome("verified", "Document verified successfully.", **details)
@@ -461,13 +513,8 @@ def review(document_path, template_path=None, keywords=None):
             **details,
         )
 
-    if template_score is not None:
-        if template_score >= 0.6:
-            return outcome("verified", "Document matches the template.", **details)
-        if template_score >= 0.3 or not readable:
-            return outcome("review", "The document only partly matches the template. A facilitator will check it.", **details)
-
-        return outcome("mismatch", "This does not look like the requested form. Please upload the correct document.", **details)
+    if template_verdict == "verified":
+        return outcome("verified", "Document matches the template.", **details)
 
     return outcome("review", "No checking rules are configured for this document, so a facilitator will check it.", **details)
 
