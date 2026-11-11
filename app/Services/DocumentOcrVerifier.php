@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 class DocumentOcrVerifier
@@ -43,6 +45,11 @@ class DocumentOcrVerifier
             $review = json_decode($result->output(), true);
 
             if ($result->failed() || ! is_array($review) || ! isset($review['status'])) {
+                Log::warning('Document OCR check returned no usable result', [
+                    'exit_code' => $result->exitCode(),
+                    'error' => Str::limit($result->errorOutput(), 500),
+                ]);
+
                 return $this->result('review', 'The document could not be checked automatically. A facilitator will review it.', 'verification_error', 0.0);
             }
 
@@ -57,7 +64,9 @@ class DocumentOcrVerifier
                 'missing' => array_values($review['missing'] ?? []),
                 'issues' => array_values($review['issues'] ?? []),
             ];
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::warning('Document OCR check failed: '.$exception->getMessage());
+
             return $this->result('review', 'The document could not be checked automatically. A facilitator will review it.', 'verification_error', 0.0);
         } finally {
             foreach ($temporaryPaths as $temporaryPath) {

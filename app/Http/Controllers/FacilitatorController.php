@@ -784,6 +784,9 @@ class FacilitatorController extends Controller
             'status' => ['nullable', 'in:in_progress,resolved'],
         ]);
 
+        // Only the first staff reply is texted; later replies show as a nav indicator instead
+        $isFirstStaffReply = ! $inquiry->staffResponses()->exists();
+
         $reply = InquiryRequirense::create([
             'inquiry_id' => $inquiry->id,
             'requireent_text' => $request->message,
@@ -805,8 +808,8 @@ class FacilitatorController extends Controller
             }
         }
 
-        // Send SMS reply alert to resident if contact number available
-        if ($inquiry->user) {
+        // Send SMS reply alert to resident on the first staff reply only, if contact number available
+        if ($inquiry->user && $isFirstStaffReply) {
             app(SmsService::class)->sendInquiryReply($inquiry->user, $request->message);
         }
 

@@ -511,6 +511,7 @@ test('document templates verification matches keywords for image uploads', funct
 
     $file = UploadedFile::fake()->image('document.jpg');
 
+    makeEligibleFor($resident, $service);
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => $file,
     ]);
@@ -553,6 +554,8 @@ test('document templates verification accepts an upload identical to the configu
         'name_ceb' => 'Medical Certificate,Patient Name,Physician',
         'file_path' => 'templates/medical-certificate.jpg',
     ]);
+
+    makeEligibleFor($resident, $service);
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
         $service->id,
@@ -610,6 +613,8 @@ test('document template verification rejects a mismatched upload', function () {
         'name_ceb' => 'Medical Certificate,Patient Name,Physician',
         'file_path' => 'templates/medical-certificate.jpg',
     ]);
+
+    makeEligibleFor($resident, $service);
 
     $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
         $service->id,

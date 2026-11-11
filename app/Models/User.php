@@ -109,13 +109,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Check if the resident is eligible for a given government service.
+     * The stored status alone is not enough: the live score must still meet the program minimum.
      */
     public function isEligibleFor(int $serviceId): bool
     {
         return $this->assessments()
+            ->with(['answers', 'service'])
             ->where('service_id', $serviceId)
             ->where('status', 'eligible')
-            ->exists();
+            ->get()
+            ->contains(fn (EligibilityAssessment $assessment) => $assessment->meetsMinimum());
     }
 
     public function checklists(): HasMany
@@ -131,6 +134,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function inquiries(): HasMany
     {
         return $this->hasMany(UserInquiry::class, 'user_id');
+    }
+
+    /** Inquiries with a staff reply the resident has not seen yet (drives the nav indicator). */
+    public function unreadInquiryCount(): int
+    {
+        return $this->inquiries()->get()->filter(fn (UserInquiry $inquiry) => $inquiry->hasUnreadStaffReply())->count();
     }
 
     // ERD Column Aliases / Accessors

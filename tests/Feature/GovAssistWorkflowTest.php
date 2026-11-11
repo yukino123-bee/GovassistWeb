@@ -232,6 +232,7 @@ test('resident can switch languages and complete full flow', function () {
 
     $assessment = EligibilityAssessment::first();
     expect($assessment->status)->toBe('pending');
+    $assessment->answers()->update(['is_eligible' => true]);
     $assessment->update(['status' => 'eligible']);
     $assessResponse->assertRedirect(route('resident.eligibility.result', $assessment->id));
 

@@ -39,7 +39,8 @@ function residentWithDraftChecklist(): array
         'requirement_text' => ['en' => 'Barangay Certificate', 'ceb' => 'Barangay Certificate', 'fil' => 'Barangay Certificate'],
         'is_required' => true,
     ]);
-    EligibilityAssessment::create(['user_id' => $resident->id, 'service_id' => $service->id, 'status' => 'eligible']);
+    $assessment = EligibilityAssessment::create(['user_id' => $resident->id, 'service_id' => $service->id, 'status' => 'eligible']);
+    $assessment->answers()->create(['question' => 'Are you a resident?', 'answer' => 'true', 'is_eligible' => true]);
     $checklist = UserChecklist::create(['user_id' => $resident->id, 'service_id' => $service->id, 'status' => 'draft']);
 
     return [$resident, $service, $requirement, $checklist];

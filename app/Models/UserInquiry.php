@@ -21,6 +21,7 @@ class UserInquiry extends Model
         'inquiry_text',
         'status',
         'awaiting_reply_since',
+        'resident_seen_reply_id',
     ];
 
     protected $appends = ['expires_at'];
@@ -29,7 +30,35 @@ class UserInquiry extends Model
     {
         return [
             'awaiting_reply_since' => 'datetime',
+            'resident_seen_reply_id' => 'integer',
         ];
+    }
+
+    /** Replies written by facilitators or other staff (not the resident, not automatic system messages). */
+    public function staffResponses(): HasMany
+    {
+        return $this->responses()
+            ->where('is_system', false)
+            ->whereHas('responder', fn (Builder $responder) => $responder->where('role', '!=', 'resident'));
+    }
+
+    /** A staff reply the resident has not opened the Inquiry page to see yet. */
+    public function hasUnreadStaffReply(): bool
+    {
+        return $this->staffResponses()
+            ->when($this->resident_seen_reply_id, fn (Builder $replies, $seenId) => $replies->where('id', '>', $seenId))
+            ->exists();
+    }
+
+    /** Called when the resident opens the Inquiry page: everything staff have written so far counts as seen. */
+    public function markSeenByResident(): void
+    {
+        $latestStaffReplyId = $this->staffResponses()->max('id');
+
+        // toBase keeps updated_at, so inactivity pruning is unchanged
+        if ($latestStaffReplyId) {
+            self::whereKey($this->id)->toBase()->update(['resident_seen_reply_id' => $latestStaffReplyId]);
+        }
     }
 
     public function user(): BelongsTo

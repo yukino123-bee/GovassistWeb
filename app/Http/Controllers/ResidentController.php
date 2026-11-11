@@ -269,6 +269,10 @@ class ResidentController extends Controller
             'application_type' => 'required|in:new,renewal',
         ]);
 
+        if (! Auth::user()->isEligibleFor($service->id)) {
+            return back()->with('error', __('messages.flash_must_be_eligible'));
+        }
+
         $checklist = UserChecklist::firstOrCreate([
             'user_id' => Auth::id(),
             'service_id' => $service->id,
@@ -311,6 +315,10 @@ class ResidentController extends Controller
         ]);
 
         abort_unless($requirement->service_id === $service->id, 404);
+
+        if (! Auth::user()->isEligibleFor($service->id)) {
+            return back()->with('error', __('messages.flash_must_be_eligible'));
+        }
 
         $existingChecklist = UserChecklist::where('user_id', Auth::id())
             ->where('service_id', $service->id)
@@ -461,6 +469,9 @@ class ResidentController extends Controller
             ->oldest()
             ->get();
         $templates = collect();
+
+        // Opening the Inquiry page clears the nav indicator
+        $inquiries->each->markSeenByResident();
 
         return view('resident.inquiry.bot', compact('inquiries', 'services', 'templates'));
     }
@@ -737,7 +748,8 @@ class ResidentController extends Controller
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar' => ['required', 'image', 'max:2048'],
+            // No SVG: it can carry scripts and would run on this site when opened
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $user = Auth::user();

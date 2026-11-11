@@ -677,11 +677,13 @@ class DatabaseSeeder extends Seeder
             'assessment_id' => $assessment->id,
             'question' => 'Are you at least 18 years of age?',
             'answer' => '21',
+            'is_eligible' => true,
         ]);
         AssessmentAnswer::create([
             'assessment_id' => $assessment->id,
             'question' => 'Are you currently unemployed and actively looking for work?',
             'answer' => 'true',
+            'is_eligible' => true,
         ]);
 
         // Checklist application for Mark Cagatin

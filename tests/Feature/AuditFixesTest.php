@@ -244,6 +244,7 @@ function reviewScenario(string $status, array $overrides = []): array
         'file_path' => 'templates/t.jpg',
     ]);
 
+    makeEligibleFor($resident, $service);
     $response = test()->actingAs($resident)->post(route('resident.eligibility.upload', [$service->id, $requirement->id]), [
         'document' => UploadedFile::fake()->image('doc.jpg'),
     ]);

@@ -56,6 +56,9 @@
                     </a>
                     <a href="{{ route('resident.inquiry') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.inquiry') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_inquiry') }}
+                        @if(auth()->check() && auth()->user()->unreadInquiryCount() > 0)
+                            <span class="inline-block w-2 h-2 rounded-full bg-amber-400 align-middle ml-1" title="New reply"></span>
+                        @endif
                     </a>
                     <a href="{{ route('resident.profile') }}" class="px-3 py-1.5 transition-all {{ Route::is('resident.profile*') ? 'bg-white/15 text-white border-b-2 border-white' : 'text-red-100 hover:text-white hover:bg-white/5' }}">
                         {{ __('messages.nav_profile') }}
@@ -155,10 +158,13 @@
             </a>
 
             <!-- Inquiry -->
-            <a href="{{ route('resident.inquiry') }}" class="flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.inquiry') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('resident.inquiry') }}" class="relative flex flex-col items-center justify-center w-16 h-full {{ Route::is('resident.inquiry') ? 'bottom-nav-active' : 'text-slate-400 hover:text-slate-600' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
+                @if(auth()->check() && auth()->user()->unreadInquiryCount() > 0)
+                    <span class="absolute mt-1 ml-6 w-2 h-2 rounded-full bg-amber-400" title="New reply"></span>
+                @endif
                 <span class="text-[9px] font-bold mt-1 uppercase tracking-wider">{{ __('messages.nav_inquiry') }}</span>
             </a>
 

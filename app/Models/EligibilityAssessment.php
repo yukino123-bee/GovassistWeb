@@ -40,6 +40,12 @@ class EligibilityAssessment extends Model
         return (int) round($scored->where('is_eligible', true)->count() / $scored->count() * 100);
     }
 
+    /** Whether the live score still meets the program's minimum (used before letting a resident in). */
+    public function meetsMinimum(): bool
+    {
+        return $this->scorePercentage() >= ($this->service?->minimum_percentage ?? 0);
+    }
+
     public function answers(): HasMany
     {
         return $this->hasMany(AssessmentAnswer::class, 'assessment_id');
