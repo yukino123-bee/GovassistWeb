@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class UserInquiry extends Model
 {
@@ -22,6 +23,7 @@ class UserInquiry extends Model
         'status',
         'awaiting_reply_since',
         'resident_seen_reply_id',
+        'facilitator_seen_response_id',
     ];
 
     protected $appends = ['expires_at'];
@@ -31,7 +33,42 @@ class UserInquiry extends Model
         return [
             'awaiting_reply_since' => 'datetime',
             'resident_seen_reply_id' => 'integer',
+            'facilitator_seen_response_id' => 'integer',
         ];
+    }
+
+    /** Messages written by the resident (or a guest): no responder account, or a resident responder. */
+    public function residentResponses(): HasMany
+    {
+        return $this->responses()
+            ->where('is_system', false)
+            ->where(fn (Builder $query) => $query->whereNull('responded_by')
+                ->orWhereHas('responder', fn (Builder $responder) => $responder->where('role', 'resident')));
+    }
+
+    /** Threads with a resident message staff have not opened yet (drives the staff badge and dots). */
+    public function scopeUnreadForStaff(Builder $query): Builder
+    {
+        return $query->whereHas('residentResponses', fn (Builder $responses) => $responses
+            ->whereColumn('inquiry_requirenses.id', '>', DB::raw('COALESCE(user_inquiries.facilitator_seen_response_id, 0)')));
+    }
+
+    public function hasUnreadResidentMessage(): bool
+    {
+        return $this->residentResponses()
+            ->where('inquiry_requirenses.id', '>', $this->facilitator_seen_response_id ?? 0)
+            ->exists();
+    }
+
+    /** Called when staff open or reply in the thread: everything written so far counts as seen. */
+    public function markSeenByStaff(): void
+    {
+        $latestResponseId = $this->responses()->max('id');
+
+        // toBase keeps updated_at, so inactivity pruning is unchanged
+        if ($latestResponseId) {
+            self::whereKey($this->id)->toBase()->update(['facilitator_seen_response_id' => $latestResponseId]);
+        }
     }
 
     /** Replies written by facilitators or other staff (not the resident, not automatic system messages). */

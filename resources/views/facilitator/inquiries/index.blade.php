@@ -104,7 +104,7 @@
                         <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-bold text-sm shadow-3xs group-hover:bg-red-50 group-hover:text-red-700 group-hover:border-red-100 transition-colors">
                             {{ $initial }}
                         </div>
-                        @if($isPending)
+                        @if($inq->hasUnreadResidentMessage())
                             <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full ring-2 ring-white"></span>
                         @elseif($isInProgress)
                             <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-amber-500 rounded-full ring-2 ring-white"></span>

@@ -90,7 +90,7 @@ class AppServiceProvider extends ServiceProvider
                 ->take(10);
 
             $pendingAppsCount = UserChecklist::where('status', 'pending')->count();
-            $pendingInquiriesCount = UserInquiry::where('status', 'pending')->count();
+            $pendingInquiriesCount = UserInquiry::unreadForStaff()->count();
             $pendingReassessmentsCount = ReassessmentRequest::where('status', 'pending')->count();
 
             $view->with('adminNotifications', $notifications)

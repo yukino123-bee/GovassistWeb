@@ -771,6 +771,9 @@ class FacilitatorController extends Controller
 
     public function getMessages(UserInquiry $inquiry)
     {
+        // The thread is open on the staff side, so its new messages count as seen
+        $inquiry->markSeenByStaff();
+
         return response()->json([
             'success' => true,
             'inquiry' => $inquiry->load(['user.checklists.service', 'user.inquiries', 'service', 'responses.responder']),
@@ -797,6 +800,7 @@ class FacilitatorController extends Controller
             'status' => $request->input('status', 'in_progress'),
             'awaiting_reply_since' => now(),
         ]);
+        $inquiry->markSeenByStaff();
 
         // Send email reply to resident
         $email = $inquiry->user ? $inquiry->user->email : $inquiry->guest_email;
