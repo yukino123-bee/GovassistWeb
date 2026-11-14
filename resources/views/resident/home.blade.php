@@ -37,7 +37,7 @@
             $completion = (int) round((App\Models\User::REQUIRED_PROFILE_FIELD_COUNT - count($missingFields)) / App\Models\User::REQUIRED_PROFILE_FIELD_COUNT * 100);
         @endphp
         @if(count($missingFields) > 0)
-            <div class="bg-amber-50 border border-amber-200 border-l-4 border-l-amber-500 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4" role="status">
+            <div class="relative bg-amber-50 border border-amber-200 border-l-4 border-l-amber-500 p-5 pr-14 flex flex-col md:flex-row md:items-center md:justify-between gap-4" role="status">
                 <div class="min-w-0">
                     <h3 class="text-xs font-extrabold uppercase tracking-widest text-amber-900">{{ __('messages.profile_incomplete_title') }} <span class="text-amber-700">&middot; {{ $completion }}%</span></h3>
                     <p class="text-xs text-amber-800 mt-1.5">{{ __('messages.profile_incomplete_desc') }}</p>
@@ -48,9 +48,13 @@
                     </ul>
                     <div class="mt-3 h-1.5 bg-amber-100 max-w-xs"><div class="h-full bg-amber-500" style="width: {{ $completion }}%"></div></div>
                 </div>
-                <a href="{{ route('resident.profile.edit') }}" class="shrink-0 text-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
-                    {{ __('messages.complete_profile_btn') }}
-                </a>
+                <div class="shrink-0 flex items-center gap-3">
+                    <a href="{{ route('resident.profile.edit') }}" class="text-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 transition-colors text-white text-[10px] font-bold uppercase tracking-wider">
+                        {{ __('messages.complete_profile_btn') }}
+                    </a>
+                </div>
+                {{-- shortcut: hides the banner until the next page load, no saved preference --}}
+                <button type="button" onclick="this.closest('[role=status]').remove()" aria-label="{{ __('messages.inq_close') }}" class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-3xl text-amber-700 hover:text-amber-900 leading-none">&times;</button>
             </div>
         @endif
     @endauth
@@ -74,7 +78,7 @@
 
     <!-- Two-column responsive desktop layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         <!-- Left: Services (2 cols on lg) -->
         <div class="lg:col-span-2 space-y-6">
             <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
@@ -113,7 +117,7 @@
                                                 {{ $serviceDesc }}
                                             </p>
                                         </div>
-                                        
+
                                         <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
                                             <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-900 flex items-center space-x-1.5 group">
                                                 <span>{{ __('messages.check_eligibility') }}</span>
