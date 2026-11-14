@@ -8,7 +8,7 @@
 <div class="space-y-8">
 
     <!-- Welcome Header Banner (No rounded corners, vibrant red solid) -->
-    <div class="bg-red-700 text-white p-6 border-l-4 border-red-300 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between">
+    <div class="relative bg-red-700 text-white p-6 pr-14 border-l-4 border-red-300 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between" role="status">
         <div>
             <span class="text-xs uppercase tracking-widest text-red-200 font-bold">{{ Auth::check() ? __('messages.welcome_back') : __('messages.welcome_guest') }}</span>
             @auth
@@ -29,6 +29,8 @@
                 </a>
             @endauth
         </div>
+        {{-- shortcut: hides the welcome banner until the next page load, no saved preference --}}
+        <button type="button" onclick="this.closest('[role=status]').remove()" aria-label="{{ __('messages.inq_close') }}" class="absolute top-2 right-2 w-10 h-10 flex items-center justify-center text-3xl text-red-200 hover:text-white leading-none">&times;</button>
     </div>
 
     @auth

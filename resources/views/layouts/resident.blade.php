@@ -43,7 +43,10 @@
                     <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center overflow-hidden p-0.5 shadow-sm border border-red-200">
                         <img src="{{ asset('ssfo_logo.png') }}" alt="SSFO Logo" class="w-full h-full object-contain">
                     </div>
-                    <h1 class="text-sm sm:text-xl font-extrabold tracking-wider uppercase text-white truncate max-w-[120px] sm:max-w-none">@yield('header_title', __('messages.app_name'))</h1>
+                    <h1 class="text-sm sm:text-xl font-extrabold tracking-wider uppercase text-white truncate max-w-[120px] sm:max-w-none">
+                        <span class="sm:hidden">{{ __('messages.app_name') }}</span>
+                        <span class="hidden sm:inline">@yield('header_title', __('messages.app_name'))</span>
+                    </h1>
                 </div>
 
                 <!-- Desktop Navigation Links (Hidden on Mobile) -->

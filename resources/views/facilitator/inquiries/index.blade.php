@@ -155,21 +155,20 @@
         <!-- Reply Pane (Messenger-like Conversation Thread) -->
         <div id="reply-pane" class="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden min-h-[600px] flex flex-col justify-between hidden">
             <!-- Header bar displaying sender details with Clickable User Profile trigger -->
-            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <div class="flex items-center space-x-3 cursor-pointer group" id="thread-user-header" onclick="openActiveUserProfile()">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center space-x-3 cursor-pointer group min-w-0" id="thread-user-header" onclick="openActiveUserProfile()">
                     <div class="w-10 h-10 rounded-full bg-red-700 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:bg-red-800 transition-colors" id="thread-avatar">
                         C
                     </div>
                         <div>
                             <div class="flex items-center space-x-2">
                                 <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest block group-hover:text-red-700 transition-colors" id="inq-sender">Resident</h3>
-                                <span class="text-[9px] bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold border border-red-100 group-hover:bg-red-700 group-hover:text-white transition-all">View Profile ↗</span>
+                                <span class="text-[9px] whitespace-nowrap shrink-0 bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold border border-red-100 group-hover:bg-red-700 group-hover:text-white transition-all">View Profile ↗</span>
                             </div>
                             <p class="text-[10px] text-slate-400 font-semibold truncate" id="inq-sub-text">resident@example.com</p>
                         </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="text-xs font-bold text-slate-450 uppercase tracking-widest" id="inq-status-badge">Status</span>
                     
                     <!-- Delete Chat Form/Button -->
                     <form id="delete-chat-form" method="POST" class="inline-flex items-center">

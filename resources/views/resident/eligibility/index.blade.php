@@ -107,21 +107,21 @@
                                 <span class="text-[10px] text-slate-400 block mt-2">{{ __('messages.assessed_on') }} {{ $assess->created_at->format('M d, Y h:i A') }}</span>
                             </div>
 
-                            <div class="mt-4 pt-3.5 border-t border-slate-100 flex justify-between items-center">
+                            <div class="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                                 @if(isset($reassessmentRequests) && isset($reassessmentRequests[$assess->service->id]))
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center space-x-1 bg-amber-50 px-2 py-1 border border-amber-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <span>{{ __('messages.reassessment_requested') }}</span>
                                     </span>
                                 @else
-                                    <button type="button" onclick="openReassessmentModal({{ $assess->service->id }}, @js($assessName))" class="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800 flex items-center space-x-1 transition-colors">
+                                    <button type="button" onclick="openReassessmentModal({{ $assess->service->id }}, @js($assessName))" class="text-[9px] font-bold uppercase tracking-wider text-slate-700 bg-white border border-slate-300 hover:border-slate-500 hover:bg-slate-50 px-2 py-1.5 flex items-center space-x-1 whitespace-nowrap transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                         <span>{{ __('messages.request_reassessment') }}</span>
                                     </button>
                                 @endif
 
                                 @if($assess->status === 'eligible')
-                                    <a href="{{ route('resident.eligibility.checklist', $assess->service->id) }}" class="text-[10px] font-bold uppercase tracking-wider text-red-700 hover:text-red-900 flex items-center space-x-1">
+                                    <a href="{{ route('resident.eligibility.checklist', $assess->service->id) }}" class="text-[9px] font-bold uppercase tracking-wider text-white bg-red-700 hover:bg-red-800 px-2 py-1.5 flex items-center space-x-1 whitespace-nowrap transition-colors">
                                         <span>{{ __('messages.checklist_btn') }}</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

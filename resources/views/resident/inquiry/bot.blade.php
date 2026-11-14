@@ -53,7 +53,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- Left Column: Ticket History List (4 Cols) -->
-        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]">
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-auto lg:h-[650px]">
             <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                 <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center">
                     <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,10 +97,10 @@
         </div>
 
         <!-- Right Column: Ticket Workspace & Discussion (8 Cols) -->
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[650px]" id="ticket-workspace">
-            
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-auto lg:h-[650px]" id="ticket-workspace">
+
             <!-- Empty State when no ticket is selected -->
-            <div id="ticket-empty-state" class="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
+            <div id="ticket-empty-state" class="min-h-[12rem] lg:h-full flex flex-col items-center justify-center p-5 sm:p-8 text-center bg-slate-50/50">
                 <div class="w-16 h-16 bg-red-50 text-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>

@@ -170,7 +170,7 @@
         </div>
 
         @if($users->hasPages())
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <div class="flex flex-col items-center justify-center gap-2 text-center text-xs text-slate-500">
                 <span>Showing {{ $users->firstItem() }}&ndash;{{ $users->lastItem() }} of {{ $users->total() }}</span>
                 {{ $users->links() }}
             </div>
