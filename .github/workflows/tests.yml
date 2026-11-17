@@ -41,7 +41,7 @@ jobs:
 
     - name: Prepare environment
       run: |
-        cp .env.example .env
+        php -r "file_exists('.env') || file_put_contents('.env', 'APP_KEY=');"
         php artisan key:generate
 
     - name: Run tests
