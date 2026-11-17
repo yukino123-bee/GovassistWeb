@@ -19,6 +19,7 @@ use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
 use App\Services\DocumentOcrVerifier;
 use App\Services\SmsService;
+use App\Services\SystemStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +31,11 @@ use Illuminate\Validation\Rule;
 
 class FacilitatorController extends Controller
 {
+    public function systemStatus(SystemStatus $status)
+    {
+        return response()->json($status->checks());
+    }
+
     public function dashboard()
     {
         $totalUsers = User::where('role', 'resident')->count();

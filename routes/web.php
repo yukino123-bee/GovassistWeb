@@ -90,6 +90,7 @@ Route::middleware(['auth', 'role:resident', 'verified'])->prefix('resident')->gr
 // Facilitator (Admin) Protected Routes
 Route::middleware(['auth', 'role:facilitator'])->prefix('facilitator')->group(function () {
     Route::get('/dashboard', [FacilitatorController::class, 'dashboard'])->name('facilitator.dashboard');
+    Route::get('/system-status', [FacilitatorController::class, 'systemStatus'])->name('facilitator.system-status');
 
     // Profile Settings
     Route::get('/profile', [FacilitatorController::class, 'editProfile'])->name('facilitator.profile.edit');

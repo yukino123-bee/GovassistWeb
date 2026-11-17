@@ -49,4 +49,8 @@ return [
         ],
     ],
 
+    'backup' => [
+        'keep_days' => env('BACKUP_KEEP_DAYS', 30),
+    ],
+
 ];

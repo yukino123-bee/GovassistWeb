@@ -104,6 +104,11 @@
         </nav>
 
         <div class="shrink-0 border-t border-white/10 p-3 space-y-2">
+            <!-- System status: opens a modal listing each technology the app depends on -->
+            <button type="button" id="system-status-btn" aria-haspopup="dialog" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs text-red-100 hover:bg-white/5 hover:text-white">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h2l2-4 2 8 2-4h2" /></svg>
+                <span class="nav-label">System status</span>
+            </button>
             <button type="button" id="sidebar-collapse-btn" class="hidden lg:flex w-full items-center justify-center gap-2 px-3 py-2 rounded-md text-xs text-red-100 hover:bg-white/5 hover:text-white" aria-label="Collapse sidebar">
                 <svg id="sidebar-collapse-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
                 <span class="nav-label">Collapse</span>
@@ -266,6 +271,22 @@
         </div>
     </div>
 
+    <!-- System Status Modal -->
+    <div id="status-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-slate-900/60 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="status-modal-title" class="bg-white border-t-4 border-[#b80010] max-w-md w-full p-6 shadow-xl space-y-4 rounded-md">
+            <div class="flex items-center justify-between">
+                <h4 class="text-xs font-extrabold uppercase tracking-widest text-red-700" id="status-modal-title">System Status</h4>
+                <button type="button" id="status-modal-close" class="text-slate-400 hover:text-slate-700 text-lg leading-none" aria-label="Close">&times;</button>
+            </div>
+            <p id="status-modal-summary" class="text-xs font-semibold text-slate-600"></p>
+            <ul id="status-modal-list" class="divide-y divide-slate-100 text-xs max-h-96 overflow-y-auto"></ul>
+            <div class="flex items-center justify-between pt-2">
+                <span id="status-modal-time" class="text-[10px] text-slate-400"></span>
+                <button type="button" id="status-modal-refresh" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px] transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Check again</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let confirmCallback = null;
 
@@ -303,6 +324,48 @@
                 };
                 cancelBtn.addEventListener('click', onCancelReset);
             }
+        }
+
+        function loadSystemStatus() {
+            const list = document.getElementById('status-modal-list');
+            const summary = document.getElementById('status-modal-summary');
+            const time = document.getElementById('status-modal-time');
+            const refreshBtn = document.getElementById('status-modal-refresh');
+            list.innerHTML = '<li class="py-2 text-slate-500">Checking...</li>';
+            summary.textContent = '';
+            refreshBtn.disabled = true;
+            fetch("{{ route('facilitator.system-status') }}", { headers: { "Accept": "application/json" } })
+                .then(res => res.json())
+                .then(items => {
+                    list.innerHTML = '';
+                    // Down items first so problems are seen at once
+                    items.sort((a, b) => Number(a.ok) - Number(b.ok));
+                    const okCount = items.filter(item => item.ok).length;
+                    summary.textContent = okCount === items.length
+                        ? 'All ' + items.length + ' checks are OK'
+                        : okCount + ' of ' + items.length + ' checks are OK';
+                    summary.className = 'text-xs font-semibold ' + (okCount === items.length ? 'text-emerald-700' : 'text-rose-700');
+                    time.textContent = 'Checked at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    items.forEach(item => {
+                        const name = document.createElement('span');
+                        name.className = 'font-semibold text-slate-800';
+                        name.textContent = item.name;
+                        const detail = document.createElement('span');
+                        detail.className = 'block text-[11px] text-slate-500';
+                        detail.textContent = item.detail;
+                        const badge = document.createElement('span');
+                        badge.className = 'shrink-0 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ' + (item.ok ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800');
+                        badge.textContent = item.ok ? 'OK' : 'Down';
+                        const row = document.createElement('li');
+                        row.className = 'py-2 flex items-start justify-between gap-3' + (item.ok ? '' : ' bg-rose-50/60');
+                        const info = document.createElement('div');
+                        info.append(name, detail);
+                        row.append(info, badge);
+                        list.append(row);
+                    });
+                })
+                .catch(() => { list.innerHTML = '<li class="py-2 text-rose-700">Could not load the status. Try again.</li>'; })
+                .finally(() => { refreshBtn.disabled = false; });
         }
 
         function changeLanguage(lang) {
@@ -377,6 +440,15 @@
                 const collapsed = document.body.classList.toggle('sidebar-collapsed');
                 try { localStorage.setItem('admin_sidebar_collapsed', collapsed ? '1' : '0'); } catch (e) {}
             });
+            // System status modal
+            const statusBtn = document.getElementById('system-status-btn');
+            const statusModal = document.getElementById('status-modal');
+            if (statusBtn && statusModal) {
+                statusBtn.addEventListener('click', () => { statusModal.classList.remove('hidden'); loadSystemStatus(); });
+                document.getElementById('status-modal-close').addEventListener('click', () => statusModal.classList.add('hidden'));
+                document.getElementById('status-modal-refresh').addEventListener('click', loadSystemStatus);
+            }
+
             if (backdrop) backdrop.addEventListener('click', closeSidebar);
         });
     </script>

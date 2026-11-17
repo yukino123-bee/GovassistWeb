@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('inquiries:prune-inactive')->everyFiveMinutes();
+
+Schedule::command('backup:database')->weeklyOn(0, '02:00');
