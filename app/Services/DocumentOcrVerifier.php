@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -33,21 +33,18 @@ class DocumentOcrVerifier
                 return $this->result('verified', 'Document verified successfully.', 'exact_file_match', 1.0);
             }
 
-            $result = Process::timeout(180)->run([
-                'python3',
-                base_path('scripts/document_review.py'),
-                'review',
-                $localDocumentPath,
-                $localTemplatePath,
-                $keywords,
-            ]);
+            $response = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
+                ->timeout(180)
+                ->attach('document', file_get_contents($localDocumentPath), basename($localDocumentPath))
+                ->attach('template', file_get_contents($localTemplatePath), basename($localTemplatePath))
+                ->post(config('services.ocr.url').'/review', ['keywords' => $keywords]);
 
-            $review = json_decode($result->output(), true);
+            $review = $response->json();
 
-            if ($result->failed() || ! is_array($review) || ! isset($review['status'])) {
+            if ($response->failed() || ! is_array($review) || ! isset($review['status'])) {
                 Log::warning('Document OCR check returned no usable result', [
-                    'exit_code' => $result->exitCode(),
-                    'error' => Str::limit($result->errorOutput(), 500),
+                    'status' => $response->status(),
+                    'error' => Str::limit($response->body(), 500),
                 ]);
 
                 return $this->result('review', 'The document could not be checked automatically. A facilitator will review it.', 'verification_error', 0.0);

@@ -53,4 +53,9 @@ return [
         'keep_days' => env('BACKUP_KEEP_DAYS', 30),
     ],
 
+    'ocr' => [
+        'url' => env('OCR_SERVICE_URL'),
+        'key' => env('OCR_API_KEY'),
+    ],
+
 ];

@@ -13,7 +13,7 @@ test('facilitator gets a status row for every technology', function () {
 
     $response->assertOk();
     $names = collect($response->json())->pluck('name');
-    expect($names)->toContain('Database', 'Cache', 'OCR engine (Tesseract)', 'SMS');
+    expect($names)->toContain('Database', 'Cache', 'OCR service', 'SMS');
     expect(collect($response->json())->every(fn ($row) => isset($row['ok'], $row['detail'])))->toBeTrue();
 });
 

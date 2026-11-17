@@ -16,8 +16,8 @@ use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -470,8 +470,8 @@ test('facilitator can manage document templates by program', function () {
 test('document templates verification matches keywords for image uploads', function () {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);
-    Process::fake([
-        '*' => Process::result(output: json_encode([
+    Http::fake([
+        '*' => Http::response([
             'status' => 'verified',
             'match' => true,
             'score' => 0.91,
@@ -480,7 +480,7 @@ test('document templates verification matches keywords for image uploads', funct
             'missing' => [],
             'issues' => [],
             'message' => 'Document verified successfully.',
-        ])),
+        ]),
     ]);
 
     $resident = User::factory()->create(['role' => 'resident']);
@@ -523,13 +523,13 @@ test('document templates verification matches keywords for image uploads', funct
         'status' => 'approved',
     ]);
 
-    Process::assertRan(fn ($process) => $process->command[5] === 'Indigency');
+    Http::assertSent(fn ($request) => str_ends_with($request->url(), '/review'));
 });
 
 test('document templates verification accepts an upload identical to the configured template', function () {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);
-    Process::fake();
+    Http::fake();
 
     $resident = User::factory()->create(['role' => 'resident']);
     $category = ServiceCategory::create(['category_name' => 'Category']);
@@ -572,14 +572,14 @@ test('document templates verification accepts an upload identical to the configu
         'is_submitted' => true,
         'status' => 'approved',
     ]);
-    Process::assertNothingRan();
+    Http::assertNothingSent();
 });
 
 test('document template verification rejects a mismatched upload', function () {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);
-    Process::fake([
-        '*' => Process::result(output: json_encode([
+    Http::fake([
+        '*' => Http::response([
             'status' => 'mismatch',
             'match' => false,
             'score' => 0.08,
@@ -588,7 +588,7 @@ test('document template verification rejects a mismatched upload', function () {
             'missing' => ['medical certificate'],
             'issues' => [],
             'message' => 'The document does not match the configured template or all required keywords.',
-        ])),
+        ]),
     ]);
 
     $resident = User::factory()->create(['role' => 'resident']);

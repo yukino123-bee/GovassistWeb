@@ -10,6 +10,7 @@ use App\Models\UserChecklistItem;
 use App\Models\UserInquiry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -168,7 +169,7 @@ test('xss in profile name is escaped on facilitator user list', function () {
 });
 
 test('creating an eligibility question falls back to the original text when translation fails', function () {
-    Process::fake(fn () => throw new RuntimeException('python missing'));
+    Http::fake(fn () => throw new RuntimeException('translation service missing'));
     $facilitator = User::where('role', 'facilitator')->first();
     $service = GovernmentService::first();
 

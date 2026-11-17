@@ -5,8 +5,8 @@ namespace App\Services;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
 use RuntimeException;
 use Throwable;
 
@@ -24,9 +24,7 @@ class SystemStatus
             $this->probe('Cache', fn () => Cache::store()->get('system-status-probe'), 'Driver: '.config('cache.default')),
             $this->probe('File storage', fn () => is_writable(storage_path('app')) ?: throw new RuntimeException('not writable'), 'storage/app is writable'),
             $this->probe('Website build (Vite)', fn () => is_file(public_path('build/manifest.json')) ?: throw new RuntimeException('missing'), 'Build files found'),
-            $this->probe('Document reader (Python)', fn () => $this->tool(['python3', '-c', 'import rapidfuzz']), 'Python with rapidfuzz is ready'),
-            $this->probe('OCR engine (Tesseract)', fn () => $this->tool(['tesseract', '--version']), 'Text recognition engine found'),
-            $this->probe('PDF pages (pdftoppm)', fn () => $this->tool(['pdftoppm', '-v']), 'PDF page converter found'),
+            $this->probe('OCR service', fn () => Http::timeout(15)->get(config('services.ocr.url').'/health')->json('status') === 'ok' ?: throw new RuntimeException('not ok'), 'Document reading service is online'),
             $this->probe('SMS', function () {
                 if (! config('services.sms.enabled', true)) {
                     throw new RuntimeException('turned off');
@@ -54,14 +52,5 @@ class SystemStatus
 
             return ['name' => $name, 'ok' => false, 'detail' => 'Not available right now. Check the log for details.'];
         }
-    }
-
-    private function tool(array $command): bool
-    {
-        if (Process::timeout(15)->run($command)->failed()) {
-            throw new RuntimeException('command failed: '.$command[0]);
-        }
-
-        return true;
     }
 }

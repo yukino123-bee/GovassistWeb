@@ -9,6 +9,7 @@ use App\Models\UserChecklist;
 use App\Models\UserChecklistItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 
@@ -222,7 +223,7 @@ function reviewScenario(string $status, array $overrides = []): array
 {
     Storage::fake('public');
     config(['filesystems.default' => 'public']);
-    Process::fake(['*' => Process::result(output: json_encode(array_merge([
+    Http::fake(['*' => Http::response(array_merge([
         'status' => $status,
         'match' => $status === 'verified',
         'score' => 0.5,
@@ -231,7 +232,7 @@ function reviewScenario(string $status, array $overrides = []): array
         'missing' => ['indigency'],
         'issues' => ['The image looks blurry. Please hold the camera steady and retake the photo.'],
         'message' => 'Part of the document could not be matched automatically. A facilitator will check it.',
-    ], $overrides)))]);
+    ], $overrides))]);
 
     $resident = User::factory()->create(['role' => 'resident']);
     [$service, $requirement] = makeServiceWithRequirement();
@@ -278,11 +279,14 @@ test('facilitator can re-check a document against its template', function () {
     [, $item] = reviewScenario('review');
     $facilitator = User::factory()->create(['role' => 'facilitator']);
 
-    Process::fake(['*' => Process::result(output: json_encode([
+    // The upload's fake would win over this one, so start with a fresh HTTP factory.
+    app()->forgetInstance(\Illuminate\Http\Client\Factory::class);
+    Http::clearResolvedInstance(\Illuminate\Http\Client\Factory::class);
+    Http::fake(['*' => Http::response([
         'status' => 'verified', 'match' => true, 'score' => 1, 'method' => 'tesseract',
         'found' => ['barangay', 'indigency'], 'missing' => [], 'issues' => [],
         'message' => 'Document verified successfully.',
-    ]))]);
+    ])]);
 
     $this->actingAs($facilitator)
         ->post(route('facilitator.checklist_items.auto_verify', $item))

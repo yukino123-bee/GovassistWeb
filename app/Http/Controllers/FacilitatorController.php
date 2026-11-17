@@ -23,9 +23,9 @@ use App\Services\SystemStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -409,24 +409,20 @@ class FacilitatorController extends Controller
         ]);
 
         try {
-            $output = Process::timeout(30)->run([
-                'python3',
-                base_path('scripts/translate.py'),
-                '--text',
-                $request->question_text,
-            ])->output();
+            $response = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
+                ->timeout(30)
+                ->asForm()
+                ->post(config('services.ocr.url').'/translate', ['text' => $request->question_text]);
+            $result = $response->successful() ? $response->json() : null;
         } catch (\Throwable $exception) {
             Log::warning('Question translation failed: '.$exception->getMessage());
-            $output = null;
+            $result = null;
         }
 
         $translations = ['en' => $request->question_text, 'ceb' => '', 'fil' => ''];
 
-        if ($output) {
-            $result = json_decode($output, true);
-            if (is_array($result) && ! isset($result['error'])) {
-                $translations = array_merge($translations, $result);
-            }
+        if (is_array($result) && ! isset($result['error'])) {
+            $translations = array_merge($translations, $result);
         }
 
         $translations['ceb'] = $translations['ceb'] ?: $request->question_text;
