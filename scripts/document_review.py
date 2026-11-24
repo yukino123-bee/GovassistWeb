@@ -14,6 +14,7 @@ Usage:
   document_review.py review <document> [template] [keywords]
   document_review.py text <document>
 """
+import hashlib
 import json
 import os
 import re
@@ -38,9 +39,10 @@ except Exception:  # pragma: no cover - rapidfuzz is optional
 
 OCR_LANGUAGE = os.environ.get("GOVASSIST_OCR_LANG", "eng")
 MAX_PDF_PAGES = 3
-MIN_READABLE_WORDS = 12
+MIN_READABLE_WORDS = 3
 MIN_CONFIDENT_OCR = 55.0
 LOW_WORD_FUZZY = 0.8
+_template_text_cache = {}
 
 
 # --------------------------------------------------------------------------
@@ -325,15 +327,20 @@ def estimate_skew(gray, cv2, np):
     return fine
 
 
-def prepare_variants(gray, cv2, np):
+def resize_for_ocr(gray, cv2):
     height, width = gray.shape
     longest = max(height, width)
-    if longest < 1200:
+    if longest < 1000:
+        factor = 1200.0 / longest
+        return cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
+    if longest > 1400:
         factor = 1400.0 / longest
-        gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
-    elif longest > 1800:
-        factor = 1800.0 / longest
-        gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
+        return cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
+    return gray
+
+
+def prepare_variants(gray, cv2, np):
+    gray = resize_for_ocr(gray, cv2)
 
     angle = estimate_skew(gray, cv2, np)
     if abs(angle) >= 0.5:
@@ -385,32 +392,37 @@ def extract_image(path):
     engine_name = "rapidocr" if rapid else "tesseract"
     read = (lambda file_path: run_rapidocr(rapid, file_path)) if rapid else run_tesseract
 
-    height, width = gray.shape
-    longest = max(height, width)
-    if longest > 1800:
-        scale = 1800.0 / longest
-        gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    gray = resize_for_ocr(gray, cv2)
 
     best = None
     with tempfile.TemporaryDirectory(prefix="govassist-ocr-") as directory:
-        for index, variant in enumerate(prepare_variants(gray, cv2, np)):
-            file_path = os.path.join(directory, f"r0v{index}.png")
-            cv2.imwrite(file_path, variant)
-            result = read(file_path)
-            if result and (best is None or score_ocr(result) > score_ocr(best)):
-                best = result
-            if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
-                break
+        # Fast path: single contrast-enhanced pass without expensive multi-angle deskew
+        fast_enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+        fast_path = os.path.join(directory, "fast.png")
+        cv2.imwrite(fast_path, fast_enhanced)
+        result = read(fast_path)
+        if result:
+            best = result
+
+        if not (best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS):
+            for index, variant in enumerate(prepare_variants(gray, cv2, np)):
+                file_path = os.path.join(directory, f"r0v{index}.png")
+                cv2.imwrite(file_path, variant)
+                result = read(file_path)
+                if result and (best is None or score_ocr(result) > score_ocr(best)):
+                    best = result
+                if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
+                    break
 
         if not best or best[2] < 3:
-            for rotation in (1, 2, 3):
+            for rotation in (1, 3):
                 oriented = np.rot90(gray, rotation).copy()
-                for index, variant in enumerate(prepare_variants(oriented, cv2, np)):
-                    file_path = os.path.join(directory, f"r{rotation}v{index}.png")
-                    cv2.imwrite(file_path, variant)
-                    result = read(file_path)
-                    if result and (best is None or score_ocr(result) > score_ocr(best)):
-                        best = result
+                rot_enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(oriented)
+                file_path = os.path.join(directory, f"r{rotation}.png")
+                cv2.imwrite(file_path, rot_enhanced)
+                result = read(file_path)
+                if result and (best is None or score_ocr(result) > score_ocr(best)):
+                    best = result
                 if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
                     break
 
@@ -483,13 +495,28 @@ def review(document_path, template_path=None, keywords=None):
     found = [k for k in wanted if keyword_found(k, cleaned, document_words)]
     missing = [k for k in wanted if k not in found]
 
-    template_score = None
-    if template_path and os.path.exists(template_path):
-        template_text = extract_any(template_path)["text"]
-        template_score = template_overlap(template_text, text)
-
     coverage = len(found) / len(wanted) if wanted else None
     readable = words >= MIN_READABLE_WORDS and (confidence is None or confidence >= MIN_CONFIDENT_OCR)
+
+    template_score = None
+    skip_template_ocr = bool(wanted and coverage is not None and coverage < 0.5 and readable)
+    if template_path and os.path.exists(template_path) and not skip_template_ocr:
+        try:
+            with open(template_path, "rb") as tf:
+                template_bytes = tf.read()
+            cache_key = hashlib.sha256(template_bytes).hexdigest() if template_bytes else template_path
+        except Exception:
+            cache_key = template_path
+
+        if cache_key in _template_text_cache and extract_any.__name__ == "extract_any":
+            template_text = _template_text_cache[cache_key]
+        else:
+            template_text = extract_any(template_path)["text"]
+            if extract_any.__name__ == "extract_any" and cache_key:
+                _template_text_cache[cache_key] = template_text
+
+        template_score = template_overlap(template_text, text)
+
     score = coverage if coverage is not None else (template_score or 0.0)
     details = {
         "method": method, "confidence": confidence, "found": found, "missing": missing,

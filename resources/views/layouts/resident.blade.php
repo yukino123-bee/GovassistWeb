@@ -193,7 +193,8 @@
     </div>
 
     <!-- Reusable Error Modal -->
-    <div id="error-modal" class="fixed inset-0 z-[100] {{ session('error') ? '' : 'hidden' }} flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 p-4">
+    @php($modalErrorMessage = session('error') ?: ($errors->any() ? $errors->first() : null))
+    <div id="error-modal" class="fixed inset-0 z-[100] {{ $modalErrorMessage ? '' : 'hidden' }} flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 p-4">
         <div class="bg-white border-l-4 border-rose-600 max-w-sm w-full p-6 shadow-xl space-y-4 rounded-none transform transition-transform scale-95 duration-300">
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -201,7 +202,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-extrabold uppercase tracking-widest text-rose-700" id="error-modal-title">Notice</h4>
-                    <p class="text-xs text-slate-700 leading-relaxed font-semibold mt-1.5" id="error-modal-message">{{ session('error') }}</p>
+                    <p class="text-xs text-slate-700 leading-relaxed font-semibold mt-1.5" id="error-modal-message">{{ $modalErrorMessage }}</p>
                 </div>
             </div>
             <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
@@ -260,7 +261,7 @@
             document.body.classList.remove('overflow-hidden');
         }
 
-        @if(session('error'))
+        @if($modalErrorMessage)
         document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('overflow-hidden');
         });

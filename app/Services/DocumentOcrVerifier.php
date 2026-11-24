@@ -34,7 +34,8 @@ class DocumentOcrVerifier
             }
 
             $response = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
-                ->timeout(20)
+                ->connectTimeout(5)
+                ->timeout(15)
                 ->attach('document', file_get_contents($localDocumentPath), basename($localDocumentPath))
                 ->attach('template', file_get_contents($localTemplatePath), basename($localTemplatePath))
                 ->post(config('services.ocr.url').'/review', ['keywords' => $keywords]);
