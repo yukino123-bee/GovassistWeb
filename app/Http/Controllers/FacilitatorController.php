@@ -747,7 +747,11 @@ class FacilitatorController extends Controller
             'review_result' => $verification['status'],
             'review_score' => $verification['score'],
             'review_note' => $documentOcrVerifier->describe($verification),
-            'status' => $verification['status'] === 'verified' ? 'approved' : $item->status,
+            'status' => match ($verification['status']) {
+                'verified' => 'approved',
+                'mismatch' => 'rejected',
+                default => $item->status,
+            },
         ]);
 
         return match ($verification['status']) {

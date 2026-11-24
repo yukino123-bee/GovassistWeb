@@ -362,10 +362,20 @@ class ResidentController extends Controller
                         $template->name_en ?: $template->name_ceb,
                     );
 
-                    if ($verification['status'] === 'mismatch') {
+                    $isWrongDocument = $verification['status'] === 'mismatch'
+                        || ($verification['status'] === 'review'
+                            && $verification['method'] !== 'verification_error'
+                            && empty($verification['found'])
+                            && $verification['score'] < 0.3);
+
+                    if ($isWrongDocument) {
                         Storage::disk($disk)->delete($path);
 
-                        return back()->with('error', $verification['message']);
+                        $errorMessage = $verification['status'] === 'mismatch' && ! empty($verification['message'])
+                            ? $verification['message']
+                            : 'The uploaded document does not match the required document ('.$requirement->name_en.'). Please upload a clear copy of the correct document.';
+
+                        return back()->with('error', $errorMessage);
                     }
 
                     $status = $verification['status'] === 'verified' ? 'approved' : 'pending';

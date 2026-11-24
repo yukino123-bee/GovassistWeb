@@ -629,6 +629,60 @@ test('document template verification rejects a mismatched upload', function () {
     expect(Storage::disk('public')->allFiles('documents'))->toBeEmpty();
 });
 
+test('document template verification declines an unreadable or non-matching upload with zero matched keywords', function () {
+    Storage::fake('public');
+    config(['filesystems.default' => 'public']);
+    Http::fake([
+        '*' => Http::response([
+            'status' => 'review',
+            'match' => false,
+            'score' => 0.0,
+            'method' => 'tesseract',
+            'found' => [],
+            'missing' => ['certificate of enrollment'],
+            'issues' => [],
+            'message' => 'We could not read any text on the document. A facilitator will check it; a clearer copy helps.',
+        ]),
+    ]);
+
+    $resident = User::factory()->create(['role' => 'resident']);
+    $category = ServiceCategory::create(['category_name' => 'Category']);
+    $service = GovernmentService::create([
+        'category_id' => $category->id,
+        'service_name' => 'Education Assistance',
+        'description' => 'Test',
+        'procedure' => 'Test',
+    ]);
+    $requirement = ServiceRequirement::create([
+        'service_id' => $service->id,
+        'requirement_text' => ['en' => 'Certificate of Enrollment'],
+        'is_required' => true,
+    ]);
+
+    Storage::disk('public')->put('templates/coe.jpg', 'template');
+    DocumentTemplate::create([
+        'service_id' => $service->id,
+        'requirement_id' => $requirement->id,
+        'name_en' => 'Certificate of Enrollment',
+        'name_ceb' => 'Certificate of Enrollment',
+        'file_path' => 'templates/coe.jpg',
+    ]);
+
+    makeEligibleFor($resident, $service);
+
+    $response = $this->actingAs($resident)->post(route('resident.eligibility.upload', [
+        $service->id,
+        $requirement->id,
+    ]), [
+        'document' => UploadedFile::fake()->image('wrong-photo.jpg'),
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('error', 'The uploaded document does not match the required document (Certificate of Enrollment). Please upload a clear copy of the correct document.');
+    expect(UserChecklistItem::query()->where('requirement_id', $requirement->id)->exists())->toBeFalse();
+    expect(Storage::disk('public')->allFiles('documents'))->toBeEmpty();
+});
+
 test('facilitator layout loads notifications correctly', function () {
     $admin = User::factory()->create(['role' => 'facilitator']);
     $resident = User::factory()->create(['role' => 'resident']);

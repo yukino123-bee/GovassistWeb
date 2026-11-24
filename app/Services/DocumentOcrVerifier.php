@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use ReflectionProperty;
 use Throwable;
 
 class DocumentOcrVerifier
@@ -33,6 +36,13 @@ class DocumentOcrVerifier
                 return $this->result('verified', 'Document verified successfully.', 'exact_file_match', 1.0);
             }
 
+            if ($this->canRunLocalOcr()) {
+                $localReview = $this->runLocalOcr($localDocumentPath, $localTemplatePath, $keywords);
+                if (is_array($localReview) && isset($localReview['status'])) {
+                    return $this->formatReview($localReview);
+                }
+            }
+
             $response = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
                 ->connectTimeout(5)
                 ->timeout(15)
@@ -51,17 +61,7 @@ class DocumentOcrVerifier
                 return $this->result('review', 'The document could not be checked automatically. A facilitator will review it.', 'verification_error', 0.0);
             }
 
-            return [
-                'status' => in_array($review['status'], ['verified', 'review', 'mismatch'], true) ? $review['status'] : 'review',
-                'matched' => $review['status'] === 'verified',
-                'message' => (string) ($review['message'] ?? ''),
-                'method' => (string) ($review['method'] ?? 'unknown'),
-                'score' => (float) ($review['score'] ?? 0),
-                'confidence' => isset($review['confidence']) ? (float) $review['confidence'] : null,
-                'found' => array_values($review['found'] ?? []),
-                'missing' => array_values($review['missing'] ?? []),
-                'issues' => array_values($review['issues'] ?? []),
-            ];
+            return $this->formatReview($review);
         } catch (Throwable $exception) {
             Log::warning('Document OCR check failed: '.$exception->getMessage());
 
@@ -175,5 +175,61 @@ class DocumentOcrVerifier
         return is_string($documentHash)
             && is_string($templateHash)
             && hash_equals($documentHash, $templateHash);
+    }
+
+    /**
+     * @param  array<string, mixed>  $review
+     * @return array{status: string, matched: bool, message: string, method: string, score: float, confidence: float|null, found: array<int, string>, missing: array<int, string>, issues: array<int, string>}
+     */
+    private function formatReview(array $review): array
+    {
+        return [
+            'status' => in_array($review['status'], ['verified', 'review', 'mismatch'], true) ? $review['status'] : 'review',
+            'matched' => $review['status'] === 'verified',
+            'message' => (string) ($review['message'] ?? ''),
+            'method' => (string) ($review['method'] ?? 'unknown'),
+            'score' => (float) ($review['score'] ?? 0),
+            'confidence' => isset($review['confidence']) ? (float) $review['confidence'] : null,
+            'found' => array_values($review['found'] ?? []),
+            'missing' => array_values($review['missing'] ?? []),
+            'issues' => array_values($review['issues'] ?? []),
+        ];
+    }
+
+    private function canRunLocalOcr(): bool
+    {
+        $factory = Http::getFacadeRoot();
+        if ($factory instanceof HttpFactory) {
+            $recording = (new ReflectionProperty(HttpFactory::class, 'recording'))->getValue($factory);
+            if ($recording) {
+                return false;
+            }
+        }
+
+        return is_file(base_path('scripts/document_review.py'))
+            && trim((string) shell_exec('command -v tesseract')) !== '';
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function runLocalOcr(string $localDocumentPath, string $localTemplatePath, string $keywords): ?array
+    {
+        $result = Process::timeout(15)->run([
+            'python3',
+            base_path('scripts/document_review.py'),
+            'review',
+            $localDocumentPath,
+            $localTemplatePath,
+            $keywords,
+        ]);
+
+        if ($result->failed()) {
+            return null;
+        }
+
+        $decoded = json_decode($result->output(), true);
+
+        return is_array($decoded) ? $decoded : null;
     }
 }
