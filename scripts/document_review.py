@@ -236,7 +236,7 @@ def run_tesseract(image_path):
     try:
         result = subprocess.run(
             ["tesseract", image_path, "stdout", "-l", tesseract_language(), "--psm", "6", "tsv"],
-            capture_output=True, text=True, timeout=90,
+            capture_output=True, text=True, timeout=15,
         )
     except Exception:
         return None
@@ -328,11 +328,11 @@ def estimate_skew(gray, cv2, np):
 def prepare_variants(gray, cv2, np):
     height, width = gray.shape
     longest = max(height, width)
-    if longest < 1600:
-        factor = 2000.0 / longest
+    if longest < 1200:
+        factor = 1400.0 / longest
         gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
-    elif longest > 3600:
-        factor = 3000.0 / longest
+    elif longest > 1800:
+        factor = 1800.0 / longest
         gray = cv2.resize(gray, None, fx=factor, fy=factor, interpolation=cv2.INTER_AREA)
 
     angle = estimate_skew(gray, cv2, np)
@@ -385,18 +385,34 @@ def extract_image(path):
     engine_name = "rapidocr" if rapid else "tesseract"
     read = (lambda file_path: run_rapidocr(rapid, file_path)) if rapid else run_tesseract
 
+    height, width = gray.shape
+    longest = max(height, width)
+    if longest > 1800:
+        scale = 1800.0 / longest
+        gray = cv2.resize(gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+
     best = None
     with tempfile.TemporaryDirectory(prefix="govassist-ocr-") as directory:
-        for rotation in (0, 1, 2, 3):
-            oriented = np.rot90(gray, rotation).copy() if rotation else gray
-            for index, variant in enumerate(prepare_variants(oriented, cv2, np)):
-                file_path = os.path.join(directory, f"r{rotation}v{index}.png")
-                cv2.imwrite(file_path, variant)
-                result = read(file_path)
-                if result and (best is None or score_ocr(result) > score_ocr(best)):
-                    best = result
+        for index, variant in enumerate(prepare_variants(gray, cv2, np)):
+            file_path = os.path.join(directory, f"r0v{index}.png")
+            cv2.imwrite(file_path, variant)
+            result = read(file_path)
+            if result and (best is None or score_ocr(result) > score_ocr(best)):
+                best = result
             if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
                 break
+
+        if not best or best[2] < 3:
+            for rotation in (1, 2, 3):
+                oriented = np.rot90(gray, rotation).copy()
+                for index, variant in enumerate(prepare_variants(oriented, cv2, np)):
+                    file_path = os.path.join(directory, f"r{rotation}v{index}.png")
+                    cv2.imwrite(file_path, variant)
+                    result = read(file_path)
+                    if result and (best is None or score_ocr(result) > score_ocr(best)):
+                        best = result
+                if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
+                    break
 
     if best is None:
         return {**empty, "issues": issues}

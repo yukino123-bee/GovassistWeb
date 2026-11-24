@@ -90,11 +90,39 @@
                 </h3>
             </div>
 
-            @if($categories->isEmpty())
+            @if($categories->isEmpty() && (!isset($uncategorizedServices) || $uncategorizedServices->isEmpty()))
                 <div class="p-8 text-center bg-white border border-slate-200 text-xs text-slate-400 uppercase tracking-wider font-semibold">
                     No services found matching your search criteria.
                 </div>
             @else
+                @if(isset($uncategorizedServices) && $uncategorizedServices->isNotEmpty())
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-1 {{ $uncategorizedServices->count() > 1 ? 'md:grid-cols-2' : '' }} gap-4">
+                            @foreach($uncategorizedServices as $service)
+                                @php
+                                    $trans = $service->translations->where('language_code', app()->getLocale())->first();
+                                    $serviceName = $trans ? $trans->service_name : $service->service_name;
+                                    $serviceDesc = $trans ? $trans->description : $service->description;
+                                @endphp
+                                <div class="bg-white border-l-4 border-l-red-600 border-t border-r border-b border-slate-200 p-6 flex flex-col justify-between hover:border-red-600 hover:shadow-md transition-all duration-300 shadow-sm">
+                                    <div>
+                                        <h5 class="text-sm font-extrabold text-slate-900 tracking-tight">{{ $serviceName }}</h5>
+                                        <p class="text-xs text-slate-500 mt-2.5 leading-relaxed line-clamp-3">
+                                            {{ $serviceDesc }}
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+                                        <a href="{{ route('resident.eligibility.assess', $service->id) }}" class="text-[10px] font-extrabold uppercase tracking-widest text-red-700 hover:text-red-900 flex items-center space-x-1.5 group">
+                                            <span>{{ __('messages.check_eligibility') }}</span>
+                                            <span class="inline-block transform group-hover:translate-x-1 transition-transform duration-200 text-xs font-bold">&rarr;</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 @foreach($categories as $category)
                     @if($category->governmentServices->isNotEmpty())
                         <div class="space-y-3">

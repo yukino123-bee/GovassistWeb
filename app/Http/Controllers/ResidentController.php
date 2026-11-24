@@ -39,8 +39,19 @@ class ResidentController extends Controller
                 $q->where('service_name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             }, 'governmentServices.translations'])->get();
+
+            $uncategorizedServices = GovernmentService::whereNull('category_id')
+                ->where(function ($q) use ($search) {
+                    $q->where('service_name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                })
+                ->with('translations')
+                ->get();
         } else {
             $categories = ServiceCategory::with('governmentServices.translations')->get();
+            $uncategorizedServices = GovernmentService::whereNull('category_id')
+                ->with('translations')
+                ->get();
         }
 
         $applications = $user
@@ -50,7 +61,7 @@ class ResidentController extends Controller
                 ->get()
             : collect();
 
-        return view('resident.home', compact('categories', 'applications', 'search'));
+        return view('resident.home', compact('categories', 'uncategorizedServices', 'applications', 'search'));
     }
 
     public function eligibility()

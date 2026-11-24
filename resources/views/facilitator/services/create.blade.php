@@ -27,17 +27,6 @@
         <form action="{{ route('facilitator.services.store') }}" method="POST" class="space-y-5">
             @csrf
 
-            <!-- Category Select -->
-            <div class="space-y-1.5">
-                <label for="category_id" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Category</label>
-                <select name="category_id" id="category_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:outline-none focus:border-red-600 transition-all text-xs text-slate-800 font-semibold cursor-pointer">
-                    <option value="">-- Select Category --</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->category_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
             <!-- Service Title -->
             <div class="space-y-1.5">
                 <label for="name_en" class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Service Name (English)</label>
