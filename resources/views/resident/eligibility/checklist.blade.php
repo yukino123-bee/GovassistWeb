@@ -62,11 +62,6 @@
             {{ session('success') }}
         </div>
     @endif
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border-l-2 border-rose-500 text-rose-800 text-xs font-semibold shadow-sm">
-            {{ session('error') }}
-        </div>
-    @endif
 
     <!-- Application Type Selection (for Employment Assistance only) -->
     @if(str_contains(strtolower($service->service_name), 'employment'))

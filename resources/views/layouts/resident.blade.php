@@ -130,14 +130,6 @@
                 </div>
             @endif
 
-            @if(session('error'))
-                <div class="mb-6 bg-rose-50 border-l-4 border-rose-600 p-4 shadow-sm">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 text-rose-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-xs font-bold text-rose-800">{{ session('error') }}</p>
-                    </div>
-                </div>
-            @endif
 
             @yield('content')
         </main>
@@ -200,6 +192,26 @@
         </div>
     </div>
 
+    <!-- Reusable Error Modal -->
+    <div id="error-modal" class="fixed inset-0 z-[100] {{ session('error') ? '' : 'hidden' }} flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white border-l-4 border-rose-600 max-w-sm w-full p-6 shadow-xl space-y-4 rounded-none transform transition-transform scale-95 duration-300">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                    <h4 class="text-xs font-extrabold uppercase tracking-widest text-rose-700" id="error-modal-title">Notice</h4>
+                    <p class="text-xs text-slate-700 leading-relaxed font-semibold mt-1.5" id="error-modal-message">{{ session('error') }}</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                <button type="button" id="error-modal-close" onclick="hideErrorModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] transition-colors rounded-none">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- AJAX Language Toggle & Confirmation Modal Script -->
     <script>
         let confirmCallback = null;
@@ -227,6 +239,32 @@
             document.body.classList.remove('overflow-hidden');
             confirmCallback = null;
         }
+
+        function showErrorModal(message, title = "{{ __('messages.error_notice') ?? 'Error Notice' }}") {
+            const modal = document.getElementById('error-modal');
+            const msgEl = document.getElementById('error-modal-message');
+            const titleEl = document.getElementById('error-modal-title');
+            if (!modal || !msgEl || !titleEl) return;
+            
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function hideErrorModal() {
+            const modal = document.getElementById('error-modal');
+            if (!modal) return;
+            
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        @if(session('error'))
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('overflow-hidden');
+        });
+        @endif
 
         function confirmLanguage(lang, elementId = null) {
             if (lang === "{{ app()->getLocale() }}") return;
