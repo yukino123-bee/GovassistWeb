@@ -339,76 +339,82 @@ class ResidentController extends Controller
             return back()->with('error', __('messages.flash_submitted_locked'));
         }
 
-        if ($file = $request->file('document')) {
-            $disk = config('filesystems.default');
-            $folderName = Str::slug($service->name);
-            $path = $file->store('documents/'.$folderName, $disk);
+        try {
+            if ($file = $request->file('document')) {
+                $disk = config('filesystems.default');
+                $folderName = Str::slug($service->name);
+                $path = $file->store('documents/'.$folderName, $disk);
 
-            $template = DocumentTemplate::query()
-                ->where('service_id', $service->id)
-                ->where('requirement_id', $requirement->id)
-                ->first();
+                $template = DocumentTemplate::query()
+                    ->where('service_id', $service->id)
+                    ->where('requirement_id', $requirement->id)
+                    ->first();
 
-            $status = 'pending';
-            $review = ['review_result' => null, 'review_score' => null, 'review_note' => null];
+                $status = 'pending';
+                $review = ['review_result' => null, 'review_score' => null, 'review_note' => null];
 
-            if ($template) {
-                $verification = $documentOcrVerifier->verify(
-                    $disk,
-                    $path,
-                    $template->file_path,
-                    $template->name_en ?: $template->name_ceb,
-                );
+                if ($template) {
+                    $verification = $documentOcrVerifier->verify(
+                        $disk,
+                        $path,
+                        $template->file_path,
+                        $template->name_en ?: $template->name_ceb,
+                    );
 
-                if ($verification['status'] === 'mismatch') {
-                    Storage::disk($disk)->delete($path);
+                    if ($verification['status'] === 'mismatch') {
+                        Storage::disk($disk)->delete($path);
 
-                    return back()->with('error', $verification['message']);
+                        return back()->with('error', $verification['message']);
+                    }
+
+                    $status = $verification['status'] === 'verified' ? 'approved' : 'pending';
+                    $review = [
+                        'review_result' => $verification['status'],
+                        'review_score' => $verification['score'],
+                        'review_note' => $documentOcrVerifier->describe($verification),
+                    ];
                 }
 
-                $status = $verification['status'] === 'verified' ? 'approved' : 'pending';
-                $review = [
-                    'review_result' => $verification['status'],
-                    'review_score' => $verification['score'],
-                    'review_note' => $documentOcrVerifier->describe($verification),
-                ];
+                $checklist = UserChecklist::firstOrCreate([
+                    'user_id' => Auth::id(),
+                    'service_id' => $service->id,
+                ], [
+                    'status' => 'draft',
+                ]);
+
+                $existingChecklistItem = UserChecklistItem::query()
+                    ->where('checklist_id', $checklist->id)
+                    ->where('requirement_id', $requirement->id)
+                    ->first();
+
+                UserChecklistItem::updateOrCreate([
+                    'checklist_id' => $checklist->id,
+                    'requirement_id' => $requirement->id,
+                ], [
+                    'is_submitted' => true,
+                    'file_path' => $path,
+                    'submitted_at' => now(),
+                    'status' => $status,
+                    ...$review,
+                ]);
+
+                if ($existingChecklistItem?->file_path && $existingChecklistItem->file_path !== $path) {
+                    Storage::disk($disk)->delete($existingChecklistItem->file_path);
+                }
             }
 
-            $checklist = UserChecklist::firstOrCreate([
-                'user_id' => Auth::id(),
-                'service_id' => $service->id,
-            ], [
-                'status' => 'draft',
-            ]);
-
-            $existingChecklistItem = UserChecklistItem::query()
-                ->where('checklist_id', $checklist->id)
-                ->where('requirement_id', $requirement->id)
-                ->first();
-
-            UserChecklistItem::updateOrCreate([
-                'checklist_id' => $checklist->id,
-                'requirement_id' => $requirement->id,
-            ], [
-                'is_submitted' => true,
-                'file_path' => $path,
-                'submitted_at' => now(),
-                'status' => $status,
-                ...$review,
-            ]);
-
-            if ($existingChecklistItem?->file_path && $existingChecklistItem->file_path !== $path) {
-                Storage::disk($disk)->delete($existingChecklistItem->file_path);
+            if ($template && $review['review_result'] === 'verified') {
+                return back()->with('success', __('messages.flash_doc_verified'));
             }
+
+            $qualityTips = $template && ! empty($verification['issues']) ? ' '.implode(' ', $verification['issues']) : '';
+
+            return back()->with('success', __('messages.flash_doc_pending').$qualityTips);
+        } catch (\Throwable $e) {
+            Log::error('Document upload error: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Unable to process your document upload at this time. Please try again.');
         }
-
-        if ($template && $review['review_result'] === 'verified') {
-            return back()->with('success', __('messages.flash_doc_verified'));
-        }
-
-        $qualityTips = $template && $verification['issues'] ? ' '.implode(' ', $verification['issues']) : '';
-
-        return back()->with('success', __('messages.flash_doc_pending').$qualityTips);
     }
 
     public function apply(GovernmentService $service)
@@ -883,7 +889,7 @@ class ResidentController extends Controller
             stream_copy_to_stream($source, $destination);
             fclose($destination);
 
-            $result = Process::timeout(120)->run([
+            $result = Process::timeout(15)->run([
                 'python3',
                 base_path('scripts/verify_id.py'),
                 $localPath,
