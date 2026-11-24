@@ -29,10 +29,13 @@ class DocumentOcrVerifier
             $localDocumentPath = $this->copyToTemporaryFile($disk, $documentPath);
             $temporaryPaths[] = $localDocumentPath;
 
-            $localTemplatePath = $this->copyToTemporaryFile($disk, $templatePath);
-            $temporaryPaths[] = $localTemplatePath;
+            $localTemplatePath = null;
+            if ($templatePath !== '' && Storage::disk($disk)->exists($templatePath)) {
+                $localTemplatePath = $this->copyToTemporaryFile($disk, $templatePath);
+                $temporaryPaths[] = $localTemplatePath;
+            }
 
-            if ($this->filesAreIdentical($localDocumentPath, $localTemplatePath)) {
+            if ($localTemplatePath !== null && $this->filesAreIdentical($localDocumentPath, $localTemplatePath)) {
                 return $this->result('verified', 'Document verified successfully.', 'exact_file_match', 1.0);
             }
 
@@ -43,12 +46,16 @@ class DocumentOcrVerifier
                 }
             }
 
-            $response = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
-                ->connectTimeout(5)
-                ->timeout(15)
-                ->attach('document', file_get_contents($localDocumentPath), basename($localDocumentPath))
-                ->attach('template', file_get_contents($localTemplatePath), basename($localTemplatePath))
-                ->post(config('services.ocr.url').'/review', ['keywords' => $keywords]);
+            $request = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
+                ->connectTimeout(10)
+                ->timeout(25)
+                ->attach('document', file_get_contents($localDocumentPath), basename($localDocumentPath));
+
+            if ($localTemplatePath !== null) {
+                $request = $request->attach('template', file_get_contents($localTemplatePath), basename($localTemplatePath));
+            }
+
+            $response = $request->post(config('services.ocr.url').'/review', ['keywords' => $keywords]);
 
             $review = $response->json();
 
@@ -213,14 +220,14 @@ class DocumentOcrVerifier
     /**
      * @return array<string, mixed>|null
      */
-    private function runLocalOcr(string $localDocumentPath, string $localTemplatePath, string $keywords): ?array
+    private function runLocalOcr(string $localDocumentPath, ?string $localTemplatePath, string $keywords): ?array
     {
         $result = Process::timeout(15)->run([
             'python3',
             base_path('scripts/document_review.py'),
             'review',
             $localDocumentPath,
-            $localTemplatePath,
+            $localTemplatePath ?? '',
             $keywords,
         ]);
 
