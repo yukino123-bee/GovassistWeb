@@ -220,10 +220,17 @@ _tesseract_languages = None
 
 
 def tesseract_language():
+    if OCR_LANGUAGE == "eng":
+        return "eng"
+
     global _tesseract_languages
     if _tesseract_languages is None:
         try:
-            output = subprocess.run(["tesseract", "--list-langs"], capture_output=True, text=True, timeout=15)
+            output = subprocess.run(
+                ["tesseract", "--list-langs"],
+                capture_output=True, text=True, timeout=10,
+                env={**os.environ, "OMP_THREAD_LIMIT": "1"},
+            )
             _tesseract_languages = set(output.stdout.split()[1:]) | set(output.stderr.split())
         except Exception:
             _tesseract_languages = set()
@@ -238,7 +245,8 @@ def run_tesseract(image_path):
     try:
         result = subprocess.run(
             ["tesseract", image_path, "stdout", "-l", tesseract_language(), "--psm", "6", "tsv"],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, text=True, timeout=10,
+            env={**os.environ, "OMP_THREAD_LIMIT": "1"},
         )
     except Exception:
         return None
@@ -404,27 +412,16 @@ def extract_image(path):
         if result:
             best = result
 
+        # Fallback: single adaptive-threshold binary pass only if fast pass wasn't confident
         if not (best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS):
-            for index, variant in enumerate(prepare_variants(gray, cv2, np)):
-                file_path = os.path.join(directory, f"r0v{index}.png")
-                cv2.imwrite(file_path, variant)
-                result = read(file_path)
-                if result and (best is None or score_ocr(result) > score_ocr(best)):
-                    best = result
-                if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
-                    break
-
-        if not best or best[2] < 3:
-            for rotation in (1, 3):
-                oriented = np.rot90(gray, rotation).copy()
-                rot_enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(oriented)
-                file_path = os.path.join(directory, f"r{rotation}.png")
-                cv2.imwrite(file_path, rot_enhanced)
-                result = read(file_path)
-                if result and (best is None or score_ocr(result) > score_ocr(best)):
-                    best = result
-                if best and best[1] >= MIN_CONFIDENT_OCR and best[2] >= MIN_READABLE_WORDS:
-                    break
+            binary = cv2.adaptiveThreshold(
+                cv2.medianBlur(fast_enhanced, 3), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 15
+            )
+            bin_path = os.path.join(directory, "bin.png")
+            cv2.imwrite(bin_path, binary)
+            result = read(bin_path)
+            if result and (best is None or score_ocr(result) > score_ocr(best)):
+                best = result
 
     if best is None:
         return {**empty, "issues": issues}
