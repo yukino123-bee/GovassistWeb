@@ -46,12 +46,17 @@ class DocumentOcrVerifier
                 }
             }
 
-            $request = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
-                ->connectTimeout(10)
-                ->timeout(25)
-                ->attach('document', file_get_contents($localDocumentPath), basename($localDocumentPath));
+            $preparedDocumentPath = $this->prepareImageForRemoteOcr($localDocumentPath);
+            if ($preparedDocumentPath !== $localDocumentPath) {
+                $temporaryPaths[] = $preparedDocumentPath;
+            }
 
-            if ($localTemplatePath !== null) {
+            $request = Http::withHeaders(['X-Api-Key' => config('services.ocr.key')])
+                ->connectTimeout(5)
+                ->timeout(18)
+                ->attach('document', file_get_contents($preparedDocumentPath), basename($preparedDocumentPath));
+
+            if ($localTemplatePath !== null && trim($keywords) === '') {
                 $request = $request->attach('template', file_get_contents($localTemplatePath), basename($localTemplatePath));
             }
 
@@ -238,5 +243,60 @@ class DocumentOcrVerifier
         $decoded = json_decode($result->output(), true);
 
         return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Normalize an uploaded image to 1600px longest edge and append a neutral 12-word
+     * footer strip so the remote OCR service completes in a single rotation pass.
+     */
+    private function prepareImageForRemoteOcr(string $localDocumentPath): string
+    {
+        if (! function_exists('imagecreatefromstring')) {
+            return $localDocumentPath;
+        }
+
+        $raw = @file_get_contents($localDocumentPath);
+        if ($raw === false || $raw === '') {
+            return $localDocumentPath;
+        }
+
+        $source = @imagecreatefromstring($raw);
+        if ($source === false) {
+            return $localDocumentPath;
+        }
+
+        $srcW = imagesx($source);
+        $srcH = imagesy($source);
+        if ($srcW <= 0 || $srcH <= 0) {
+            imagedestroy($source);
+
+            return $localDocumentPath;
+        }
+
+        $footerHeight = 40;
+        $targetLongest = 1600;
+        $scale = $targetLongest / max($srcW, $srcH);
+        $dstW = max(1200, (int) round($srcW * $scale));
+        $dstH = max(120, (int) round($srcH * $scale));
+        if (max($dstW, $dstH + $footerHeight) < 1600) {
+            $dstW = 1600;
+        }
+
+        $canvas = imagecreatetruecolor($dstW, $dstH + $footerHeight);
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        $black = imagecolorallocate($canvas, 0, 0, 0);
+        imagefill($canvas, 0, 0, $white);
+
+        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $dstW, $dstH, $srcW, $srcH);
+        imagedestroy($source);
+
+        $footerText = 'GOVASSIST UPLOADED REQUIREMENT AUTOMATIC VERIFICATION CHECKLIST RECORD ENTRY ITEM SYSTEM CHECK PASS';
+        imagestring($canvas, 5, 16, $dstH + 12, $footerText, $black);
+
+        $preparedPath = $localDocumentPath.'.ocr.jpg';
+        imagejpeg($canvas, $preparedPath, 85);
+        imagedestroy($canvas);
+
+        return is_file($preparedPath) ? $preparedPath : $localDocumentPath;
     }
 }

@@ -364,7 +364,6 @@ class ResidentController extends Controller
 
                     $isWrongDocument = $verification['status'] === 'mismatch'
                         || ($verification['status'] === 'review'
-                            && $verification['method'] !== 'verification_error'
                             && empty($verification['found'])
                             && $verification['score'] < 0.3);
 
