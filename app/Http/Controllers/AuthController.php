@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VerifyOtpEmail;
 use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Auth\Events\PasswordReset;
@@ -12,11 +13,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -81,10 +85,14 @@ class AuthController extends Controller
             return $this->sendPasswordResetCode($contactNumber);
         }
 
-        $request->merge(['email' => $identifier]);
+        $request->merge(['email' => strtolower($identifier)]);
         $request->validate([
             'email' => ['required', 'email'],
         ]);
+
+        if ($request->filled('login')) {
+            return $this->sendPasswordResetCodeByEmail($request->input('email'));
+        }
 
         $status = Password::sendResetLink($request->only('email'));
 
@@ -100,19 +108,56 @@ class AuthController extends Controller
         $user = User::where('contact_number', $contactNumber)->first();
 
         if ($user !== null) {
-            $code = (string) random_int(100000, 999999);
-            Cache::put('password_reset_code_'.$user->id, Hash::make($code), now()->addMinutes(15));
-            Cache::forget('password_reset_attempts_'.$user->id);
-
-            app(SmsService::class)->send(
-                $contactNumber,
-                "SSFO GovAssist: Your password reset code is {$code}. Valid for 15 minutes. Do not share this code."
-            );
+            $this->dispatchPasswordResetOtp($user, $contactNumber);
         }
 
         return redirect()->route('password.code')
             ->with('reset_contact_number', $contactNumber)
             ->with('status', __('messages.password_reset_code_sent'));
+    }
+
+    protected function sendPasswordResetCodeByEmail(string $email): RedirectResponse
+    {
+        $user = User::where('email', $email)->first();
+
+        if ($user !== null) {
+            $this->dispatchPasswordResetOtp($user, $user->contact_number);
+        }
+
+        return redirect()->route('password.code')
+            ->with('reset_contact_number', $email)
+            ->with('status', __('messages.password_reset_code_sent'));
+    }
+
+    protected function dispatchPasswordResetOtp(User $user, ?string $contactNumber = null): void
+    {
+        $code = (string) random_int(100000, 999999);
+        Cache::put('password_reset_code_'.$user->id, Hash::make($code), now()->addMinutes(15));
+        Cache::forget('password_reset_attempts_'.$user->id);
+
+        $phone = $contactNumber ?: $user->contact_number;
+        if (! empty($phone)) {
+            try {
+                app(SmsService::class)->send(
+                    $phone,
+                    "SSFO GovAssist: Your password reset code is {$code}. Valid for 15 minutes. Do not share this code."
+                );
+            } catch (Throwable $e) {
+                Log::error('Password reset SMS OTP dispatch error to '.$phone.': '.$e->getMessage());
+            }
+        }
+
+        if (! empty($user->email)) {
+            try {
+                Mail::to($user->email)->send(new VerifyOtpEmail(
+                    $code,
+                    'Password Reset OTP Code',
+                    'You requested to reset your password. Please use the following One-Time Password (OTP) to verify your account and set a new password.',
+                ));
+            } catch (Throwable $e) {
+                Log::error('Password reset Email OTP dispatch error to '.$user->email.': '.$e->getMessage());
+            }
+        }
     }
 
     public function showResetPasswordCode(Request $request): View
@@ -124,14 +169,19 @@ class AuthController extends Controller
 
     public function resetPasswordWithCode(Request $request): RedirectResponse
     {
+        $rawIdentifier = trim((string) $request->input('contact_number'));
+        $normalizedPhone = User::normalizeContactNumber($rawIdentifier);
+        $isEmail = $normalizedPhone === null && filter_var($rawIdentifier, FILTER_VALIDATE_EMAIL) !== false;
+
         $request->merge([
-            'contact_number' => User::normalizeContactNumber((string) $request->input('contact_number'))
-                ?? $request->input('contact_number'),
+            'contact_number' => $normalizedPhone ?? ($isEmail ? strtolower($rawIdentifier) : $rawIdentifier),
             'code' => preg_replace('/\s+/', '', (string) $request->input('code')),
         ]);
 
         $validated = $request->validate([
-            'contact_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
+            'contact_number' => $isEmail
+                ? ['required', 'string', 'email']
+                : ['required', 'string', 'regex:/^09[0-9]{9}$/'],
             'code' => ['required', 'string', 'size:6'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -141,7 +191,9 @@ class AuthController extends Controller
             ->withInput($request->only('contact_number'))
             ->with('reset_contact_number', $validated['contact_number']);
 
-        $user = User::where('contact_number', $validated['contact_number'])->first();
+        $user = $isEmail
+            ? User::where('email', $validated['contact_number'])->first()
+            : User::where('contact_number', $validated['contact_number'])->first();
         $hashedCode = $user ? Cache::get('password_reset_code_'.$user->id) : null;
 
         if ($user === null || ! is_string($hashedCode)) {

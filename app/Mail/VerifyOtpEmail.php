@@ -15,12 +15,21 @@ class VerifyOtpEmail extends Mailable
 
     public string $otpCode;
 
+    public string $subjectLine;
+
+    public string $introText;
+
     /**
      * Create a new message instance.
      */
-    public function __construct(string $otpCode)
-    {
+    public function __construct(
+        string $otpCode,
+        string $subjectLine = 'Verify Your Email Address',
+        string $introText = 'Thank you for registering. Please use the following One-Time Password (OTP) to verify your email address.',
+    ) {
         $this->otpCode = $otpCode;
+        $this->subjectLine = $subjectLine;
+        $this->introText = $introText;
     }
 
     /**
@@ -29,7 +38,7 @@ class VerifyOtpEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Verify Your Email Address',
+            subject: $this->subjectLine,
         );
     }
 

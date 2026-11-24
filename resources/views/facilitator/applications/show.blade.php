@@ -288,26 +288,50 @@
 
 <!-- Document Webview Modal -->
 <div id="document-webview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 p-4">
-    <div class="bg-white rounded-lg border border-slate-200 max-w-4xl w-full h-[85vh] p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-        <!-- Close Button -->
-        <button type="button" onclick="closeDocumentWebview()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-        
-        <div class="border-b border-slate-200 pb-3 mb-4 flex items-center space-x-2">
-            <span class="w-2.5 h-2.5 bg-red-700 block"></span>
-            <h3 id="modal-document-title" class="text-xs font-bold uppercase tracking-wider text-slate-800">
-                Document Preview
-            </h3>
+    <div class="bg-white rounded-lg border border-slate-200 max-w-5xl w-full h-[88vh] p-5 sm:p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+        <!-- Header & Zoom Toolbar -->
+        <div class="border-b border-slate-200 pb-3 mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-2 min-w-0">
+                <span class="w-2.5 h-2.5 bg-red-700 block shrink-0"></span>
+                <h3 id="modal-document-title" class="text-xs font-bold uppercase tracking-wider text-slate-800 truncate">
+                    Document Preview
+                </h3>
+            </div>
+
+            <div class="flex items-center space-x-1.5">
+                <button type="button" onclick="adjustPreviewZoom(-0.25)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-xs font-extrabold transition-colors" title="Zoom Out (-)">
+                    &minus;
+                </button>
+                <span id="modal-zoom-level" class="min-w-[52px] text-center text-[11px] font-extrabold text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
+                    100%
+                </span>
+                <button type="button" onclick="adjustPreviewZoom(0.25)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-xs font-extrabold transition-colors" title="Zoom In (+)">
+                    &#43;
+                </button>
+                <button type="button" onclick="resetPreviewZoom()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[10px] font-extrabold uppercase tracking-wider transition-colors" title="Reset Zoom">
+                    Fit
+                </button>
+                <button type="button" onclick="rotatePreviewImage()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[10px] font-extrabold uppercase tracking-wider transition-colors" title="Rotate 90°">
+                    Rotate
+                </button>
+                <button type="button" onclick="closeDocumentWebview()" class="ml-2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none" title="Close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
-        <div class="flex-grow bg-slate-100 border border-slate-200 rounded-md relative overflow-hidden">
-            <iframe id="modal-document-iframe" src="" class="w-full h-full border-none"></iframe>
+        <!-- Zoomable Viewport -->
+        <div id="modal-document-viewport" class="flex-grow bg-slate-900/5 border border-slate-200 rounded-md relative overflow-auto flex select-none cursor-grab active:cursor-grabbing">
+            <div id="modal-image-wrapper" class="m-auto p-4 flex items-center justify-center">
+                <img id="modal-document-image" src="" alt="Document Preview" class="max-w-full max-h-[68vh] object-contain shadow-md bg-white rounded-xs transition-[width,transform] duration-100 ease-out" draggable="false" />
+            </div>
+            <iframe id="modal-document-iframe" src="" class="w-full h-full border-none hidden"></iframe>
         </div>
-        
-        <div class="mt-4 flex justify-end">
+
+        <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Tip: Scroll wheel or double-click to zoom &bull; Drag to pan when zoomed in</span>
             <button type="button" onclick="closeDocumentWebview()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold uppercase tracking-wider rounded-md shadow-xs transition-colors">
                 Close Preview
             </button>
@@ -345,28 +369,156 @@
         });
     })();
 
+    let previewZoom = 1;
+    let previewRotation = 0;
+    let previewBaseWidth = 0;
+    let isPanningPreview = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panScrollLeft = 0;
+    let panScrollTop = 0;
+
+    function computeBaseFitWidth() {
+        const img = document.getElementById('modal-document-image');
+        const viewport = document.getElementById('modal-document-viewport');
+        if (!img || !viewport || !img.naturalWidth || !img.naturalHeight) return 0;
+
+        const availW = Math.max(200, viewport.clientWidth - 32);
+        const availH = Math.max(200, viewport.clientHeight - 32);
+        const scale = Math.min(availW / img.naturalWidth, availH / img.naturalHeight, 1);
+        return Math.round(img.naturalWidth * scale);
+    }
+
+    function updatePreviewTransform() {
+        const img = document.getElementById('modal-document-image');
+        const label = document.getElementById('modal-zoom-level');
+        if (!img || !label) return;
+
+        if (!previewBaseWidth) {
+            previewBaseWidth = computeBaseFitWidth() || img.clientWidth || 600;
+        }
+
+        if (previewZoom === 1) {
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '68vh';
+            img.style.width = previewBaseWidth ? previewBaseWidth + 'px' : 'auto';
+        } else {
+            img.style.maxWidth = 'none';
+            img.style.maxHeight = 'none';
+            img.style.width = Math.round(previewBaseWidth * previewZoom) + 'px';
+        }
+
+        img.style.transform = `rotate(${previewRotation}deg)`;
+        label.textContent = Math.round(previewZoom * 100) + '%';
+    }
+
+    function adjustPreviewZoom(delta) {
+        previewZoom = Math.min(4, Math.max(0.5, Math.round((previewZoom + delta) * 100) / 100));
+        updatePreviewTransform();
+    }
+
+    function resetPreviewZoom() {
+        previewZoom = 1;
+        previewRotation = 0;
+        previewBaseWidth = computeBaseFitWidth();
+        updatePreviewTransform();
+        const viewport = document.getElementById('modal-document-viewport');
+        if (viewport) {
+            viewport.scrollTop = 0;
+            viewport.scrollLeft = 0;
+        }
+    }
+
+    function rotatePreviewImage() {
+        previewRotation = (previewRotation + 90) % 360;
+        updatePreviewTransform();
+    }
+
     function openDocumentWebview(fileUrl, title) {
         const modal = document.getElementById('document-webview-modal');
+        const img = document.getElementById('modal-document-image');
+        const wrapper = document.getElementById('modal-image-wrapper');
         const iframe = document.getElementById('modal-document-iframe');
         const titleElem = document.getElementById('modal-document-title');
-        
-        if (modal && iframe && titleElem) {
+
+        if (modal && img && wrapper && iframe && titleElem) {
             titleElem.innerText = title;
-            iframe.src = fileUrl;
+            previewBaseWidth = 0;
+            previewZoom = 1;
+            previewRotation = 0;
+
+            img.classList.remove('hidden');
+            wrapper.classList.remove('hidden');
+            iframe.classList.add('hidden');
+            iframe.src = '';
+
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
+
+            img.onload = function () {
+                previewBaseWidth = computeBaseFitWidth();
+                resetPreviewZoom();
+            };
+            img.onerror = function () {
+                img.classList.add('hidden');
+                wrapper.classList.add('hidden');
+                iframe.classList.remove('hidden');
+                iframe.src = fileUrl;
+            };
+            img.src = fileUrl;
         }
     }
 
     function closeDocumentWebview() {
         const modal = document.getElementById('document-webview-modal');
+        const img = document.getElementById('modal-document-image');
         const iframe = document.getElementById('modal-document-iframe');
-        
-        if (modal && iframe) {
+
+        if (modal) {
             modal.classList.add('hidden');
-            iframe.src = '';
+            if (img) img.src = '';
+            if (iframe) iframe.src = '';
             document.body.classList.remove('overflow-hidden');
         }
     }
+
+    (function () {
+        const viewport = document.getElementById('modal-document-viewport');
+        if (!viewport) return;
+
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.2 : -0.2;
+            adjustPreviewZoom(delta);
+        }, { passive: false });
+
+        viewport.addEventListener('dblclick', () => {
+            if (previewZoom === 1) {
+                previewZoom = 2;
+                updatePreviewTransform();
+            } else {
+                resetPreviewZoom();
+            }
+        });
+
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            isPanningPreview = true;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            panScrollLeft = viewport.scrollLeft;
+            panScrollTop = viewport.scrollTop;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanningPreview) return;
+            viewport.scrollLeft = panScrollLeft - (e.clientX - panStartX);
+            viewport.scrollTop = panScrollTop - (e.clientY - panStartY);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanningPreview = false;
+        });
+    })();
 </script>
 @endsection

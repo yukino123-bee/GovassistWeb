@@ -35,8 +35,8 @@
         <form action="{{ route('password.code.update') }}" method="POST" class="space-y-5">
             @csrf
             <div class="space-y-2">
-                <label for="contact_number" class="block text-sm font-bold text-slate-700">{{ __('messages.contact_number') }}</label>
-                <input type="tel" inputmode="numeric" name="contact_number" id="contact_number" value="{{ old('contact_number', $contactNumber) }}" autocomplete="tel" required
+                <label for="contact_number" class="block text-sm font-bold text-slate-700">{{ __('messages.login_identifier') }}</label>
+                <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number', $contactNumber) }}" placeholder="{{ __('messages.login_identifier_placeholder') }}" autocomplete="username" required
                     class="w-full border border-slate-200 px-4 py-3.5 text-sm outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500">
             </div>
             <div class="space-y-2">
@@ -58,6 +58,16 @@
                 {{ __('messages.reset_password_btn') }}
             </button>
         </form>
+
+        <div class="text-center">
+            <form method="POST" action="{{ route('password.email') }}" onsubmit="document.getElementById('resend-login-input').value = document.getElementById('contact_number').value;">
+                @csrf
+                <input type="hidden" name="login" id="resend-login-input" value="{{ old('contact_number', $contactNumber) }}">
+                <button type="submit" class="text-xs text-slate-500 hover:text-red-600 font-semibold underline transition-colors">
+                    Didn't receive the code? Resend OTP
+                </button>
+            </form>
+        </div>
 
         <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 border-t border-slate-100 pt-5 text-xs font-bold text-slate-600 hover:text-red-700">
             <span aria-hidden="true">&larr;</span>

@@ -9,7 +9,7 @@
         <h2 style="color: #d5001c; margin-top: 0;">GovAssist</h2>
         <p style="color: #333333; font-size: 16px; line-height: 1.5;">Hello,</p>
         <p style="color: #333333; font-size: 16px; line-height: 1.5;">
-            Thank you for registering. Please use the following One-Time Password (OTP) to verify your email address. 
+            {{ $introText ?? 'Thank you for registering. Please use the following One-Time Password (OTP) to verify your email address.' }}
             This code will expire in 15 minutes.
         </p>
         

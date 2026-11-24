@@ -1,9 +1,12 @@
 <?php
 
+use App\Mail\VerifyOtpEmail;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
@@ -166,4 +169,45 @@ test('password reset token cannot be reused', function () {
                 && ! Hash::check('second-secure-password', $user->fresh()->password);
         },
     );
+});
+
+test('forgot password form sends a 6-digit OTP verification via email and SMS and resets the password', function () {
+    Mail::fake();
+    $user = User::factory()->create([
+        'email' => 'resident@example.com',
+        'contact_number' => '09171234567',
+    ]);
+
+    $smsCode = null;
+    $this->mock(SmsService::class)
+        ->shouldReceive('send')
+        ->once()
+        ->andReturnUsing(function (string $number, string $message) use (&$smsCode): bool {
+            preg_match('/\d{6}/', $message, $matches);
+            $smsCode = $matches[0];
+
+            return true;
+        });
+
+    $this->post(route('password.email'), ['login' => 'resident@example.com'])
+        ->assertRedirect(route('password.code'))
+        ->assertSessionHas('status', __('messages.password_reset_code_sent'));
+
+    $emailCode = null;
+    Mail::assertSent(VerifyOtpEmail::class, function (VerifyOtpEmail $mail) use ($user, &$emailCode) {
+        $emailCode = $mail->otpCode;
+
+        return $mail->hasTo($user->email) && strlen($mail->otpCode) === 6;
+    });
+
+    expect($emailCode)->toBe($smsCode);
+
+    $this->post(route('password.code.update'), [
+        'contact_number' => 'resident@example.com',
+        'code' => $emailCode,
+        'password' => 'NewOtpPassword123!',
+        'password_confirmation' => 'NewOtpPassword123!',
+    ])->assertRedirect(route('login'));
+
+    expect(Hash::check('NewOtpPassword123!', $user->fresh()->password))->toBeTrue();
 });
