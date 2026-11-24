@@ -132,7 +132,7 @@
                     </div>
                 </div>
 
-                @if($doc && $doc->is_submitted && $doc->status !== 'approved' && $doc->review_note)
+                @if($doc && $doc->is_submitted && $doc->status !== 'approved' && $doc->review_note && !str_contains($doc->review_note, 'could not be checked automatically'))
                     <p class="text-[11px] leading-relaxed {{ $doc->status === 'rejected' ? 'text-rose-700' : 'text-slate-500' }}">{{ $doc->review_note }}</p>
                 @endif
 

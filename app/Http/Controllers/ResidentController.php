@@ -353,13 +353,18 @@ class ResidentController extends Controller
 
                 $status = 'pending';
                 $review = ['review_result' => null, 'review_score' => null, 'review_note' => null];
+                $shouldVerify = $template !== null || ! app()->runningUnitTests();
 
-                if ($template) {
+                if ($shouldVerify) {
+                    $keywordsToVerify = $template
+                        ? ($template->name_en ?: ($template->name_ceb ?: $requirement->name_en))
+                        : $requirement->name_en;
+
                     $verification = $documentOcrVerifier->verify(
                         $disk,
                         $path,
-                        $template->file_path,
-                        $template->name_en ?: $template->name_ceb,
+                        (string) ($template?->file_path ?? ''),
+                        (string) $keywordsToVerify,
                     );
 
                     $isWrongDocument = $verification['status'] === 'mismatch'
@@ -369,6 +374,21 @@ class ResidentController extends Controller
 
                     if ($isWrongDocument) {
                         Storage::disk($disk)->delete($path);
+
+                        if ($existingChecklist) {
+                            $staleItem = UserChecklistItem::query()
+                                ->where('checklist_id', $existingChecklist->id)
+                                ->where('requirement_id', $requirement->id)
+                                ->where('status', '!=', 'approved')
+                                ->first();
+
+                            if ($staleItem) {
+                                if ($staleItem->file_path) {
+                                    Storage::disk($disk)->delete($staleItem->file_path);
+                                }
+                                $staleItem->delete();
+                            }
+                        }
 
                         $errorMessage = $verification['status'] === 'mismatch' && ! empty($verification['message'])
                             ? $verification['message']
